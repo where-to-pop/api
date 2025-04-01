@@ -1,7 +1,7 @@
 plugins {
 	kotlin("jvm") version "1.9.25"
 	kotlin("plugin.spring") version "1.9.25"
-	id("org.springframework.boot") version "3.4.4"
+	id("org.springframework.boot") version "3.3.6"
 	id("io.spring.dependency-management") version "1.1.7"
 }
 
@@ -35,7 +35,7 @@ dependencies {
 	annotationProcessor("org.mapstruct:mapstruct-processor:1.5.5.Final")
 	annotationProcessor("org.projectlombok:lombok-mapstruct-binding:0.2.0")
 	// Swagger
-	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.2")
+	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0")
 	// Elasticsearch
 	implementation("org.springframework.boot:spring-boot-starter-data-elasticsearch")
 	// Test

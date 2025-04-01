@@ -1,0 +1,13 @@
+spring:
+    application:
+        name: gateway
+
+springdoc:
+    default-produces-media-type: application/json
+    default-consumes-media-type: application/json
+    api-docs:
+        version: OPENAPI_3_0
+    swagger-ui:
+        path: /docs
+        tags-sorter: alpha
+        operations-sorter: alpha
