@@ -1,9 +1,9 @@
 package com.wheretopop.shared.enums
 
 enum class AgeGroup(val description: String) {
-    TEEN("10대 이하"),
-    YOUNG_ADULT("20대"),
-    ADULT("30대"),
-    MIDDLE_AGED("40대"),
-    SENIOR("50대 이상")
+    TEEN_AND_UNDER("10대 이하"),
+    TWENTIES("20대"),
+    THIRTIES("30대"),
+    FORTIES("40대"),
+    FIFTY_AND_OVER("50대 이상")
 }

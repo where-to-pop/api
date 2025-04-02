@@ -5,11 +5,11 @@ enum class PopulationDensity(
     val min: Int,
     val max: Int
 ) {
-    VERY_LOW("VERY_LOW", 0, 10_000),
-    LOW("LOW", 10_001, 20_000),
-    MEDIUM("MEDIUM", 20_001, 30_000),
-    HIGH("HIGH", 30_001, 35_000),
-    VERY_HIGH("VERY_HIGH", 35_001, Int.MAX_VALUE);
+    VERY_LOW("0~10,000", 0, 10_000),
+    LOW("10,001~20,000", 10_001, 20_000),
+    MEDIUM("20,001~30,000", 20_001, 30_000),
+    HIGH("30,001~35,000", 30_001, 35_000),
+    VERY_HIGH("35,001~", 35_001, Int.MAX_VALUE);
 
     companion object {
         fun from(value: Int): PopulationDensity =

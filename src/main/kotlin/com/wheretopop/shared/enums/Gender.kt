@@ -1,5 +1,5 @@
 package com.wheretopop.shared.enums
 
 enum class Gender(val description: String) {
-    MALE("MALE"), FEMALE("FEMALE")
+    MALE("남성"), FEMALE("여성")
 }

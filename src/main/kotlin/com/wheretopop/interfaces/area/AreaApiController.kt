@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@Tag(name = "구(AoI)", description = "구(Area)에 대한 API")
+@Tag(name = "구(Area)", description = "구(Area)에 대한 API")
 @RequestMapping("/api/v1/areas")
 class AreaApiController(
     private val areaFacade: AreaFacade,
