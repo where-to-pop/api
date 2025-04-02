@@ -9,8 +9,9 @@ object AreaDataModel {
     @Document(indexName = "area_index")
     data class SearchDocument(
         @Id
-        val areaId: Long,
-        val areaToken: String,
+        val id: Long,
+        val token: String,
+        val name: String,
         val provinceName: String,
         val cityName: String,
         val totalFloatingPopulation: Int,
@@ -20,8 +21,9 @@ object AreaDataModel {
     )
 
     fun SearchDocument.toDomain(): AreaInfo.Main = AreaInfo.Main(
-        areaId = areaId,
-        areaToken = areaToken,
+        id = id,
+        token = token,
+        name = name,
         provinceName = provinceName,
         cityName = cityName,
         totalFloatingPopulation = totalFloatingPopulation,

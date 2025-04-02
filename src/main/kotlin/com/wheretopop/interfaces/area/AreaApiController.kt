@@ -1,6 +1,6 @@
+package com.wheretopop.interfaces.area
+
 import com.wheretopop.application.area.AreaFacade
-import com.wheretopop.interfaces.area.AreaDto
-import com.wheretopop.interfaces.area.AreaDtoMapper
 import com.wheretopop.shared.response.CommonResponse
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -19,7 +19,7 @@ class AreaApiController(
 
     @GetMapping()
     @Operation(summary = "필터를 이용하여 구 정보를 조회합니다.")
-    fun searchAreas(@ParameterObject request: AreaDto.SearchRequest): CommonResponse<AreaDto.ListResponse> {
+    fun searchAreas(@ParameterObject request: AreaDto.SearchRequest): CommonResponse<List<AreaDto.AreaResponse>> {
         val criteria = areaDtoMapper.toCriteria(request)
         val domainResults = areaFacade.searchAreas(criteria)
         val response = areaDtoMapper.toAreaResponses(domainResults)

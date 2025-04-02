@@ -4,8 +4,9 @@ package com.wheretopop.domain.area
 class AreaInfo {
 
     data class Main (
-        val areaId: Long,
-        val areaToken: String,
+        val id: Long,
+        val token: String,
+        val name: String,
 
         val provinceName: String,
         val cityName: String,

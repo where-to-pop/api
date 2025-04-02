@@ -10,6 +10,6 @@ class AreaReaderImpl(
 //    private val elasticsearchAreaRepository: ElasticsearchAreaRepository
 ): AreaReader {
     override fun findAreas(criteria: AreaCriteria.SearchAreaCriteria): List<Area> {
-        TODO("Not yet implemented")
+        return AreaMockData.areaList
     }
 }

@@ -4,8 +4,9 @@ class AreaInfoMapper {
 
     fun of(domain: Area): AreaInfo.Main {
         return AreaInfo.Main(
-            areaId = domain.id,
-            areaToken = domain.areaToken,
+            id = domain.id,
+            token = domain.token,
+            name = domain.name,
             provinceName = domain.location.province,
             cityName = domain.location.city,
             totalFloatingPopulation = domain.indicators.totalFloatingPopulation,

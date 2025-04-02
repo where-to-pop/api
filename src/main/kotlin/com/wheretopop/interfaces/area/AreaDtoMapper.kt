@@ -3,7 +3,6 @@ package com.wheretopop.interfaces.area
 import com.wheretopop.domain.area.AreaCriteria
 import com.wheretopop.domain.area.AreaInfo
 import com.wheretopop.interfaces.area.AreaDto.AreaResponse
-import com.wheretopop.interfaces.area.AreaDto.ListResponse
 
 class AreaDtoMapper {
 
@@ -19,7 +18,8 @@ class AreaDtoMapper {
 
     fun toAreaResponse(info: AreaInfo.Main): AreaResponse {
         return AreaResponse(
-            areaToken = info.areaToken,
+            areaToken = info.token,
+            name = info.name,
             provinceName = info.provinceName,
             cityName = info.cityName,
             totalFloatingPopulation = info.totalFloatingPopulation,
@@ -29,8 +29,8 @@ class AreaDtoMapper {
         )
     }
 
-    fun toAreaResponses(infoList: List<AreaInfo.Main>): ListResponse {
+    fun toAreaResponses(infoList: List<AreaInfo.Main>): List<AreaResponse> {
         val results = infoList.map { toAreaResponse(it) }
-        return ListResponse(results = results, totalCount = results.size)
+        return results
     }
 }

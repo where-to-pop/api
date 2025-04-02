@@ -7,7 +7,7 @@ import java.time.LocalDate
  */
 class Area private constructor(
     val id: Long,
-    val areaToken: String,
+    val token: String,
     val name: String,
     val location: Location,
     val indicators: PopulationIndicators,
@@ -16,14 +16,14 @@ class Area private constructor(
     companion object {
         fun create(
             id: Long,
-            areaToken: String,
+            token: String,
             name: String,
             location: Location,
             indicators: PopulationIndicators,
         ): Area {
-            require(areaToken.isNotBlank()) { "areaToken은 필수입니다." }
+            require(token.isNotBlank()) { "areaToken은 필수입니다." }
             require(name.isNotBlank()) { "지역 이름은 필수입니다." }
-            return Area(id, areaToken, name, location, indicators)
+            return Area(id, token, name, location, indicators)
         }
     }
 
@@ -32,7 +32,7 @@ class Area private constructor(
     }
 
     fun markIndexed(now: LocalDate): Area {
-        return Area(id, areaToken, name, location, indicators)
+        return Area(id, token, name, location, indicators)
     }
 }
 

@@ -13,9 +13,12 @@ object AreaDto {
         @Schema(description = "area 대체키")
         val areaToken: String,
 
+        @Schema(description = "동의 이름", example = "종로1가")
+        val name: String,
+
         @Schema(description = "동이 속한 시/도의 이름", example = "서울광역시")
         val provinceName: String,
-        @Schema(description = "동이 속한 구의 이름", example = "서초구")
+        @Schema(description = "동이 속한 구의 이름", example = "종로구")
         val cityName: String,
 
         @Schema(description = "전체 유동인구 수 ")
@@ -28,6 +31,7 @@ object AreaDto {
         @Schema(description = "인구 밀집도")
         val populationDensity: Int,
     )
+
 
     @Schema(description = "Area Search Request")
     data class SearchRequest(
@@ -42,12 +46,5 @@ object AreaDto {
 
         @Schema(description = "주요 연령대")
         val dominantAgeGroup: AgeGroup? = null,
-    )
-
-
-
-    data class ListResponse(
-        val results: List<AreaResponse>,
-        val totalCount: Int
     )
 }
