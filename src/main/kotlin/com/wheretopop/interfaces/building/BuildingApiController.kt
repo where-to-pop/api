@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*
 import com.wheretopop.shared.response.ErrorCode
 @Tag(name = "빌딩(Building)", description = "빌딩(Building)에 대한 API")
 @RestController
-@RequestMapping("/api/v1/buildings")
+@RequestMapping("/v1/buildings")
 class BuildingApiController {
     // private val buildingDtoMapper = BuildingDtoMapper()
 

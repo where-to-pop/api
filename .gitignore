@@ -38,3 +38,8 @@ out/
 
 ### Kotlin ###
 .kotlin
+
+# env
+.env
+.env.dev
+.env.prod

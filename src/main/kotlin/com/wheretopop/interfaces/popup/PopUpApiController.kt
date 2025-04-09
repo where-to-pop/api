@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @Tag(name = "팝업스토어(PopUp)", description = "팝업스토어(PopUp)에 대한 API")
-@RequestMapping("/api/v1/popups")
+@RequestMapping("/v1/popups")
 class PopUpApiController{
     @GetMapping
     @Operation(summary = "필터를 이용하여 팝업스토어 정보를 조회합니다.")   

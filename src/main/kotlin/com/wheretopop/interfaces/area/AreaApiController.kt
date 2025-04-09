@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @Tag(name = "구(Area)", description = "구(Area)에 대한 API")
-@RequestMapping("/api/v1/areas")
+@RequestMapping("/v1/areas")
 class AreaApiController(
     private val areaFacade: AreaFacade,
 ) {
