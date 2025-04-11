@@ -16,8 +16,10 @@ data class VisitorResidence(
  * 방문자가 이용한 교통수단별 비율 정보를 저장
  */
 data class TransportationUsage(
-    val transportType: String,  // 교통수단 (예: "지하철", "버스", "자가용")
-    val count: Int,             // 해당 교통수단 이용자 수
-    val percentage: Double,     // 전체 방문자 중 비율 (%)
-    val averageTime: Int? = null  // 평균 이동 시간 (분)
+    val subwayUsage: Double? = null,    // 지하철 이용 비율 (%)
+    val busUsage: Double? = null,       // 버스 이용 비율 (%)
+    val taxiUsage: Double? = null,      // 택시 이용 비율 (%)
+    val personalVehicleUsage: Double? = null, // 개인차량 이용 비율 (%)
+    val walkingUsage: Double? = null,   // 도보 이용 비율 (%)
+    val peakHours: List<Int>? = null    // 교통 이용 피크 시간대 (0-23)
 ) 

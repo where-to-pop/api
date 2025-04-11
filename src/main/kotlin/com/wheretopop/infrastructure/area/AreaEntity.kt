@@ -6,6 +6,8 @@ import jakarta.persistence.*
 import org.hibernate.annotations.Comment
 import org.hibernate.annotations.JdbcTypeCode
 import org.hibernate.type.SqlTypes
+import com.wheretopop.shared.model.Location
+
 
 @Entity
 @Table(name = "areas", indexes = [Index(name = "idx_area_region_id", columnList = "region_id")])
@@ -69,24 +71,6 @@ class AreaEntity(
         }
     }
     
-    /**
-     * 도메인 모델로 변환
-     */
-    fun toDomain(): com.wheretopop.domain.area.Area {
-        val location = latitude?.let { lat ->
-            longitude?.let { lng ->
-                com.wheretopop.domain.area.Location.of(lat, lng)
-            }
-        } ?: com.wheretopop.domain.area.Location.of(0.0, 0.0)
-
-        return com.wheretopop.domain.area.Area.create(
-            id = id,
-            name = name,
-            description = description,
-            location = location,
-            regionId = regionId
-        )
-    }
     
     fun addStatistic(statistic: AreaStatisticEntity) {
         statistics.add(statistic)

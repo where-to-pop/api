@@ -15,15 +15,16 @@ import java.util.*
 @Primary
 class AreaRepositoryImpl(
     private val jpaAreaRepository: JpaAreaRepository,
-    private val elasticsearchAreaRepository: ElasticsearchAreaRepository
+    private val elasticsearchAreaRepository: ElasticsearchAreaRepository,
 ) : AreaRepository {
+    private val mapper = AreaMapper()
 
     /**
      * ID로 Area 조회 (SQL)
      */
     override fun findById(id: UniqueId): Optional<Area> {
         return jpaAreaRepository.findById(id)
-            .map { it.toDomain() }
+            .map { mapper.toDomain(it) }
     }
 
     /**
@@ -31,7 +32,7 @@ class AreaRepositoryImpl(
      */
     override fun findByName(name: String): Optional<Area> {
         return jpaAreaRepository.findByName(name)
-            .map { it.toDomain() }
+            .map { mapper.toDomain(it) }
     }
 
     /**
@@ -55,7 +56,7 @@ class AreaRepositoryImpl(
                     jpaAreaRepository.findAll()
                 }
 
-                paginateResult(result.map { it.toDomain() }, criteria.offset, criteria.limit)
+                paginateResult(result.map { mapper.toDomain(it) }, criteria.offset, criteria.limit)
             }
             is AreaCriteria.DemographicCriteria -> {
                 // 먼저 기본 검색 조건으로 조회
@@ -77,7 +78,7 @@ class AreaRepositoryImpl(
      */
     override fun findByRegionId(regionId: Long): List<Area> {
         return jpaAreaRepository.findByRegionId(regionId)
-            .map { it.toDomain() }
+            .map { mapper.toDomain(it) }
     }
     
     /**
@@ -85,7 +86,7 @@ class AreaRepositoryImpl(
      */
     override fun findByLocation(latitude: Double, longitude: Double, radiusKm: Double): List<Area> {
         return jpaAreaRepository.findByLocationWithin(latitude, longitude, radiusKm)
-            .map { it.toDomain() }
+            .map { mapper.toDomain(it) }
     }
     
     /**
@@ -93,7 +94,7 @@ class AreaRepositoryImpl(
      */
     override fun findByBusinessType(businessType: String): List<Area> {
         return jpaAreaRepository.findByMainBusinessTypesContaining(businessType)
-            .map { it.toDomain() }
+            .map { mapper.toDomain(it) }
     }
     
     /**
@@ -135,12 +136,12 @@ class AreaRepositoryImpl(
             }
         
         updateEntityFromDomain(savedEntity, area)
-        val saved = jpaAreaRepository.save(savedEntity).toDomain()
+        val saved = jpaAreaRepository.save(savedEntity)
         
         // Elasticsearch에도 저장
-        elasticsearchAreaRepository.save(saved)
+        elasticsearchAreaRepository.save(mapper.toDomain(saved))
         
-        return saved
+        return mapper.toDomain(saved)   
     }
 
     /**

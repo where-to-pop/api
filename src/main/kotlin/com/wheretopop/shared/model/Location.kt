@@ -1,4 +1,4 @@
-package com.wheretopop.domain.area
+package com.wheretopop.shared.model
 
 /**
  * 위치 정보를 표현하는 Value Object

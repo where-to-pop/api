@@ -3,7 +3,7 @@ package com.wheretopop.domain.area
 import com.wheretopop.shared.model.UniqueId
 import java.time.LocalDateTime
 import com.wheretopop.domain.area.AreaStatistic
-
+import com.wheretopop.shared.model.Location
 /**
  * Area Aggregate Root
  * 특정 권역을 나타내는 애그리거트 루트 클래스

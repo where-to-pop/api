@@ -4,6 +4,7 @@ import com.wheretopop.domain.area.*
 import com.wheretopop.infrastructure.area.*
 import com.wheretopop.shared.model.statistics.*
 import com.wheretopop.shared.model.UniqueId
+import com.wheretopop.shared.model.Location
 import java.time.LocalDateTime
 import java.util.UUID
 

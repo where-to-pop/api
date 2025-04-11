@@ -100,15 +100,6 @@ class AreaStatistic private constructor(
     }
 
     /**
-     * 가장 많이 사용되는 교통수단 조회
-     */
-    fun getMostUsedTransportation(): String? {
-        return demographic.transportationUsage
-            ?.maxByOrNull { it.percentage }
-            ?.transportType
-    }
-
-    /**
      * 주요 방문 연령대 조회 (상위 2개)
      */
     fun getMainVisitorAgeGroups(): List<String> {
