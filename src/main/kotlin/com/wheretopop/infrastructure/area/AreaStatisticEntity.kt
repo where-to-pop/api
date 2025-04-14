@@ -82,56 +82,6 @@ class AreaStatisticEntity(
             return statistic
         }
     }
-
-    /**
-     * 도메인 모델로 변환
-     */
-    fun toDomain(): com.wheretopop.domain.area.AreaStatistic {
-        return com.wheretopop.domain.area.AreaStatistic.create(
-            id = id,
-            areaId = area.id,
-            collectedAt = collectedAt,
-            commercial = com.wheretopop.domain.area.CommercialStatistic(
-                storeCount = commercialInfo.storeCount,
-                newStoreCount = commercialInfo.newStoreCount,
-                closedStoreCount = commercialInfo.closedStoreCount,
-                popupFrequencyCount = commercialInfo.popupFrequencyCount,
-                eventCount = commercialInfo.eventCount,
-                mainStoreCategories = commercialInfo.mainStoreCategories,
-                brandDistribution = commercialInfo.brandDistribution
-            ),
-            realEstate = com.wheretopop.domain.area.RealEstateStatistic(
-                averageRent = realEstateInfo.averageRent,
-                averageVacancyRate = realEstateInfo.averageVacancyRate,
-                minRent = realEstateInfo.minRent,
-                maxRent = realEstateInfo.maxRent,
-                recentPriceTrend = realEstateInfo.recentPriceTrend,
-                buildingCount = realEstateInfo.buildingCount,
-                averageBuildingAge = realEstateInfo.averageBuildingAge
-            ),
-            social = com.wheretopop.domain.area.SocialStatistic(
-                snsMentionCount = socialInfo.snsMentionCount,
-                positiveSentimentRatio = socialInfo.positiveSentimentRatio,
-                negativeSentimentRatio = socialInfo.negativeSentimentRatio,
-                neutralSentimentRatio = socialInfo.neutralSentimentRatio,
-                topKeywords = socialInfo.topKeywords,
-                topHashtags = socialInfo.topHashtags,
-                instagramPostCount = socialInfo.instagramPostCount,
-                blogPostCount = socialInfo.blogPostCount,
-                newsArticleCount = socialInfo.newsArticleCount
-            ),
-            demographic = com.wheretopop.domain.area.DemographicStatistic(
-                floatingPopulation = demographicInfo.floatingPopulation,
-                populationDensityValue = demographicInfo.populationDensityValue,
-                weekdayPeakHourPopulation = demographicInfo.weekdayPeakHourPopulation,
-                weekendPeakHourPopulation = demographicInfo.weekendPeakHourPopulation,
-                ageDistribution = demographicInfo.ageDistribution,
-                genderRatio = demographicInfo.genderRatio,
-                visitorResidenceDistribution = demographicInfo.visitorResidenceDistribution,
-                transportationUsage = demographicInfo.transportationUsage
-            )
-        )
-    }
 }
 
 /**
