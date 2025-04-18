@@ -1,6 +1,5 @@
 package com.wheretopop.domain.building
 
-import com.wheretopop.shared.enums.BuildingSize
 import com.wheretopop.shared.model.UniqueId
 import com.wheretopop.shared.model.Location
 import java.time.LocalDateTime
@@ -12,14 +11,14 @@ import java.time.LocalDateTime
 class Building private constructor(
     val id: UniqueId,
     val name: String,
-    val address: String?,
+    val address: String,
     val areaId: Long?,
     val regionId: Long?,
     val location: Location?,
     val totalFloorArea: Double?,
     val hasElevator: Boolean?,
     val parkingInfo: String?,
-    val buildingSize: BuildingSize?
+    val buildingSize: Double?
 ) {
     // 건물 통계 정보 목록
     private val _statistics: MutableList<BuildingStatistic> = mutableListOf()
@@ -29,14 +28,14 @@ class Building private constructor(
         fun create(
             id: UniqueId = UniqueId.create(),
             name: String,
-            address: String? = null,
+            address: String,
             areaId: Long? = null,
             regionId: Long? = null,
             location: Location? = null,
             totalFloorArea: Double? = null,
             hasElevator: Boolean? = null,
             parkingInfo: String? = null,
-            buildingSize: BuildingSize? = null
+            buildingSize: Double? = null
         ): Building {
             require(name.isNotBlank()) { "건물 이름은 비어있을 수 없습니다." }
             
@@ -75,18 +74,6 @@ class Building private constructor(
     fun getStatisticsBetween(from: LocalDateTime, to: LocalDateTime): List<BuildingStatistic> {
         return statistics.filter { 
             it.collectedAt.isAfter(from) && it.collectedAt.isBefore(to) 
-        }
-    }
-    
-    /**
-     * 건물 크기 카테고리를 계산
-     */
-    fun calculateBuildingSize(): BuildingSize? {
-        return when (totalFloorArea) {
-            null -> null
-            in 0.0..100.0 -> BuildingSize.SMALL
-            in 100.1..500.0 -> BuildingSize.MEDIUM
-            else -> BuildingSize.LARGE
         }
     }
     

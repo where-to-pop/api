@@ -29,6 +29,7 @@ spring:
 
 server:
   port: ${APP_PORT:8080}
+  forward-headers-strategy: native
 
 springdoc:
   default-produces-media-type: application/json

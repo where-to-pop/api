@@ -48,6 +48,8 @@ dependencies {
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+	// UUID 생성 라이브러리 (스노우플레이크 ID 지원)
+    implementation("com.github.f4b6a3:uuid-creator:5.3.3")
 }
 
 kotlin {
@@ -59,3 +61,4 @@ kotlin {
 tasks.withType<Test> {
 	useJUnitPlatform()
 }
+

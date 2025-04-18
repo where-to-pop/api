@@ -16,10 +16,14 @@ open class AbstractEntity {
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     @Comment("생성 시간")
-    open var createdAt: ZonedDateTime? = null
+    open var createdAt: ZonedDateTime = ZonedDateTime.now()
 
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     @Comment("수정 시간")
-    open var updatedAt: ZonedDateTime? = null
+    open var updatedAt: ZonedDateTime = ZonedDateTime.now()
+
+    @Column(name = "deleted_at")
+    @Comment("삭제 시간")
+    open var deletedAt: ZonedDateTime? = null
 }

@@ -12,9 +12,12 @@ class Area private constructor(
     val id: UniqueId,
     val name: String,
     val description: String?,
-    val location: Location,
+    var location: Location,
     val regionId: Long?,
-    private val _statistics: MutableList<AreaStatistic> = mutableListOf()
+    private val _statistics: MutableList<AreaStatistic> = mutableListOf(),
+    val createdAt: LocalDateTime = LocalDateTime.now(),
+    var updatedAt: LocalDateTime = LocalDateTime.now(),
+    var deletedAt: LocalDateTime? = null
 ) {
     // 통계 정보에 대한 읽기 전용 접근자
     val statistics: List<AreaStatistic>
@@ -37,6 +40,17 @@ class Area private constructor(
                 regionId = regionId,
             )
         }
+    }
+
+    /**
+     * 권역의 위치 정보 업데이트
+     * @param newLocation 새 위치 정보
+     * @return 업데이트된 Area 객체
+     */
+    fun updateLocation(newLocation: Location): Area {
+        this.location = newLocation
+        this.updatedAt = LocalDateTime.now()
+        return this
     }
 
     /**

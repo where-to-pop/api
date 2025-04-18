@@ -1,9 +1,8 @@
 package com.wheretopop.infrastructure.building
 
 import com.wheretopop.domain.building.*
-import com.wheretopop.shared.model.UniqueId
 import com.wheretopop.shared.model.Location
-import java.time.LocalDateTime
+import com.wheretopop.shared.model.UniqueId
 
 /**
  * 인프라 계층 엔티티와 도메인 모델 간 변환을 담당하는 매퍼
@@ -33,11 +32,6 @@ class BuildingMapper {
             buildingSize = entity.buildingSize
         )
 
-        // 통계 정보 변환 및 추가
-        entity.statistics.forEach { statisticEntity ->
-            val statistic = toBuildingStatistic(statisticEntity, entity.id)
-            building.addStatistic(statistic)
-        }
 
         return building
     }
@@ -60,11 +54,6 @@ class BuildingMapper {
             buildingSize = domain.buildingSize
         )
 
-        // 도메인 모델의 통계 정보를 엔티티로 변환
-        domain.statistics.forEach { statistic ->
-            val statisticEntity = toBuildingStatisticEntity(statistic, entity)
-            entity.addStatistic(statisticEntity)
-        }
 
         return entity
     }

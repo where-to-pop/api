@@ -1,129 +1,73 @@
 package com.wheretopop.shared.model
 
+import com.github.f4b6a3.uuid.UuidCreator
 import java.io.Serializable
 import java.time.Instant
-import java.util.concurrent.atomic.AtomicLong
+import kotlin.math.abs
 
 /**
- * 고유 식별자를 위한 Snowflake 알고리즘 기반 클래스
- * Twitter의 Snowflake ID 생성 방식을 기반으로 함
- * 
- * 64비트 ID 구조:
- * - 41비트: 타임스탬프 (밀리초)
- * - 10비트: 노드 ID (서버/프로세스 구분)
- * - 12비트: 시퀀스 번호 (같은 밀리초 내에서 생성된 ID 구분)
+ * 고유 식별자를 위한 클래스
+ * uuid-creator 라이브러리의 시간 기반 UUID 알고리즘을 사용
  */
-class UniqueId private constructor(val value: Long) : Serializable {
+class UniqueId private constructor(
+    val value: Long
+) : Serializable {
     companion object {
         private const val serialVersionUID = 1L
         
-        private const val EPOCH = 1672531200000L // 2023-01-01T00:00:00Z
-
-        private const val TIMESTAMP_BITS = 41
-        private const val NODE_ID_BITS = 10
-        private const val SEQUENCE_BITS = 12
-
-        private val MAX_NODE_ID = (1L shl NODE_ID_BITS) - 1
-        private val MAX_SEQUENCE = (1L shl SEQUENCE_BITS) - 1
-
-        private const val TIMESTAMP_SHIFT = NODE_ID_BITS + SEQUENCE_BITS
-        private const val NODE_ID_SHIFT = SEQUENCE_BITS
-
-        // 기본 노드 ID (필요시 환경변수나 설정에서 주입)
-        private val nodeId = System.getProperty("nodeId")?.toLongOrNull() ?: 1L
-
-        // 시퀀스 번호
-        private val sequenceGenerator = AtomicLong(0L)
-        private var lastTimestamp = -1L
-
-        init {
-            require(nodeId in 0..MAX_NODE_ID) { "노드 ID는 0에서 $MAX_NODE_ID 사이여야 합니다." }
-        }
-
         /**
-         * 새로운 고유 ID 생성
+         * 새로운 ID 생성
          */
-        @Synchronized
+        @JvmStatic
         fun create(): UniqueId {
-            var timestamp = getCurrentTimestamp()
-
-            // 같은 밀리초 내에서는 시퀀스 증가
-            if (timestamp == lastTimestamp) {
-                val sequence = (sequenceGenerator.incrementAndGet() and MAX_SEQUENCE)
-                // 시퀀스 값이 최대값에 도달하면 다음 밀리초까지 대기
-                if (sequence == 0L) {
-                    timestamp = waitNextMillis(lastTimestamp)
-                }
-            } else {
-                sequenceGenerator.set(0L)
-            }
-
-            lastTimestamp = timestamp
-
-            val id = ((timestamp - EPOCH) shl TIMESTAMP_SHIFT) or
-                    (nodeId shl NODE_ID_SHIFT) or
-                    sequenceGenerator.get()
-
-            return UniqueId(id)
+            // 시간 기반 UUID 생성
+            val uuid = UuidCreator.getTimeOrderedEpoch()
+            
+            // 최상위 비트(부호 비트)를 0으로 설정하여 항상 양수 보장
+            val positiveValue = uuid.leastSignificantBits and Long.MAX_VALUE
+            
+            return UniqueId(positiveValue)
         }
-
+        
         /**
-         * 기존 ID 값으로부터 UniqueId 객체 생성
+         * 기존 값으로 ID 객체 생성
          */
-        fun of(id: Long): UniqueId {
-            return UniqueId(id)
-        }
-
-        /**
-         * 현재 타임스탬프 취득 (밀리초)
-         */
-        private fun getCurrentTimestamp(): Long {
-            return Instant.now().toEpochMilli()
-        }
-
-        /**
-         * 다음 밀리초까지 대기
-         */
-        private fun waitNextMillis(lastTimestamp: Long): Long {
-            var timestamp = getCurrentTimestamp()
-            while (timestamp <= lastTimestamp) {
-                timestamp = getCurrentTimestamp()
-            }
-            return timestamp
+        @JvmStatic
+        fun of(value: Long): UniqueId {
+            // 입력 값이 음수인 경우 양수로 변환
+            val positiveValue = if (value < 0) value and Long.MAX_VALUE else value
+            return UniqueId(positiveValue)
         }
     }
-
+    
     /**
-     * ID에서 타임스탬프 부분 추출
+     * ID의 생성 시간 추출
      */
     fun getTimestamp(): Long {
-        return ((value shr TIMESTAMP_SHIFT) + EPOCH)
+        return value shr 16
     }
-
+    
     /**
-     * ID에서 노드 ID 부분 추출
+     * Long 값으로 변환
+     * JPA 엔티티와 변환 시 사용
      */
-    fun getNodeId(): Long {
-        return (value shr NODE_ID_SHIFT) and MAX_NODE_ID
+    fun toLong(): Long {
+        return value
     }
-
-    /**
-     * ID에서 시퀀스 부분 추출
-     */
-    fun getSequence(): Long {
-        return value and MAX_SEQUENCE
-    }
-
+    
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is UniqueId) return false
+        if (javaClass != other?.javaClass) return false
+        
+        other as UniqueId
+        
         return value == other.value
     }
-
+    
     override fun hashCode(): Int {
         return value.hashCode()
     }
-
+    
     override fun toString(): String {
         return value.toString()
     }

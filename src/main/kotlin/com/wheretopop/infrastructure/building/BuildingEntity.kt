@@ -1,14 +1,11 @@
 package com.wheretopop.infrastructure.building
 
-import com.wheretopop.shared.enums.BuildingSize
-import com.wheretopop.shared.enums.FloatingPopulation
 import com.wheretopop.shared.model.AbstractEntity
 import com.wheretopop.shared.model.UniqueId
 import jakarta.persistence.*
 import org.hibernate.annotations.Comment
 import org.hibernate.annotations.JdbcTypeCode
 import org.hibernate.type.SqlTypes
-import com.wheretopop.shared.model.Location
 
 @Entity
 @Table(name = "buildings", indexes = [Index(name = "idx_building_area_id", columnList = "area_id"), Index(name = "idx_building_region_id", columnList = "region_id")])
@@ -24,9 +21,9 @@ class BuildingEntity(
     @Comment("건물 이름")
     var name: String,
 
-    @Column(name = "address")
+    @Column(name = "address", nullable = false)
     @Comment("건물 주소")
-    var address: String? = null,
+    var address: String,
 
     @Column(name = "region_id")
     @Comment("지역 ID (FK - regions 테이블)")
@@ -56,15 +53,9 @@ class BuildingEntity(
     @Comment("주차 정보")
     var parkingInfo: String? = null,
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "building_size")
-    @Comment("건물 크기 (SMALL: 100㎡이하, MEDIUM: 100~500㎡, LARGE: 500㎡이상)")
-    var buildingSize: BuildingSize? = null,
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "floating_population")
-    @Comment("유동인구 수준 (VERY_LOW, LOW, MEDIUM, HIGH, VERY_HIGH)")
-    var floatingPopulation: FloatingPopulation? = null,
+    @Comment("건물 크기 (m²)")
+    var buildingSize: Double? = null,
 
     @Column(name = "distance_to_station")
     @Comment("역과의 거리 (m)")
@@ -73,11 +64,13 @@ class BuildingEntity(
     @Column(name = "public_transport_users")
     @Comment("대중교통 이용객 수")
     var publicTransportUsers: Int? = null,
-
-    @Column(name = "outlet_count")
-    @Comment("매장 수")
-    var outletCount: Int? = null
 ) : AbstractEntity() {
+
+    protected constructor() : this(
+        id = UniqueId.create(),
+        name = "",
+        address = ""
+    )
 
     // BuildingEntity에서 생명주기를 관리
     @OneToMany(mappedBy = "building", cascade = [CascadeType.ALL], orphanRemoval = true)
@@ -88,7 +81,7 @@ class BuildingEntity(
         fun create(
             id: UniqueId = UniqueId.create(),
             name: String,
-            address: String? = null,
+            address: String,
             areaId: Long? = null,
             regionId: Long? = null,
             latitude: Double? = null,
@@ -96,7 +89,7 @@ class BuildingEntity(
             totalFloorArea: Double? = null,
             hasElevator: Boolean? = null,
             parkingInfo: String? = null,
-            buildingSize: BuildingSize? = null
+            buildingSize: Double? = null
         ): BuildingEntity {
             require(name.isNotBlank()) { "name must not be blank" }
 
@@ -114,34 +107,5 @@ class BuildingEntity(
                 buildingSize = buildingSize
             )
         }
-    }
-    
-    /**
-     * 도메인 모델로 변환
-     */
-    fun toDomain(): com.wheretopop.domain.building.Building {
-        val location = latitude?.let { lat ->
-            longitude?.let { lng ->
-                Location.of(lat, lng)
-            }
-        }
-
-        return com.wheretopop.domain.building.Building.create(
-            id = id,
-            name = name,
-            address = address,
-            areaId = areaId,
-            regionId = regionId,
-            location = location,
-            totalFloorArea = totalFloorArea,
-            hasElevator = hasElevator,
-            parkingInfo = parkingInfo,
-            buildingSize = buildingSize
-        )
-    }
-    
-    fun addStatistic(statistic: BuildingStatisticEntity) {
-        statistics.add(statistic)
-        statistic.building = this
     }
 }
