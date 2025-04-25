@@ -1,18 +1,22 @@
 package com.wheretopop.infrastructure.area
 
 import com.wheretopop.domain.area.Area
+import com.wheretopop.domain.area.AreaId
 import com.wheretopop.shared.model.Location
-import com.wheretopop.shared.model.UniqueId
+import org.springframework.core.convert.converter.Converter
 import org.springframework.data.annotation.Id
+import org.springframework.data.annotation.PersistenceCreator
+import org.springframework.data.convert.ReadingConverter
+import org.springframework.data.convert.WritingConverter
 import org.springframework.data.relational.core.mapping.Column
 import org.springframework.data.relational.core.mapping.Table
-import java.time.LocalDateTime
+import java.time.Instant
 
 @Table("areas")
-data class AreaEntity(
+internal class AreaEntity @PersistenceCreator private constructor(
     @Id
     @Column("id")
-    val id: Long,
+    val id: AreaId,
     @Column("name")
     val name: String,
     @Column("description")
@@ -21,24 +25,21 @@ data class AreaEntity(
     val latitude: Double,
     @Column("longitude")
     val longitude: Double,
-    @Column("region_id")
-    val regionId: Long?,
     @Column("created_at")
-    val createdAt: LocalDateTime,
+    val createdAt: Instant,
     @Column("updated_at")
-    val updatedAt: LocalDateTime,
+    val updatedAt: Instant,
     @Column("deleted_at")
-    val deletedAt: LocalDateTime?
+    val deletedAt: Instant?
 ) {
     companion object {
         fun of(area: Area): AreaEntity {
             return AreaEntity(
-                id = area.id.toLong(),
+                id = area.id,
                 name = area.name,
-                description = area.description ?: "",
-                latitude = area.location.latitude ?: 0.0,
-                longitude = area.location.longitude ?: 0.0,
-                regionId = area.regionId,
+                description = area.description,
+                latitude = area.location.latitude,
+                longitude = area.location.longitude,
                 createdAt = area.createdAt,
                 updatedAt = area.updatedAt,
                 deletedAt = area.deletedAt
@@ -48,22 +49,38 @@ data class AreaEntity(
 
     fun toDomain(): Area {
         return Area.create(
-            id = UniqueId.of(id),
+            id = id,
             name = name,
             description = description,
             location = Location(latitude, longitude),
-            regionId = regionId
+            createdAt = createdAt,
+            updatedAt = updatedAt,
+            deletedAt = deletedAt,
         )
     }
 
     fun update(area: Area): AreaEntity {
-        return copy(
+        return AreaEntity(
+            id = id,
             name = area.name,
-            description = area.description ?: "",
-            latitude = area.location.latitude ?: 0.0,
-            longitude = area.location.longitude ?: 0.0,
-            regionId = area.regionId,
-            updatedAt = LocalDateTime.now()
+            description = area.description,
+            latitude = area.location.latitude,
+            longitude = area.location.longitude,
+            createdAt = createdAt,
+            updatedAt = Instant.now(),
+            deletedAt = deletedAt
         )
     }
 }
+
+@WritingConverter
+class AreaIdToLongConverter : Converter<AreaId, Long> {
+    override fun convert(source: AreaId) = source.toLong()
+}
+
+
+@ReadingConverter
+class LongToAreaIdConverter : Converter<Long, AreaId> {
+    override fun convert(source: Long) = AreaId.of(source)
+}
+

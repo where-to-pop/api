@@ -16,14 +16,7 @@ class AreaFacade(
     /**
      * 필터 조건으로 지역 검색
      */
-    fun searchAreas(criteria: AreaCriteria.SearchAreaCriteria): List<AreaInfo.Main> {
+    suspend fun searchAreas(criteria: AreaCriteria.SearchAreaCriteria): List<AreaInfo.Main> {
         return areaService.searchAreas(criteria)
-    }
-    
-    /**
-     * 기본 지역 데이터 초기화
-     */
-    fun initializeAreas(): List<AreaInfo.Main> {
-        return areaService.initializeAreas()
     }
 }

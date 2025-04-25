@@ -16,7 +16,6 @@ object AreaDto {
         val name: String,
         val description: String?,
         val location: LocationResponse,
-        val regionId: Long?,
 //        val statistics: List<StatisticResponse>?
     )
 

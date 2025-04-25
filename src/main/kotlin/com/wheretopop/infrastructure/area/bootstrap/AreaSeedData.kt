@@ -1,16 +1,16 @@
-package com.wheretopop.domain.area
+package com.wheretopop.infrastructure.area.bootstrap
 
 import com.wheretopop.domain.area.Area
 import com.wheretopop.shared.model.Location
-import com.wheretopop.shared.model.UniqueId
+import java.time.Instant
 
 /**
  * 주요 권역 정보 데이터
  * 권역명과 해당 위도/경도 좌표 매핑
  */
-object AreaData {
+object AreaSeedData {
     // 권역명과 [위도, 경도] 매핑 데이터
-    val areaCoordinates = mapOf(
+    private val areaCoordinates = mapOf(
         "강남 MICE 관광특구" to doubleArrayOf(37.5117, 127.0592),
         "동대문 관광특구" to doubleArrayOf(37.5665, 127.0092),
         "명동 관광특구" to doubleArrayOf(37.5638, 126.9845),
@@ -50,40 +50,11 @@ object AreaData {
             Area.create(
                 name = name,
                 location = Location(coordinates[0], coordinates[1]),
-                description = "${name}의 주요 상권 및 관광지 정보"
-            )
-        }
-    }
-    
-    /**
-     * 기본 Area 도메인 객체를 생성하고 리전 ID를 설정합니다.
-     * @param regionId 권역이 속한 리전 ID
-     * @return 권역 도메인 객체 리스트
-     */
-    fun createDefaultAreasWithRegion(regionId: Long): List<Area> {
-        return areaCoordinates.map { (name, coordinates) ->
-            Area.create(
-                name = name,
-                location = Location(coordinates[0], coordinates[1]),
                 description = "${name}의 주요 상권 및 관광지 정보",
-                regionId = regionId
+                createdAt = Instant.now(),
+                updatedAt = Instant.now(),
+                deletedAt = null
             )
         }
-    }
-    
-    /**
-     * 특정 지역 이름에 해당하는 Area 도메인 객체를 생성합니다.
-     * @param areaName 지역 이름
-     * @return 권역 도메인 객체 또는 null
-     */
-    fun createAreaByName(areaName: String, regionId: Long? = null): Area? {
-        val coordinates = areaCoordinates[areaName] ?: return null
-        
-        return Area.create(
-            name = areaName,
-            location = Location(coordinates[0], coordinates[1]),
-            description = "${areaName}의 주요 상권 및 관광지 정보",
-            regionId = regionId
-        )
     }
 } 

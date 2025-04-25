@@ -1,4 +1,4 @@
-package com.wheretopop.configs
+package com.wheretopop.config
 
 import com.wheretopop.shared.response.WebFluxResponseHandler
 import org.springframework.context.annotation.Bean

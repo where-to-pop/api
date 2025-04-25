@@ -55,7 +55,6 @@ class AreaDtoMapper {
             name = info.name,
             description = info.description,
             location = toLocationResponse(info.location),
-            regionId = info.regionId,
         )
     }
     
@@ -68,83 +67,7 @@ class AreaDtoMapper {
             longitude = info.longitude
         )
     }
-    
-    /**
-     * 통계 정보 변환
-     */
-    private fun toStatisticResponse(info: AreaInfo.StatisticInfo): AreaDto.StatisticResponse {
-        return AreaDto.StatisticResponse(
-            id = info.id,
-            collectedAt = info.collectedAt,
-            commercial = toCommercialResponse(info.commercial),
-            realEstate = toRealEstateResponse(info.realEstate),
-            social = toSocialResponse(info.social),
-            demographic = toDemographicResponse(info.demographic)
-        )
-    }
-    
-    /**
-     * 상업 통계 정보 변환
-     */
-    private fun toCommercialResponse(info: AreaInfo.CommercialInfo): AreaDto.CommercialResponse {
-        return AreaDto.CommercialResponse(
-            storeCount = info.storeCount,
-            newStoreCount = info.newStoreCount,
-            closedStoreCount = info.closedStoreCount,
-            popupFrequencyCount = info.popupFrequencyCount,
-            eventCount = info.eventCount,
-            mainStoreCategories = info.mainStoreCategories,
-            brandDistribution = info.brandDistribution
-        )
-    }
-    
-    /**
-     * 부동산 통계 정보 변환
-     */
-    private fun toRealEstateResponse(info: AreaInfo.RealEstateInfo): AreaDto.RealEstateResponse {
-        return AreaDto.RealEstateResponse(
-            averageRent = info.averageRent,
-            averageVacancyRate = info.averageVacancyRate,
-            minRent = info.minRent,
-            maxRent = info.maxRent,
-            recentPriceTrend = info.recentPriceTrend,
-            buildingCount = info.buildingCount,
-            averageBuildingAge = info.averageBuildingAge
-        )
-    }
-    
-    /**
-     * 소셜 통계 정보 변환
-     */
-    private fun toSocialResponse(info: AreaInfo.SocialInfo): AreaDto.SocialResponse {
-        return AreaDto.SocialResponse(
-            snsMentionCount = info.snsMentionCount,
-            positiveSentimentRatio = info.positiveSentimentRatio,
-            negativeSentimentRatio = info.negativeSentimentRatio,
-            neutralSentimentRatio = info.neutralSentimentRatio,
-            topKeywords = info.topKeywords,
-            topHashtags = info.topHashtags,
-            instagramPostCount = info.instagramPostCount,
-            blogPostCount = info.blogPostCount,
-            newsArticleCount = info.newsArticleCount
-        )
-    }
-    
-    /**
-     * 인구통계 정보 변환
-     */
-    private fun toDemographicResponse(info: AreaInfo.DemographicInfo): AreaDto.DemographicResponse {
-        return AreaDto.DemographicResponse(
-            floatingPopulation = info.floatingPopulation,
-            populationDensityValue = info.populationDensityValue,
-            weekdayPeakHourPopulation = info.weekdayPeakHourPopulation,
-            weekendPeakHourPopulation = info.weekendPeakHourPopulation,
-            ageDistribution = info.ageDistribution,
-            genderRatio = info.genderRatio,
-            visitorResidenceDistribution = info.visitorResidenceDistribution,
-            transportationUsage = info.transportationUsage
-        )
-    }
+
     
     /**
      * 도메인 DTO 목록을 응답 DTO 목록으로 변환

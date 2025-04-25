@@ -37,6 +37,8 @@ dependencies {
 	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
 	implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
 	implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
+	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+	implementation("io.github.microutils:kotlin-logging:3.0.5")
 
 	// Bean Validation
 	implementation("org.springframework.boot:spring-boot-starter-validation")
@@ -51,9 +53,7 @@ dependencies {
 	implementation("org.mariadb.jdbc:mariadb-java-client")
 	runtimeOnly("org.mariadb.jdbc:mariadb-java-client")
 
-	// MapStruct & Lombok
-	compileOnly("org.projectlombok:lombok")
-	annotationProcessor("org.projectlombok:lombok")
+	// MapStructㄴ
 	implementation("org.mapstruct:mapstruct:1.5.5.Final")
 	annotationProcessor("org.mapstruct:mapstruct-processor:1.5.5.Final")
 	annotationProcessor("org.projectlombok:lombok-mapstruct-binding:0.2.0")

@@ -1,32 +1,32 @@
 package com.wheretopop.domain.area
 
 import com.wheretopop.shared.model.Location
-import com.wheretopop.shared.model.UniqueId
-import java.time.LocalDateTime
+import java.time.Instant
 
 /**
  * Area Aggregate Root
  * 특정 권역을 나타내는 애그리거트 루트 클래스
  */
 class Area private constructor(
-    val id: UniqueId,
+    val id: AreaId,
     val name: String,
     val description: String,
     var location: Location,
-    val regionId: Long? = null,
-    val createdAt: LocalDateTime = LocalDateTime.now(),
-    var updatedAt: LocalDateTime = LocalDateTime.now(),
-    var deletedAt: LocalDateTime? = null
+    val createdAt: Instant,
+    var updatedAt: Instant,
+    var deletedAt: Instant? = null
 ) {
-    // 통계 정보에 대한 읽기 전용 접근자
 
     companion object {
         fun create(
-            id: UniqueId = UniqueId.create(),
+            id: AreaId = AreaId.create(),
             name: String,
             description: String,
             location: Location,
-            regionId: Long? = null,
+            createdAt: Instant,
+            updatedAt: Instant,
+            deletedAt: Instant?
+
         ): Area {
             require(name.isNotBlank()) { "지역 이름은 필수입니다." }
             return Area(
@@ -34,7 +34,9 @@ class Area private constructor(
                 name = name,
                 description = description,
                 location = location,
-                regionId = regionId,
+                createdAt = createdAt,
+                updatedAt = updatedAt,
+                deletedAt = deletedAt
             )
         }
     }
@@ -46,7 +48,7 @@ class Area private constructor(
      */
     fun updateLocation(newLocation: Location): Area {
         this.location = newLocation
-        this.updatedAt = LocalDateTime.now()
+        this.updatedAt = Instant.now()
         return this
     }
 

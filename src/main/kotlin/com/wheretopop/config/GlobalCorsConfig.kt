@@ -1,4 +1,4 @@
-package com.wheretopop.configs
+package com.wheretopop.config
 
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration

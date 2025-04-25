@@ -2,13 +2,10 @@ package com.wheretopop.interfaces.area
 
 import com.wheretopop.application.area.AreaFacade
 import com.wheretopop.shared.response.CommonResponse
-import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
-import org.springframework.web.reactive.function.server.ServerRequest
-import org.springframework.web.reactive.function.server.ServerResponse
-import org.springframework.web.reactive.function.server.router
+import org.springframework.web.reactive.function.server.*
 import reactor.core.publisher.Mono
 
 /**
@@ -16,20 +13,17 @@ import reactor.core.publisher.Mono
  * Spring WebFlux 함수형 엔드포인트 사용
  */
 @Configuration
-class AreaApiRouter(private val areaHandler: AreaHandler) {
+class AreaApiRouter(private val areaHandler: AreaHandler):RouterFunction<ServerResponse> {
 
-    @Bean
-    fun areaRoutes() = router {
+    private val delegate = coRouter {
         "/v1/areas".nest {
             accept(MediaType.APPLICATION_JSON).nest {
                 // 필터를 이용한 권역 정보 조회
                 GET("", areaHandler::searchAreas)
-                
-                // 기본 권역 데이터 초기화
-                POST("/initialize", areaHandler::initializeAreas)
             }
         }
     }
+    override fun route(request: ServerRequest): Mono<HandlerFunction<ServerResponse>> = delegate.route(request)
 }
 
 /**
@@ -43,7 +37,7 @@ class AreaHandler(private val areaFacade: AreaFacade) {
     /**
      * 필터를 이용하여 권역 정보를 조회합니다.
      */
-    fun searchAreas(request: ServerRequest): Mono<ServerResponse> {
+    suspend fun searchAreas(request: ServerRequest): ServerResponse {
         val searchRequest = AreaDto.SearchRequest(
             keyword = request.queryParam("keyword").orElse(null),
             regionId = request.queryParam("regionId").map { it.toLong() }.orElse(null),
@@ -56,26 +50,12 @@ class AreaHandler(private val areaFacade: AreaFacade) {
             offset = request.queryParam("offset").map { it.toInt() }.orElse(0),
             limit = request.queryParam("limit").map { it.toInt() }.orElse(20)
         )
-        
         val criteria = areaDtoMapper.toCriteria(searchRequest)
         val domainResults = areaFacade.searchAreas(criteria)
         val response = areaDtoMapper.toAreaResponses(domainResults)
-        
+
         return ServerResponse.ok()
             .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(CommonResponse.success(response))
-    }
-    
-    /**
-     * 기본 권역 데이터를 초기화합니다.
-     * 기본 권역 데이터를 동기화합니다. 이미 존재하는 데이터는 좌표를 업데이트하고, 없는 데이터는 새로 추가합니다.
-     */
-    fun initializeAreas(request: ServerRequest): Mono<ServerResponse> {
-        val domainResults = areaFacade.initializeAreas()
-        val response = areaDtoMapper.toAreaResponses(domainResults)
-        
-        return ServerResponse.ok()
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(CommonResponse.success(response))
+            .bodyValueAndAwait(CommonResponse.success(response))
     }
 } 

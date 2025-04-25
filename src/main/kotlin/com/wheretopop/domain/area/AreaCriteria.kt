@@ -1,8 +1,5 @@
 package com.wheretopop.domain.area
 
-import com.wheretopop.shared.enums.AgeGroup
-import com.wheretopop.shared.enums.Gender
-
 
 /**
  * Area 검색을 위한 기준 클래스

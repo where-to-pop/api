@@ -17,7 +17,6 @@ class AreaInfoMapper {
                 latitude = domain.location.latitude,
                 longitude = domain.location.longitude
             ),
-            regionId = domain.regionId,
         )
     }
 

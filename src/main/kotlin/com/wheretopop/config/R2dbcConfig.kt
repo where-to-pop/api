@@ -1,5 +1,9 @@
-package com.wheretopop.configs
+package com.wheretopop.config
 
+import com.wheretopop.infrastructure.area.AreaIdToLongConverter
+import com.wheretopop.infrastructure.area.LongToAreaIdConverter
+import com.wheretopop.infrastructure.area.R2dbcAreaRepository
+import com.wheretopop.infrastructure.area.external.opendata.R2dbcAreaPopulationRepository
 import io.r2dbc.spi.ConnectionFactory
 import org.mariadb.r2dbc.MariadbConnectionConfiguration
 import org.mariadb.r2dbc.MariadbConnectionFactory
@@ -7,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.data.r2dbc.config.AbstractR2dbcConfiguration
+import org.springframework.data.r2dbc.core.R2dbcEntityTemplate
 import org.springframework.data.r2dbc.repository.config.EnableR2dbcRepositories
 import org.springframework.r2dbc.connection.R2dbcTransactionManager
 import org.springframework.transaction.ReactiveTransactionManager
@@ -44,8 +49,19 @@ class R2dbcConfig : AbstractR2dbcConfiguration() {
         return MariadbConnectionFactory(configuration)
     }
 
+    override fun getCustomConverters(): MutableList<Any> = mutableListOf(
+        AreaIdToLongConverter(), LongToAreaIdConverter(),
+    )
+
+
     @Bean
     fun transactionManager(connectionFactory: ConnectionFactory): ReactiveTransactionManager {
         return R2dbcTransactionManager(connectionFactory)
     }
+
+    @Bean
+    internal fun r2dbcAreaRepository(template: R2dbcEntityTemplate) = R2dbcAreaRepository(template)
+    @Bean
+    internal fun r2dbcAreaPopulationRepository(template: R2dbcEntityTemplate) = R2dbcAreaPopulationRepository(template)
+
 } 

@@ -18,6 +18,10 @@ spring:
   elasticsearch:
     uris: http://${ES_HOST:localhost}:${ES_PORT:9200}
 
+openapi:
+  seoul:
+    key: ${OPENAPI_SEOUL_KEY:1234567890}
+
 server:
   port: ${APP_PORT:8080}
   forward-headers-strategy: native

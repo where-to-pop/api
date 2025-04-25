@@ -13,33 +13,16 @@ class AreaStoreImpl(
     private val areaRepository: AreaRepository
 ) : AreaStore {
 
-    /**
-     * 단일 Area 저장
-     */
-    override fun save(area: Area): Area {
+    override suspend fun save(area: Area): Area {
         return areaRepository.save(area)
     }
-
-    /**
-     * Area 목록 일괄 저장
-     */
-    override fun save(areas: List<Area>): List<Area> {
-        return areas.map { area -> 
-            areaRepository.save(area)
-        }
+    override suspend fun save(areas: List<Area>): List<Area> {
+        return areaRepository.save(areas)
     }
-
-    /**
-     * 단일 Area 삭제
-     */
-    override fun delete(area: Area) {
+    override suspend fun delete(area: Area) {
         areaRepository.deleteById(area.id)
-    }
-
-    /**
-     * Area 목록 일괄 삭제
-     */
-    override fun delete(areas: List<Area>) {
+    }   
+    override suspend fun delete(areas: List<Area>) {
         areas.forEach { area ->
             areaRepository.deleteById(area.id)
         }

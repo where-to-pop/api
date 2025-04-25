@@ -1,64 +1,56 @@
 package com.wheretopop.infrastructure.area
 
 import com.wheretopop.domain.area.Area
-import com.wheretopop.shared.model.UniqueId
+import com.wheretopop.domain.area.AreaId
+import kotlinx.coroutines.reactor.awaitSingle
+import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate
 import org.springframework.data.relational.core.query.Criteria.where
 import org.springframework.data.relational.core.query.Query.query
-import org.springframework.stereotype.Component
-import java.util.*
 
-
-@Component
 internal class R2dbcAreaRepository(
     private val entityTemplate: R2dbcEntityTemplate
 ) : AreaRepository {
 
     private val entityClass = AreaEntity::class.java
 
-    override fun findById(id: UniqueId): Optional<Area> {
-        return Optional.ofNullable(loadById(id)?.toDomain())
-    }
+    override suspend fun findById(id: AreaId): Area? =
+        loadEntityById(id)?.toDomain()
 
-    override fun findByName(name: String): Optional<Area> {
-        return Optional.ofNullable(
-            entityTemplate
-                .selectOne(query(where("name").`is`(name)), entityClass)
-                .block()
-                ?.toDomain()
-        )
-    }
+    override suspend fun findByName(name: String): Area? =
+        entityTemplate
+            .selectOne(query(where("name").`is`(name)), entityClass)
+            .awaitSingleOrNull()
+            ?.toDomain()
 
-    override fun findByRegionId(regionId: Long): List<Area> {
-        return entityTemplate
-            .select(query(where("region_id").`is`(regionId)), entityClass)
+    override suspend fun findAll(): List<Area> =
+        entityTemplate.select(entityClass)
+            .all()
             .map { it.toDomain() }
             .collectList()
-            .block() ?: emptyList()
-    }
+            .awaitSingle()
 
-    override fun findByLocation(latitude: Double, longitude: Double, radiusKm: Double): List<Area> {
-        // TODO: 위치 기반 쿼리 구현
-        return emptyList()
-    }
-
-    override fun save(area: Area): Area {
-        val entity = loadById(area.id)
-        if (entity == null) {
-            entityTemplate.insert(AreaEntity.of(area)).block()
+    override suspend fun save(area: Area): Area {
+        val existing = loadEntityById(area.id)
+        return if (existing == null) {
+            entityTemplate.insert(AreaEntity.of(area)).awaitSingle()
+            area
         } else {
-            entityTemplate.update(entity.update(area)).block()
-        }
-        return area
-    }
-
-    override fun deleteById(id: UniqueId) {
-        loadById(id)?.run {
-            entityTemplate.delete(this).block()
+            entityTemplate.update(existing.update(area)).awaitSingle()
+            area
         }
     }
 
-    private fun loadById(id: UniqueId) = entityTemplate
-        .selectOne(query(where("id").`is`(id.toLong())), entityClass)
-        .block()
-} 
+    override suspend fun save(areas: List<Area>): List<Area> =
+        areas.map { save(it) }
+
+    override suspend fun deleteById(id: AreaId) {
+        loadEntityById(id)?.let { entityTemplate.delete(it).awaitSingle() }
+    }
+
+    private suspend fun loadEntityById(id: AreaId): AreaEntity? =
+        entityTemplate
+            .selectOne(query(where("id").`is`(id)), entityClass)
+            .awaitSingleOrNull()
+}
+
