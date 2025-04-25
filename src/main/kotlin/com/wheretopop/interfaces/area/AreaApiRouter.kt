@@ -5,6 +5,7 @@ import com.wheretopop.shared.response.CommonResponse
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.MediaType
+import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
 import org.springframework.web.reactive.function.server.router
@@ -34,7 +35,7 @@ class AreaApiRouter(private val areaHandler: AreaHandler) {
 /**
  * 권역(Area) 관련 요청 처리 핸들러
  */
-@Configuration
+@Component
 class AreaHandler(private val areaFacade: AreaFacade) {
     
     private val areaDtoMapper = AreaDtoMapper()
