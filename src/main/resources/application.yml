@@ -3,40 +3,21 @@ spring:
     name: wheretopop-api
   profiles:
     active: ${ACTIVE_PROFILE:dev}
-  datasource:
-    driver-class-name: org.mariadb.jdbc.Driver
-    url: jdbc:mariadb://${DB_HOST:localhost}:${DB_PORT:3306}/${MYSQL_DATABASE:wheretopop}?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
+  r2dbc:
+    url: r2dbc:mariadb://${DB_HOST:localhost}:${DB_PORT:3306}/${MYSQL_DATABASE:wheretopop}?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
     username: ${MYSQL_USER:root}
     password: ${MYSQL_PASSWORD:password}
-    hikari:
-      connection-timeout: 30000
-      maximum-pool-size: 10
-      minimum-idle: 5
-  jpa:
-    database-platform: org.hibernate.dialect.MariaDBDialect
-    hibernate:
-      ddl-auto: create-drop
-    generate-ddl: true
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
-        use_sql_comments: true
-        hbm2ddl:
-          auto: create-drop
+    pool:
+      initial-size: 5
+      max-size: 10
+      max-idle-time: 30m
+  data:
+    r2dbc:
+      repositories:
+        enabled: true
   elasticsearch:
     uris: http://${ES_HOST:localhost}:${ES_PORT:9200}
 
 server:
   port: ${APP_PORT:8080}
   forward-headers-strategy: native
-
-springdoc:
-  default-produces-media-type: application/json
-  default-consumes-media-type: application/json
-  api-docs:
-    version: OPENAPI_3_0
-  swagger-ui:
-    path: /docs
-    tags-sorter: alpha
-    operations-sorter: alpha

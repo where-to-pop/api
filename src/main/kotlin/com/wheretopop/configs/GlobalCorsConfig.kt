@@ -1,18 +1,24 @@
 package com.wheretopop.configs
 
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.web.servlet.config.annotation.CorsRegistry
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
+import org.springframework.web.cors.CorsConfiguration
+import org.springframework.web.cors.reactive.CorsWebFilter
+import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource
 
 @Configuration
-class GlobalCorsConfig : WebMvcConfigurer {
-    override fun addCorsMappings(registry: CorsRegistry) {
-        registry.addMapping("/**")
-            .allowedOrigins("*")
-            .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-            .allowedHeaders("*")
-//            .allowCredentials(true)
-            .allowCredentials(false)
-            .maxAge(3600)
+class GlobalCorsConfig {
+    @Bean
+    fun corsWebFilter(): CorsWebFilter {
+        val corsConfig = CorsConfiguration()
+        corsConfig.allowedOrigins = listOf("*")
+        corsConfig.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS")
+        corsConfig.allowedHeaders = listOf("*")
+        corsConfig.maxAge = 3600L
+
+        val source = UrlBasedCorsConfigurationSource()
+        source.registerCorsConfiguration("/**", corsConfig)
+
+        return CorsWebFilter(source)
     }
 }

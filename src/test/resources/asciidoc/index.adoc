@@ -1,0 +1,45 @@
+= Where To Pop API 문서
+:doctype: book
+:icons: font
+:source-highlighter: highlightjs
+:toc: left
+:toclevels: 3
+:sectlinks:
+
+== 소개
+
+Where To Pop API는 지역 정보와 팝업 스토어 정보를 제공하는 RESTful API입니다.
+
+== 권역(Area) API
+
+=== 지역 정보 검색
+
+==== 요청
+
+include::{snippets}/area-search/http-request.adoc[]
+
+==== 요청 파라미터
+
+include::{snippets}/area-search/query-parameters.adoc[]
+
+==== 응답
+
+include::{snippets}/area-search/http-response.adoc[]
+
+==== 응답 필드
+
+include::{snippets}/area-search/response-fields.adoc[]
+
+=== 지역 데이터 초기화
+
+==== 요청
+
+include::{snippets}/area-initialize/http-request.adoc[]
+
+==== 응답
+
+include::{snippets}/area-initialize/http-response.adoc[]
+
+==== 응답 필드
+
+include::{snippets}/area-initialize/response-fields.adoc[] 

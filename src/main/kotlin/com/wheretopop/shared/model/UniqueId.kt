@@ -1,17 +1,22 @@
 package com.wheretopop.shared.model
 
 import com.github.f4b6a3.uuid.UuidCreator
-import java.io.Serializable
-import java.time.Instant
-import kotlin.math.abs
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import java.io.Serializable as JavaSerializable
 
 /**
  * 고유 식별자를 위한 클래스
  * uuid-creator 라이브러리의 시간 기반 UUID 알고리즘을 사용
  */
-class UniqueId private constructor(
+@Serializable(with = UniqueId.UniqueIdSerializer::class)
+class   UniqueId private constructor(
     val value: Long
-) : Serializable {
+) : JavaSerializable {
     companion object {
         private const val serialVersionUID = 1L
         
@@ -70,5 +75,17 @@ class UniqueId private constructor(
     
     override fun toString(): String {
         return value.toString()
+    }
+
+    internal object UniqueIdSerializer : KSerializer<UniqueId> {
+        override val descriptor = PrimitiveSerialDescriptor("UniqueId", PrimitiveKind.LONG)
+
+        override fun deserialize(decoder: Decoder): UniqueId {
+            return UniqueId.of(decoder.decodeLong())
+        }
+
+        override fun serialize(encoder: Encoder, value: UniqueId) {
+            encoder.encodeLong(value.toLong())
+        }
     }
 } 

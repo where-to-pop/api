@@ -1,141 +1,137 @@
 package com.wheretopop.infrastructure.popup
 
-import com.wheretopop.shared.enums.AgeGroup
-import com.wheretopop.shared.enums.Gender
 import com.wheretopop.shared.enums.PopUpCategory
 import com.wheretopop.shared.enums.PopUpType
-import com.wheretopop.shared.model.AbstractEntity
-import jakarta.persistence.*
-import org.hibernate.annotations.Comment
+import org.springframework.data.annotation.Id
+import org.springframework.data.relational.core.mapping.Column
+import org.springframework.data.relational.core.mapping.Table
 import java.time.ZonedDateTime
 
-@Entity
-@Table(name = "popups")
-@Comment("팝업 스토어 정보 테이블")
-class PopupEntity private constructor(
+@Table("popups")
+data class PopupEntity(
     @Id
-    @Column(name = "id", nullable = false)
-    @Comment("팝업 스토어 고유 식별자")
+    @Column("id")
     val id: Long,
 
-    @Column(name = "name", nullable = false)
-    @Comment("팝업 스토어 이름")
+    @Column("name")
     val name: String,
 
-    @Column(name = "building_id")
-    @Comment("건물 ID (FK - buildings 테이블)")
+    @Column("building_id")
     val buildingId: Long?,
 
-    @Column(name = "start_time")
-    @Comment("팝업 스토어 시작 시간")
+    @Column("start_time")
     val startTime: ZonedDateTime?,
 
-    @Column(name = "end_time")
-    @Comment("팝업 스토어 종료 시간")
-    private var _endTime: ZonedDateTime?,
+    @Column("end_time")
+    val endTime: ZonedDateTime?,
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "category")
-    @Comment("팝업 카테고리 (FASHION, FOOD_AND_BEVERAGE, BEAUTY, ART, CHARACTER, MEDIA, OTHER)")
+    @Column("category")
     val category: PopUpCategory?,
     
-    @Enumerated(EnumType.STRING)
-    @Column(name = "type")
-    @Comment("팝업 타입 (RETAIL, EXHIBITION, BRANDING, OTHER)")
+    @Column("type")
     val type: PopUpType?,
 
-    @Column(name = "description")
-    @Comment("팝업 스토어 설명")
+    @Column("description")
     val description: String?,
 
-    @Column(name = "brand_name")
-    @Comment("브랜드 이름")
+    @Column("brand_name")
     val brandName: String?,
         
-    @Column(name = "visitor_count")
-    @Comment("방문자 수")
+    @Column("visitor_count")
     val visitorCount: Int?,
         
-    @Column(name = "visitor_age_group")
-    @Comment("방문자 연령대 분포 (JSON 형식)")
+    @Column("visitor_age_group")
     val visitorAgeGroup: String?,
         
-    @Column(name = "visitor_gender_ratio")
-    @Comment("방문자 성별 비율 (JSON 형식)")
+    @Column("visitor_gender_ratio")
     val visitorGenderRatio: String?,
         
-    @Column(name = "news_mention_count")
-    @Comment("뉴스 언급 횟수")
+    @Column("news_mention_count")
     val newsMentionCount: Int?,
         
-    @Column(name = "hashtag_usage_count")
-    @Comment("해시태그 사용 횟수")
+    @Column("hashtag_usage_count")
     val hashtagUsageCount: Int?,
         
-    @Column(name = "keyword_search_count")
-    @Comment("키워드 검색 횟수")
+    @Column("keyword_search_count")
     val keywordSearchCount: Int?,
         
-    @Column(name = "positive_review_ratio")
-    @Comment("긍정적 리뷰 비율 (%)")
-    val positiveReviewRatio: Double?
-) : AbstractEntity() {
+    @Column("positive_review_ratio")
+    val positiveReviewRatio: Double?,
 
-    val endTime: ZonedDateTime?
-        get() = _endTime
+    @Column("created_at")
+    val createdAt: ZonedDateTime,
 
-    companion object {
-        fun create(
-            id: Long,
-            name: String,
-            buildingId: Long? = null,
-            startTime: ZonedDateTime? = null,
-            endTime: ZonedDateTime? = null,
-            category: PopUpCategory? = null,
-            type: PopUpType? = null,
-            description: String? = null,
-            brandName: String? = null,
-            visitorCount: Int? = null,
-            visitorAgeGroup: String? = null,
-            visitorGenderRatio: String? = null,
-            newsMentionCount: Int? = null,
-            hashtagUsageCount: Int? = null,
-            keywordSearchCount: Int? = null,
-            positiveReviewRatio: Double? = null
-        ): PopupEntity {
-            require(name.isNotBlank()) { "name must not be blank" }
-            
-            // 시작 시간과 종료 시간이 모두 있는 경우에만 검증
-            if (startTime != null && endTime != null) {
-                require(startTime.isBefore(endTime)) { "startTime must be before endTime" }
-            }
-            
-            return PopupEntity(
-                id = id,
-                name = name,
-                buildingId = buildingId,
-                startTime = startTime,
-                _endTime = endTime,
-                category = category,
-                type = type,
-                description = description,
-                brandName = brandName,
-                visitorCount = visitorCount,
-                visitorAgeGroup = visitorAgeGroup,
-                visitorGenderRatio = visitorGenderRatio,
-                newsMentionCount = newsMentionCount,
-                hashtagUsageCount = hashtagUsageCount,
-                keywordSearchCount = keywordSearchCount,
-                positiveReviewRatio = positiveReviewRatio
-            )
-        }
-    }
+    @Column("updated_at")
+    val updatedAt: ZonedDateTime,
 
-    fun changeEndTime(newEndTime: ZonedDateTime?) {
-        val currentStartTime = this.startTime
-        if (currentStartTime != null && newEndTime != null) {
-            require(currentStartTime.isBefore(newEndTime)) { "endTime must be after startTime" }
-        }
-        this._endTime = newEndTime
-    }
+    @Column("deleted_at")
+    val deletedAt: ZonedDateTime?
+) {
+//    companion object {
+//        fun of(popup: Popup): PopupEntity {
+//            return PopupEntity(
+//                id = popup.id.toLong(),
+//                name = popup.name,
+//                buildingId = popup.buildingId,
+//                startTime = popup.startTime,
+//                endTime = popup.endTime,
+//                category = popup.category,
+//                type = popup.type,
+//                description = popup.description,
+//                brandName = popup.brandName,
+//                visitorCount = popup.visitorCount,
+//                visitorAgeGroup = popup.visitorAgeGroup,
+//                visitorGenderRatio = popup.visitorGenderRatio,
+//                newsMentionCount = popup.newsMentionCount,
+//                hashtagUsageCount = popup.hashtagUsageCount,
+//                keywordSearchCount = popup.keywordSearchCount,
+//                positiveReviewRatio = popup.positiveReviewRatio,
+//                createdAt = popup.createdAt,
+//                updatedAt = popup.updatedAt,
+//                deletedAt = popup.deletedAt
+//            )
+//        }
+//    }
+//
+//    fun toDomain(): Popup {
+//        return Popup.create(
+//            id = UniqueId.of(id),
+//            name = name,
+//            buildingId = buildingId,
+//            startTime = startTime,
+//            endTime = endTime,
+//            category = category,
+//            type = type,
+//            description = description,
+//            brandName = brandName,
+//            visitorCount = visitorCount,
+//            visitorAgeGroup = visitorAgeGroup,
+//            visitorGenderRatio = visitorGenderRatio,
+//            newsMentionCount = newsMentionCount,
+//            hashtagUsageCount = hashtagUsageCount,
+//            keywordSearchCount = keywordSearchCount,
+//            positiveReviewRatio = positiveReviewRatio
+//        )
+//    }
+//
+//    fun update(popup: Popup): PopupEntity {
+//        return copy(
+//            name = popup.name,
+//            buildingId = popup.buildingId,
+//            startTime = popup.startTime,
+//            endTime = popup.endTime,
+//            category = popup.category,
+//            type = popup.type,
+//            description = popup.description,
+//            brandName = popup.brandName,
+//            visitorCount = popup.visitorCount,
+//            visitorAgeGroup = popup.visitorAgeGroup,
+//            visitorGenderRatio = popup.visitorGenderRatio,
+//            newsMentionCount = popup.newsMentionCount,
+//            hashtagUsageCount = popup.hashtagUsageCount,
+//            keywordSearchCount = popup.keywordSearchCount,
+//            positiveReviewRatio = popup.positiveReviewRatio,
+//            updatedAt = ZonedDateTime.now()
+//        )
+//    }
 }

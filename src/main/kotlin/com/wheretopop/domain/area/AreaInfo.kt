@@ -1,13 +1,6 @@
 package com.wheretopop.domain.area
 
-import com.wheretopop.shared.model.statistics.AgeDistribution
-import com.wheretopop.shared.model.statistics.BrandDistribution
-import com.wheretopop.shared.model.statistics.GenderRatio
-import com.wheretopop.shared.model.statistics.Hashtag
-import com.wheretopop.shared.model.statistics.Keyword
-import com.wheretopop.shared.model.statistics.StoreCategory
-import com.wheretopop.shared.model.statistics.TransportationUsage
-import com.wheretopop.shared.model.statistics.VisitorResidence
+import com.wheretopop.shared.model.statistics.*
 import java.time.LocalDateTime
 
 /**
@@ -25,7 +18,6 @@ class AreaInfo {
         val description: String?,
         val location: LocationInfo,
         val regionId: Long?,
-        val statistics: List<StatisticInfo>?
     )
     
     /**

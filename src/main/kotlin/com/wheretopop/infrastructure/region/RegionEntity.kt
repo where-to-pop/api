@@ -1,35 +1,52 @@
 package com.wheretopop.infrastructure.region
 
-import com.wheretopop.shared.model.AbstractEntity
-import jakarta.persistence.*
-import org.hibernate.annotations.Comment
+import com.wheretopop.shared.model.UniqueId
+import org.springframework.data.annotation.Id
+import org.springframework.data.relational.core.mapping.Column
+import org.springframework.data.relational.core.mapping.Table
+import java.time.LocalDateTime
 
-@Entity
-@Table(name = "regions")
-@Comment("지역 정보 테이블")
-class RegionEntity(
+@Table("regions")
+data class RegionEntity(
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
-    @Comment("지역 고유 식별자")
-    var id: Long = 0,
+    @Column("id")
+    val id: Long,
 
-    @Column(name = "name", nullable = false)
-    @Comment("지역 이름")
-    var name: String
-) : AbstractEntity() {
+    @Column("name")
+    val name: String,
 
-    companion object {
-        fun create(
-            name: String,
-            id: Long = 0
-        ): RegionEntity {
-            require(name.isNotBlank()) { "name must not be blank" }
-            
-            return RegionEntity(
-                id = id,
-                name = name
-            )
-        }
-    }
+    @Column("created_at")
+    val createdAt: LocalDateTime,
+
+    @Column("updated_at")
+    val updatedAt: LocalDateTime,
+
+    @Column("deleted_at")
+    val deletedAt: LocalDateTime?
+) {
+    // companion object {
+    //     fun of(region: Region): RegionEntity {
+    //         return RegionEntity(
+    //             id = region.id.toLong(),
+    //             name = region.name,
+    //             createdAt = region.createdAt,
+    //             updatedAt = region.updatedAt,
+    //             deletedAt = region.deletedAt
+    //         )
+    //     }
+    // }
+
+    // fun toDomain(): Region {
+    //     return Region.create(
+    //         id = UniqueId.of(id),
+    //         name = name
+    //     )
+    // }
+
+    // fun update(region: Region): RegionEntity {
+    //     return copy(
+    //         name = region.name,
+    //         updatedAt = LocalDateTime.now()
+    //     )
+    // }
 }

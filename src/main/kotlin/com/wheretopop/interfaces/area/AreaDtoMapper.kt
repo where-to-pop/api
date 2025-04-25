@@ -56,7 +56,6 @@ class AreaDtoMapper {
             description = info.description,
             location = toLocationResponse(info.location),
             regionId = info.regionId,
-            statistics = info.statistics?.map { toStatisticResponse(it) }
         )
     }
     
