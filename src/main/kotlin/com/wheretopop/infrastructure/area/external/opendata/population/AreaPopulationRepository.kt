@@ -1,4 +1,4 @@
-package com.wheretopop.infrastructure.area.external.opendata
+package com.wheretopop.infrastructure.area.external.opendata.population
 
 interface AreaPopulationRepository {
     suspend fun save(entity: AreaPopulationEntity): AreaPopulationEntity

@@ -3,6 +3,7 @@ package com.wheretopop.application.area
 import com.wheretopop.domain.area.AreaCriteria
 import com.wheretopop.domain.area.AreaInfo
 import com.wheretopop.domain.area.AreaService
+import com.wheretopop.infrastructure.area.external.AreaExternalStore
 import org.springframework.stereotype.Service
 
 /**
@@ -11,12 +12,17 @@ import org.springframework.stereotype.Service
  */
 @Service
 class AreaFacade(
-    private val areaService: AreaService
+    private val areaService: AreaService,
+    private val areaExternalStore: AreaExternalStore
 ) {
     /**
      * 필터 조건으로 지역 검색
      */
     suspend fun searchAreas(criteria: AreaCriteria.SearchAreaCriteria): List<AreaInfo.Main> {
         return areaService.searchAreas(criteria)
+    }
+
+    suspend fun ingestAreaExternalData() {
+        areaExternalStore.callOpenDataApiAndSave()
     }
 }

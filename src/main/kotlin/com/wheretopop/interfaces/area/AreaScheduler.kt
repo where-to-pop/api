@@ -4,7 +4,6 @@ import com.wheretopop.application.area.AreaFacade
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
-import reactor.core.publisher.Mono
 
 /**
  * 권역(Area) 데이터 동기화를 위한 스케줄러
@@ -18,7 +17,14 @@ class AreaSyncScheduler(
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     @Scheduled(cron = "0 0 4 * * *")
-    fun callOpenDataApi(): Mono<Unit> {
-        TODO("공공 데이터 API 호출 부분 구현")
+    suspend fun scheduleAreaExternalDataIngestion() {
+        logger.info("Starting area data synchronization")
+        try {
+            areaFacade.ingestAreaExternalData()
+            logger.info("Area data synchronization completed successfully")
+        } catch (e: Exception) {
+            logger.error("Error during area data synchronization", e)
+        }
+
     }
 }

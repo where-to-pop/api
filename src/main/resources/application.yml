@@ -20,7 +20,7 @@ spring:
 
 openapi:
   seoul:
-    key: ${OPENAPI_SEOUL_KEY:1234567890}
+    key: ${SEOUL_OPEN_DATA_API_KEY:your_key}
 
 server:
   port: ${APP_PORT:8080}

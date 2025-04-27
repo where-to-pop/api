@@ -1,4 +1,4 @@
-package com.wheretopop.infrastructure.area.external.opendata
+package com.wheretopop.infrastructure.area.external.opendata.population
 
 import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.reactor.awaitSingleOrNull
@@ -11,6 +11,7 @@ internal class R2dbcAreaPopulationRepository(
 ) : AreaPopulationRepository {
 
     private val entityClass = AreaPopulationEntity::class.java
+
 
     override suspend fun save(entity: AreaPopulationEntity): AreaPopulationEntity {
         val existing = loadEntityById(entity.id)

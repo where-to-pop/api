@@ -1,4 +1,4 @@
-package com.wheretopop.infrastructure.area.external.opendata
+package com.wheretopop.infrastructure.area.external.opendata.population
 
 import com.wheretopop.domain.area.AreaId
 import com.wheretopop.shared.model.UniqueId

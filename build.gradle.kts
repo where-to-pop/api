@@ -4,6 +4,7 @@ plugins {
 	id("org.springframework.boot") version "3.1.2"
 	id("io.spring.dependency-management") version "1.1.0"
 	id("org.asciidoctor.jvm.convert") version "3.3.2"
+	id("org.flywaydb.flyway") version "9.22.3"
 	kotlin("jvm") version "1.9.23"
 	kotlin("plugin.spring") version "1.9.23"
 	kotlin("plugin.serialization") version "1.9.23"
@@ -23,6 +24,8 @@ configurations {
 		extendsFrom(configurations.annotationProcessor.get())
 	}
 }
+
+
 
 dependencies {
 	// Spring WebFlux + R2DBC
@@ -53,7 +56,7 @@ dependencies {
 	implementation("org.mariadb.jdbc:mariadb-java-client")
 	runtimeOnly("org.mariadb.jdbc:mariadb-java-client")
 
-	// MapStructㄴ
+	// MapStruct
 	implementation("org.mapstruct:mapstruct:1.5.5.Final")
 	annotationProcessor("org.mapstruct:mapstruct-processor:1.5.5.Final")
 	annotationProcessor("org.projectlombok:lombok-mapstruct-binding:0.2.0")
