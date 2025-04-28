@@ -22,6 +22,9 @@ openapi:
   seoul:
     key: ${SEOUL_OPEN_DATA_API_KEY:your_key}
 
+crawler:
+  popply:
+
 server:
   port: ${APP_PORT:8080}
   forward-headers-strategy: native

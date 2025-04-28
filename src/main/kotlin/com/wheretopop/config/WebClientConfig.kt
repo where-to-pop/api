@@ -13,4 +13,11 @@
                 .baseUrl("http://openapi.seoul.go.kr:8088")
                 .build()
         }
+
+        @Bean
+        fun popupApiWebClient(): WebClient {
+            return WebClient.builder()
+                .baseUrl("https://www.popply.co.kr/popup")
+                .build()
+        }
     }
