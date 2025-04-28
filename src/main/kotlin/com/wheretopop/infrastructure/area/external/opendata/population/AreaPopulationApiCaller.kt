@@ -1,6 +1,8 @@
 package com.wheretopop.infrastructure.area.external.opendata.population
 
+import com.wheretopop.shared.util.JsonUtil.objectMapper
 import mu.KotlinLogging
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
@@ -13,7 +15,7 @@ private val logger = KotlinLogging.logger {}
  */
 @Component
 class AreaPopulationApiCaller(
-    private val webClient: WebClient,
+    @Qualifier("seoulApiWebClient") private val webClient: WebClient,
     @Value("\${openapi.seoul.key}") private val apiKey: String
 ) {
     /**
@@ -25,13 +27,18 @@ class AreaPopulationApiCaller(
     suspend fun fetchPopulationData(areaName: String): SeoulPopulationResponse? {
         return try {
             logger.info { "Fetching population data for area: $areaName" }
-            webClient.get()
+            val rawResponse = webClient.get()
                 .uri { builder ->
-                    builder.path("/{key}/json/citydata_ppltn/1/5/{areaNm}")
+                    builder
+                        .path("/{key}/json/citydata_ppltn/1/5/{areaNm}")
                         .build(apiKey, areaName)
                 }
                 .retrieve()
-                .awaitBody<SeoulPopulationResponse>()
+                .awaitBody<String>()
+
+            logger.info { "Raw response for $areaName: $rawResponse" } // 찍는다
+
+            objectMapper.readValue(rawResponse, SeoulPopulationResponse::class.java)
         } catch (e: Exception) {
             logger.error(e) { "Error fetching population data for $areaName: ${e.message}" }
             null

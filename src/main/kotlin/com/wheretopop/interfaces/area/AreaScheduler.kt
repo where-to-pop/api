@@ -1,6 +1,7 @@
 package com.wheretopop.interfaces.area
 
 import com.wheretopop.application.area.AreaFacade
+import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
@@ -16,11 +17,13 @@ class AreaSyncScheduler(
 
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    @Scheduled(cron = "0 0 4 * * *")
-    suspend fun scheduleAreaExternalDataIngestion() {
+    @Scheduled(cron = "0 0 0 * * *")
+    fun scheduleAreaExternalDataIngestion() {
         logger.info("Starting area data synchronization")
         try {
-            areaFacade.ingestAreaExternalData()
+            runBlocking {
+                areaFacade.ingestAreaExternalData()
+            }
             logger.info("Area data synchronization completed successfully")
         } catch (e: Exception) {
             logger.error("Error during area data synchronization", e)

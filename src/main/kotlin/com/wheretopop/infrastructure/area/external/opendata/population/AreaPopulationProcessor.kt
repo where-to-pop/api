@@ -17,7 +17,6 @@ class AreaPopulationProcessor(
     private val areaPopulationApiCaller: AreaPopulationApiCaller,
     private val areaPopulationRepository: AreaPopulationRepository,
     private val areaRepository: AreaRepository,
-    private val areaPopulationMapper: AreaPopulationMapper
 ) : OpenDataProcessor {
 
     override fun support(type: OpenDataType): Boolean {
@@ -39,19 +38,14 @@ class AreaPopulationProcessor(
                 // API 호출
                 val response = areaPopulationApiCaller.fetchPopulationData(area.name)
                 if (response != null) {
-                    // 응답 데이터 변환
-                    val populationData = areaPopulationMapper.mapToPopulationData(response)
-                    if (populationData != null) {
-                        // 엔티티 변환 및 저장
-                        val entity = areaPopulationMapper.mapToEntity(populationData, area)
-                        areaPopulationRepository.save(entity)
-                        
-                        successCount++
-                        logger.info { "Population data saved for area: ${area.name}" }
-                    } else {
-                        failCount++
-                        logger.warn { "No population data available for area: ${area.name}" }
+                    // 응답 데이터 변환 및 저장
+                    response.cityDataPopulation.forEach { cityDataPopulation ->
+                        val areaPopulationEntity = AreaPopulationEntity.of(cityDataPopulation, area.id)
+                        areaPopulationRepository.save(areaPopulationEntity)
                     }
+                    
+                    successCount++
+                    logger.info { "Population data saved for area: ${area.name}" }
                 } else {
                     failCount++
                     logger.warn { "Failed to fetch population data for area: ${area.name}" }

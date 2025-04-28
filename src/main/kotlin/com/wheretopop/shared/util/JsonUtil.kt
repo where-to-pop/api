@@ -3,6 +3,8 @@ package com.wheretopop.shared.util
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.wheretopop.shared.enums.AgeGroup
 import com.wheretopop.shared.enums.Gender
@@ -14,6 +16,10 @@ object JsonUtil {
     @JvmStatic
     val objectMapper: ObjectMapper = jacksonObjectMapper().apply {
         setSerializationInclusion(JsonInclude.Include.NON_NULL)
+        // Java 8 시간 관련 모듈 등록
+        registerModule(JavaTimeModule())
+        // Instant를 타임스탬프가 아닌 ISO-8601로 직렬화
+        disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
     }
 
     /**

@@ -1,7 +1,9 @@
 package com.wheretopop.infrastructure.area.external.opendata.population
 
+import com.fasterxml.jackson.core.type.TypeReference
 import com.wheretopop.domain.area.AreaId
 import com.wheretopop.shared.model.UniqueId
+import com.wheretopop.shared.util.JsonUtil
 import org.springframework.core.convert.converter.Converter
 import org.springframework.data.annotation.Id
 import org.springframework.data.convert.ReadingConverter
@@ -27,7 +29,7 @@ class AreaPopulationId private constructor(
 }
 
 
-@Table("area_population")
+@Table("area_populations")
 data class AreaPopulationEntity(
     @Id
     @Column("id")
@@ -43,73 +45,64 @@ data class AreaPopulationEntity(
     val areaCode: String,
 
     @Column("congestion_level")
-    val congestionLevel: Int,
+    val congestionLevel: String,
 
     @Column("congestion_message")
     val congestionMessage: String,
 
-    @Column("ppltn_min")
-    val ppltnMin: Int,
+    @Column("population_min")
+    val populationMin: Int,
 
-    @Column("ppltn_max")
-    val ppltnMax: Int,
+    @Column("population_max")
+    val populationMax: Int,
 
-    @Column("male_ppltn_rate")
-    val malePpltnRate: Double,
+    @Column("male_population_rate")
+    val malePopulationRate: Double,
 
-    @Column("female_ppltn_rate")
-    val femalePpltnRate: Double,
+    @Column("female_population_rate")
+    val femalePopulationRate: Double,
 
-    @Column("ppltn_rate_0")
-    val ppltnRate0: Double,
+    @Column("population_rate_0")
+    val populationRate0: Double,
 
-    @Column("ppltn_rate_10")
-    val ppltnRate10: Double,
+    @Column("population_rate_10")
+    val populationRate10: Double,
 
-    @Column("ppltn_rate_20")
-    val ppltnRate20: Double,
+    @Column("population_rate_20")
+    val populationRate20: Double,
 
-    @Column("ppltn_rate_30")
-    val ppltnRate30: Double,
+    @Column("population_rate_30")
+    val populationRate30: Double,
 
-    @Column("ppltn_rate_40")
-    val ppltnRate40: Double,
+    @Column("population_rate_40")
+    val populationRate40: Double,
 
-    @Column("ppltn_rate_50")
-    val ppltnRate50: Double,
+    @Column("population_rate_50")
+    val populationRate50: Double,
 
-    @Column("ppltn_rate_60")
-    val ppltnRate60: Double,
+    @Column("population_rate_60")
+    val populationRate60: Double,
 
-    @Column("ppltn_rate_70")
-    val ppltnRate70: Double,
+    @Column("population_rate_70")
+    val populationRate70: Double,
 
-    @Column("resnt_ppltn_rate")
-    val resntPpltnRate: Double,
+    @Column("resident_population_rate")
+    val residentPopulationRate: Double,
 
-    @Column("non_resnt_ppltn_rate")
-    val nonResntPpltnRate: Double,
+    @Column("non_resident_population_rate")
+    val nonResidentPopulationRate: Double,
 
     @Column("replace_yn")
     val replaceYn: Boolean,
 
-    @Column("ppltn_time")
-    val ppltnTime: Instant,
+    @Column("population_update_time")
+    val populationUpdateTime: Instant,
 
-    @Column("fcst_yn")
-    val fcstYn: Boolean,
+    @Column("forecast_yn")
+    val forecastYn: Boolean,
 
-    @Column("fcst_time")
-    val fcstTime: Instant?,
-
-    @Column("fcst_congestion_level")
-    val fcstCongestionLevel: Int?,
-
-    @Column("fcst_ppltn_min")
-    val fcstPpltnMin: Int?,
-
-    @Column("fcst_ppltn_max")
-    val fcstPpltnMax: Int?,
+    @Column("forecast_population_json")
+    val forecastPopulationJson: String?,
 
     @Column("created_at")
     val createdAt: Instant = Instant.now(),
@@ -119,15 +112,69 @@ data class AreaPopulationEntity(
 
     @Column("deleted_at")
     val deletedAt: Instant? = null
-)
-
-@WritingConverter
-class AreaPopulationIdToLongConverter : Converter<AreaId, Long> {
-    override fun convert(source: AreaId) = source.toLong()
+) {
+    /**
+     * JSON 문자열에서 ForecastPopulation 객체 리스트로 변환
+     */
+    fun getForecastPopulations(): List<ForecastPopulation>? {
+        if (forecastPopulationJson.isNullOrBlank()) return null
+        
+        return try {
+            JsonUtil.objectMapper.readValue(
+                forecastPopulationJson,
+                object : TypeReference<List<ForecastPopulation>>() {}
+            )
+        } catch (e: Exception) {
+            null
+        }
+    }
+    
+    companion object {
+        fun of(cityDataPopulation: CityDataPopulation, areaId: AreaId): AreaPopulationEntity {
+            // ForecastPopulation 리스트를 JSON 문자열로 변환
+            val forecastPopulationJson = cityDataPopulation.forecastPopulation?.let {
+                JsonUtil.objectMapper.writeValueAsString(it)
+            }
+            
+            return AreaPopulationEntity(
+                id = AreaPopulationId.create(),
+                areaId = areaId,
+                areaName = cityDataPopulation.areaName,
+                areaCode = cityDataPopulation.areaCode,
+                congestionLevel = cityDataPopulation.congestionLevel,
+                congestionMessage = cityDataPopulation.congestionMessage,
+                populationMin = cityDataPopulation.populationMin,
+                populationMax = cityDataPopulation.populationMax,
+                malePopulationRate = cityDataPopulation.malePopulationRate,
+                femalePopulationRate = cityDataPopulation.femalePopulationRate,
+                populationRate0 = cityDataPopulation.populationRate0,
+                populationRate10 = cityDataPopulation.populationRate10,
+                populationRate20 = cityDataPopulation.populationRate20,
+                populationRate30 = cityDataPopulation.populationRate30,
+                populationRate40 = cityDataPopulation.populationRate40,
+                populationRate50 = cityDataPopulation.populationRate50,
+                populationRate60 = cityDataPopulation.populationRate60,
+                populationRate70 = cityDataPopulation.populationRate70,
+                residentPopulationRate = cityDataPopulation.residentPopulationRate,
+                nonResidentPopulationRate = cityDataPopulation.nonResidentPopulationRate,
+                replaceYn = cityDataPopulation.replaceYn,
+                populationUpdateTime = cityDataPopulation.populationUpdateTime,
+                forecastYn = cityDataPopulation.forecastYn,
+                forecastPopulationJson = forecastPopulationJson,
+                createdAt = Instant.now(),
+                updatedAt = Instant.now(),
+                deletedAt = null
+            )
+        }
+    }
 }
 
+@WritingConverter
+class AreaPopulationIdToLongConverter : Converter<AreaPopulationId, Long> {
+    override fun convert(source: AreaPopulationId) = source.toLong()
+}
 
 @ReadingConverter
-class LongToAreaPopulationIdConverter : Converter<Long, AreaId> {
-    override fun convert(source: Long) = AreaId.of(source)
+class LongToAreaPopulationIdConverter : Converter<Long, AreaPopulationId> {
+    override fun convert(source: Long) = AreaPopulationId.of(source)
 }
