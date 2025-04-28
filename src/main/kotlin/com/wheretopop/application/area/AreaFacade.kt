@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service
 @Service
 class AreaFacade(
     private val areaService: AreaService,
-    private val areaExternalStore: AreaExternalStore
+    private val areaOpenDataUseCase: AreaOpenDataUseCase
 ) {
     /**
      * 필터 조건으로 지역 검색
@@ -23,6 +23,6 @@ class AreaFacade(
     }
 
     suspend fun ingestAreaExternalData() {
-        areaExternalStore.callOpenDataApiAndSave()
+        return areaOpenDataUseCase.callOpenDataApiAndSave()
     }
 }
