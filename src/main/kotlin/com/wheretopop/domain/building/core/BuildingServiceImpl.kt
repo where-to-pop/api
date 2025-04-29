@@ -1,4 +1,4 @@
-package com.wheretopop.domain.building
+package com.wheretopop.domain.building.core
 import org.springframework.stereotype.Service
 import java.time.Instant
 
@@ -16,13 +16,15 @@ class BuildingServiceImpl(
     }
 
     override suspend fun createBuilding(command: BuildingCommand.CreateBuildingCommand): BuildingInfo.Main {
-        val building = this.buildingStore.save(Building.create(
-            address = command.address,
-            location = command.location,
-            createdAt = Instant.now(),
-            updatedAt = Instant.now(),
-            deletedAt = null,
-        ))
+        val building = this.buildingStore.save(
+            Building.create(
+                address = command.address,
+                location = command.location,
+                createdAt = Instant.now(),
+                updatedAt = Instant.now(),
+                deletedAt = null,
+            )
+        )
         return buildingInfoMapper.of(building)
     }
 }

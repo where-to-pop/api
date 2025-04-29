@@ -1,6 +1,6 @@
 package com.wheretopop.domain.building.register
 
-import com.wheretopop.domain.building.BuildingId
+import com.wheretopop.domain.building.core.BuildingId
 
 
 /**

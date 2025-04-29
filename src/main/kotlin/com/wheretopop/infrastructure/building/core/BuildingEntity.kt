@@ -1,7 +1,7 @@
-package com.wheretopop.infrastructure.building
+package com.wheretopop.infrastructure.building.core
 
-import com.wheretopop.domain.building.Building
-import com.wheretopop.domain.building.BuildingId
+import com.wheretopop.domain.building.core.Building
+import com.wheretopop.domain.building.core.BuildingId
 import com.wheretopop.shared.model.Location
 import org.springframework.core.convert.converter.Converter
 import org.springframework.data.annotation.Id

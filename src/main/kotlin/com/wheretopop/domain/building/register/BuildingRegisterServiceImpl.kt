@@ -1,7 +1,5 @@
 package com.wheretopop.domain.building.register
 
-import com.wheretopop.domain.building.BuildingCriteria
-import com.wheretopop.domain.building.BuildingInfo
 import org.springframework.stereotype.Service
 import java.time.Instant
 

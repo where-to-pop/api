@@ -1,4 +1,4 @@
-package com.wheretopop.domain.building
+package com.wheretopop.domain.building.core
 
 interface BuildingStore {
     suspend fun save(building: Building): Building

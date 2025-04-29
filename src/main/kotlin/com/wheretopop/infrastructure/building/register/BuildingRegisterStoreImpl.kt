@@ -1,7 +1,5 @@
 package com.wheretopop.infrastructure.building.register
 
-import com.wheretopop.domain.building.Building
-import com.wheretopop.domain.building.BuildingStore
 import com.wheretopop.domain.building.register.BuildingRegister
 import com.wheretopop.domain.building.register.BuildingRegisterStore
 import org.springframework.stereotype.Component

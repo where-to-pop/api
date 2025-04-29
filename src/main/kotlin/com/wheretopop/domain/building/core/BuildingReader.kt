@@ -1,4 +1,4 @@
-package com.wheretopop.domain.building
+package com.wheretopop.domain.building.core
 
 /**
  * 권역 정보 조회를 위한 도메인 서비스 인터페이스

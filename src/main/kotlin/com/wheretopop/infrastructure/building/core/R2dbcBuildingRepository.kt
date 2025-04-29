@@ -1,7 +1,7 @@
-package com.wheretopop.infrastructure.building
+package com.wheretopop.infrastructure.building.core
 
-import com.wheretopop.domain.building.Building
-import com.wheretopop.domain.building.BuildingId
+import com.wheretopop.domain.building.core.Building
+import com.wheretopop.domain.building.core.BuildingId
 import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate

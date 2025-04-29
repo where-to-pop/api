@@ -1,9 +1,9 @@
 package com.wheretopop.application.building
 
-import com.wheretopop.domain.building.BuildingCommand
-import com.wheretopop.domain.building.BuildingCriteria
-import com.wheretopop.domain.building.BuildingInfo
-import com.wheretopop.domain.building.BuildingService
+import com.wheretopop.domain.building.core.BuildingCommand
+import com.wheretopop.domain.building.core.BuildingCriteria
+import com.wheretopop.domain.building.core.BuildingInfo
+import com.wheretopop.domain.building.core.BuildingService
 import com.wheretopop.domain.building.register.BuildingRegisterService
 import org.springframework.stereotype.Service
 

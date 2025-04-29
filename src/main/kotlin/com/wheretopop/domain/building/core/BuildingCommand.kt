@@ -1,4 +1,4 @@
-package com.wheretopop.domain.building
+package com.wheretopop.domain.building.core
 
 import com.wheretopop.shared.model.Location
 

@@ -1,7 +1,7 @@
-package com.wheretopop.infrastructure.building
+package com.wheretopop.infrastructure.building.core
 
-import com.wheretopop.domain.building.Building
-import com.wheretopop.domain.building.BuildingStore
+import com.wheretopop.domain.building.core.Building
+import com.wheretopop.domain.building.core.BuildingStore
 import org.springframework.stereotype.Component
 
 /**
