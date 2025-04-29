@@ -1,4 +1,4 @@
-package com.wheretopop.domain.building.core
+package com.wheretopop.domain.building
 
 interface BuildingService {
     suspend fun searchBuildings(criteria: BuildingCriteria.SearchBuildingCriteria): List<BuildingInfo.Main>

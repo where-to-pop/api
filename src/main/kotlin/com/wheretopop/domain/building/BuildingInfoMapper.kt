@@ -1,4 +1,4 @@
-package com.wheretopop.domain.building.core
+package com.wheretopop.domain.building
 
 /**
  * 도메인 객체에서 DTO로 변환하는 매퍼 클래스

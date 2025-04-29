@@ -1,4 +1,4 @@
-package com.wheretopop.domain.building.core
+package com.wheretopop.domain.building
 
 /**
  * 도메인 계층 외부에 넘겨줄 Building 관련 DTO 클래스들

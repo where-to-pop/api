@@ -1,4 +1,4 @@
-package com.wheretopop.domain.building.core
+package com.wheretopop.domain.building
 import org.springframework.stereotype.Service
 import java.time.Instant
 

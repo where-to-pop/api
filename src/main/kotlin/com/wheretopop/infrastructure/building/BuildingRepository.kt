@@ -1,7 +1,7 @@
-package com.wheretopop.infrastructure.building.core
+package com.wheretopop.infrastructure.building
 
-import com.wheretopop.domain.building.core.Building
-import com.wheretopop.domain.building.core.BuildingId
+import com.wheretopop.domain.building.Building
+import com.wheretopop.domain.building.BuildingId
 
 /**
  * Building 애그리거트의 저장소 인터페이스

@@ -1,9 +1,9 @@
-package com.wheretopop.infrastructure.building.core
+package com.wheretopop.infrastructure.building
 
-import com.wheretopop.domain.building.core.Building
-import com.wheretopop.domain.building.core.BuildingCriteria
-import com.wheretopop.domain.building.core.BuildingId
-import com.wheretopop.domain.building.core.BuildingReader
+import com.wheretopop.domain.building.Building
+import com.wheretopop.domain.building.BuildingCriteria
+import com.wheretopop.domain.building.BuildingId
+import com.wheretopop.domain.building.BuildingReader
 import org.springframework.stereotype.Component
 
 /**
