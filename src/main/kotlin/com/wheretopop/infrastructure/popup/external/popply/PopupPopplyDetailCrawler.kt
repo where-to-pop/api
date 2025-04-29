@@ -2,6 +2,7 @@ package com.wheretopop.infrastructure.popup.external.popply
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.wheretopop.infrastructure.area.external.opendata.population.StringToInstantDeserializer
 import mu.KotlinLogging
 import org.jsoup.Jsoup
 import org.springframework.beans.factory.annotation.Qualifier
@@ -9,6 +10,9 @@ import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.awaitBody
 import reactor.core.publisher.Mono
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
 import java.util.regex.Pattern
 
 private val logger = KotlinLogging.logger {}
@@ -67,10 +71,10 @@ class PopupPopplyDetailCrawler(
                 return null
             }
 
-            val title = eventData.name?.trim() ?: ""
+            val name = eventData.name?.trim() ?: ""
             val fullAddress = eventData.location?.firstOrNull()?.address?.name?.trim() ?: ""
-            val startDate = eventData.startDate
-            val endDate = eventData.endDate
+            val startDate = toKorInstant(eventData.startDate)
+            val endDate = toKorInstant(eventData.endDate)
             val description = eventData.description?.trim() ?: ""
 
             val matcher = addressRegex.matcher(fullAddress)
@@ -79,7 +83,7 @@ class PopupPopplyDetailCrawler(
                 val optAddress = matcher.group(2)?.trim() ?: ""
                 mainAddress to optAddress
             } else {
-                fullAddress to ""
+                fullAddress to null
             }
 
             val eventUrl = localBusinessData?.url
@@ -91,7 +95,7 @@ class PopupPopplyDetailCrawler(
             logger.info { "[+] ID $popupId: Event information collected successfully." }
 
             PopupDetail(
-                title = title,
+                name = name,
                 address = address,
                 optionalAddress = optionalAddress,
                 startDate = startDate,
@@ -111,4 +115,13 @@ class PopupPopplyDetailCrawler(
         }
     }
 
+    /**
+     * "2023-02-24T00:00:00" 같은 문자열(KST 기준)을 받아서 Instant로 변환
+     */
+    fun toKorInstant(timeString: String?): Instant? {
+        if (timeString == null) return null
+        val localDateTime = LocalDateTime.parse(timeString)
+        val seoulZone = ZoneId.of("Asia/Seoul")
+        return localDateTime.atZone(seoulZone).toInstant()
+    }
 }

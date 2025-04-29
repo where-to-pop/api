@@ -2,14 +2,15 @@ package com.wheretopop.infrastructure.popup.external.popply
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
+import java.time.Instant
 
-// 최종 팝업 상세 정보를 담을 데이터 클래스
+// 팝업 상세 정보를 담을 데이터 클래스
 data class PopupDetail(
-    val title: String,
+    val name: String,
     val address: String,
-    val optionalAddress: String,
-    val startDate: String?,
-    val endDate: String?,
+    val optionalAddress: String?,
+    val startDate: Instant?,
+    val endDate: Instant?,
     val description: String,
     val url: String?,
     val latitude: Double?,

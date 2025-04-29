@@ -62,8 +62,11 @@ dependencies {
 	annotationProcessor("org.mapstruct:mapstruct-processor:1.5.5.Final")
 	annotationProcessor("org.projectlombok:lombok-mapstruct-binding:0.2.0")
 
-	// Jsoup for HTML parsing
+	// for crawling
 	implementation("org.jsoup:jsoup:1.19.1")
+	implementation("org.seleniumhq.selenium:selenium-java:4.31.0")
+	implementation("io.github.bonigarcia:webdrivermanager:5.8.0")
+	implementation("org.apache.httpcomponents.client5:httpclient5:5.3.1")
 
 	// REST Docs
 	testImplementation("org.springframework.restdocs:spring-restdocs-webtestclient")

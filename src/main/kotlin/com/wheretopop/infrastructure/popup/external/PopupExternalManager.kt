@@ -5,7 +5,8 @@ import org.springframework.stereotype.Component
 
 @Component
 class PopupExternalManager(
-    private val popupExternalStore: PopupExternalStore
+    private val popupExternalStore: PopupExternalStore,
+    private val popupExternalReader: PopupExternalReader
 ): PopupPopplyUseCase {
     override suspend fun crawlPopplyAndSave() {
         return popupExternalStore.crawlPopplyAndSave()
