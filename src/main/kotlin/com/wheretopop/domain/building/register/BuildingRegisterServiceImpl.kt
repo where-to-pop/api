@@ -16,16 +16,8 @@ class BuildingRegisterServiceImpl(
         return buildingRegisterInfoMapper.of(buildingRegisters)
     }
 
-    override suspend fun createBuildingRegister(command: BuildingRegisterCommand.CreateBuildingRegisterCommand): BuildingRegisterInfo.Main {
-        val buildingRegister = this.buildingRegisterStore.save(
-            BuildingRegister.create(
-                address = command.address,
-                location = command.location,
-                createdAt = Instant.now(),
-                updatedAt = Instant.now(),
-                deletedAt = null,
-            )
-        )
+    override suspend fun createBuildingRegister(command: BuildingRegisterCommand.CreateBuildingRegisterCommand): BuildingRegisterInfo.Main? {
+        val buildingRegister = this.buildingRegisterStore.callAndSave(command) ?: return null
         return buildingRegisterInfoMapper.of(buildingRegister)
     }
 }

@@ -13,4 +13,18 @@
                 .baseUrl("http://openapi.seoul.go.kr:8088")
                 .build()
         }
+
+        @Bean
+        fun koreaDataPortalApiWebClient(): WebClient {
+            return WebClient.builder()
+                .baseUrl("https://apis.data.go.kr")
+                .build()
+        }
+
+        @Bean
+        fun vWorldOpenApiWebClient(): WebClient {
+            return WebClient.builder()
+                .baseUrl("https://api.vworld.kr")
+                .build()
+        }
     }

@@ -13,6 +13,18 @@ class BuildingRegisterInfoMapper {
                 latitude = domain.location.latitude,
                 longitude = domain.location.longitude
             ),
+            heit = domain.heit,
+            grndFlrCnt = domain.grndFlrCnt,
+            ugrndFlrCnt = domain.ugrndFlrCnt,
+            rideUseElvtCnt = domain.rideUseElvtCnt,
+            emgenUseElvtCnt = domain.emgenUseElvtCnt,
+            useAprDay = domain.useAprDay,
+            bldNm = domain.bldNm,
+            platArea = domain.platArea,
+            archArea = domain.archArea,
+            bcRat = domain.bcRat,
+            valRat = domain.valRat,
+            totArea = domain.totArea,
         )
     }
 

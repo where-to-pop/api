@@ -16,7 +16,7 @@ class BuildingFacade(
         return buildingService.searchBuildings(criteria)
     }
 
-    suspend fun createBuilding(command: BuildingCommand.CreateBuildingCommand): BuildingInfo.Main {
+    suspend fun createBuilding(command: BuildingCommand.CreateBuildingCommand): BuildingInfo.Main? {
         val building = buildingService.createBuilding(command)
         return building
     }

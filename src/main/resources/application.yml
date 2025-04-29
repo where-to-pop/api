@@ -21,6 +21,11 @@ spring:
 openapi:
   seoul:
     key: ${SEOUL_OPEN_DATA_API_KEY:your_key}
+  korea:
+    building-register:
+      key: ${KOREA_BUILDING_REGISTER_OPEN_DATA_API_KEY:your_key}
+  v-world:
+    key: ${V_WORLD_OPEN_API_KEY:your_key}
 
 server:
   port: ${APP_PORT:8080}
