@@ -6,12 +6,18 @@ import com.wheretopop.infrastructure.area.R2dbcAreaRepository
 import com.wheretopop.infrastructure.area.external.opendata.population.AreaPopulationIdToLongConverter
 import com.wheretopop.infrastructure.area.external.opendata.population.LongToAreaPopulationIdConverter
 import com.wheretopop.infrastructure.area.external.opendata.population.R2dbcAreaPopulationRepository
+import com.wheretopop.infrastructure.building.BuildingIdToLongConverter
+import com.wheretopop.infrastructure.building.LongToBuildingIdConverter
+import com.wheretopop.infrastructure.building.register.BuildingRegisterIdToLongConverter
+import com.wheretopop.infrastructure.building.register.LongToBuildingRegisterIdConverter
 import com.wheretopop.infrastructure.popup.LongToPopupIdConverter
 import com.wheretopop.infrastructure.popup.PopupIdToLongConverter
-import com.wheretopop.infrastructure.popup.R2dbcPopupRepository
 import com.wheretopop.infrastructure.popup.external.popply.LongToPopupPopplyIdConverter
 import com.wheretopop.infrastructure.popup.external.popply.PopupPopplyIdToLongConverter
+import com.wheretopop.infrastructure.popup.R2dbcPopupRepository
 import com.wheretopop.infrastructure.popup.external.popply.R2dbcPopupPopplyRepository
+import com.wheretopop.infrastructure.building.R2dbcBuildingRepository
+import com.wheretopop.infrastructure.building.register.R2dbcBuildingRegisterRepository
 import io.r2dbc.spi.ConnectionFactory
 import org.mariadb.r2dbc.MariadbConnectionConfiguration
 import org.mariadb.r2dbc.MariadbConnectionFactory
@@ -68,7 +74,9 @@ class R2dbcConfig : AbstractR2dbcConfiguration() {
         AreaPopulationIdToLongConverter(), LongToAreaPopulationIdConverter(),
         InstantToLocalDateTimeConverter(), LocalDateTimeToInstantConverter(),
         PopupIdToLongConverter(), LongToPopupIdConverter(),
-        PopupPopplyIdToLongConverter(), LongToPopupPopplyIdConverter()
+        PopupPopplyIdToLongConverter(), LongToPopupPopplyIdConverter(),
+        BuildingIdToLongConverter(), LongToBuildingIdConverter(),
+        BuildingRegisterIdToLongConverter(), LongToBuildingRegisterIdConverter()
     )
 
 
@@ -81,6 +89,10 @@ class R2dbcConfig : AbstractR2dbcConfiguration() {
     internal fun r2dbcAreaRepository(template: R2dbcEntityTemplate) = R2dbcAreaRepository(template)
     @Bean
     internal fun r2dbcAreaPopulationRepository(template: R2dbcEntityTemplate) = R2dbcAreaPopulationRepository(template)
+    @Bean
+    internal fun r2dbcBuildingRepository(template: R2dbcEntityTemplate) = R2dbcBuildingRepository(template)
+    @Bean
+    internal fun r2dbcBuildingRegisterRepository(template: R2dbcEntityTemplate) = R2dbcBuildingRegisterRepository(template)
 
     @Bean
     internal fun r2dbcPopupRepository(template: R2dbcEntityTemplate) = R2dbcPopupRepository(template)

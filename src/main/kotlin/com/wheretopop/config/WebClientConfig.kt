@@ -15,6 +15,20 @@
         }
 
         @Bean
+        fun koreaDataPortalApiWebClient(): WebClient {
+            return WebClient.builder()
+                .baseUrl("https://apis.data.go.kr")
+                .build()
+        }
+
+        @Bean
+        fun vWorldOpenApiWebClient(): WebClient {
+            return WebClient.builder()
+                .baseUrl("https://api.vworld.kr")
+                .build()
+        }
+
+        @Bean
         fun popupApiWebClient(): WebClient {
             return WebClient.builder()
                 .baseUrl("https://www.popply.co.kr/popup")
