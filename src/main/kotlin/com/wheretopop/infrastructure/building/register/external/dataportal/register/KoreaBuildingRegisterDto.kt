@@ -1,4 +1,4 @@
-package com.wheretopop.infrastructure.building.register.external.korea_building_register
+package com.wheretopop.infrastructure.building.register.external.dataportal.register
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.core.JsonParser

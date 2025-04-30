@@ -1,4 +1,4 @@
-package com.wheretopop.infrastructure.building.register.external.korea_building_register
+package com.wheretopop.infrastructure.building.register.external.dataportal.register
 
 import com.wheretopop.shared.util.JsonUtil
 import mu.KotlinLogging

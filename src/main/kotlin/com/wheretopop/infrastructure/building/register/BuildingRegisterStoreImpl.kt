@@ -3,8 +3,8 @@ package com.wheretopop.infrastructure.building.register
 import com.wheretopop.domain.building.register.BuildingRegister
 import com.wheretopop.domain.building.register.BuildingRegisterCommand
 import com.wheretopop.domain.building.register.BuildingRegisterStore
-import com.wheretopop.infrastructure.building.register.external.area_code.AddressToAreaCodeApiCaller
-import com.wheretopop.infrastructure.building.register.external.korea_building_register.KoreaBuildingRegisterApiCaller
+import com.wheretopop.infrastructure.building.register.external.vworld.areacode.AddressToAreaCodeApiCaller
+import com.wheretopop.infrastructure.building.register.external.dataportal.register.KoreaBuildingRegisterApiCaller
 import mu.KotlinLogging
 import org.springframework.stereotype.Component
 import java.time.Instant

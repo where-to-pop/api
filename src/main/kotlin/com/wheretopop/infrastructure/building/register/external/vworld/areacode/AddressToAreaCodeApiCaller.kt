@@ -1,4 +1,4 @@
-package com.wheretopop.infrastructure.building.register.external.area_code
+package com.wheretopop.infrastructure.building.register.external.vworld.areacode
 
 import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Qualifier
