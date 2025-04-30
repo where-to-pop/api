@@ -53,3 +53,47 @@ CREATE TABLE IF NOT EXISTS area_populations (
     INDEX idx_area_population_update_time (population_update_time),
     INDEX idx_area_population_deleted_at (deleted_at)
     );
+
+-- popups 테이블 생성
+CREATE TABLE IF NOT EXISTS popups (
+    id BIGINT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    address VARCHAR(500) NOT NULL,
+    created_at TIMESTAMP(6) NOT NULL,
+    deleted_at TIMESTAMP(6) DEFAULT NULL,
+
+    -- 검색 성능 향상을 위한 인덱스
+    INDEX idx_popups_name (name),
+    INDEX idx_popups_deleted_at (deleted_at)
+);
+
+-- popup_popply 테이블 생성
+CREATE TABLE IF NOT EXISTS popup_popply (
+    id BIGINT PRIMARY KEY,
+    popup_id BIGINT NOT NULL,
+    popup_name VARCHAR(255) NOT NULL,
+    address VARCHAR(500) NOT NULL,
+    optional_address VARCHAR(500) DEFAULT NULL,
+    start_date TIMESTAMP(6) DEFAULT NULL,
+    end_date TIMESTAMP(6) DEFAULT NULL,
+    description TEXT NOT NULL,
+    url VARCHAR(2048) DEFAULT NULL,
+    latitude DOUBLE PRECISION DEFAULT NULL,
+    longitude DOUBLE PRECISION DEFAULT NULL,
+    organizer_name VARCHAR(255) DEFAULT NULL,
+    organizer_url VARCHAR(2048) DEFAULT NULL,
+    popply_id INT NOT NULL,
+    created_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    updated_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    deleted_at TIMESTAMP(6) DEFAULT NULL,
+
+    CONSTRAINT fk_popup_popply_popup
+        FOREIGN KEY (popup_id)
+        REFERENCES popups(id)
+        ON DELETE CASCADE,
+
+    INDEX idx_popup_popply_popup_id (popup_id),
+    INDEX idx_popup_popply_dates (start_date, end_date),
+    INDEX idx_popup_popply_popply_id (popply_id),
+    INDEX idx_popup_popply_deleted_at (deleted_at)
+);
