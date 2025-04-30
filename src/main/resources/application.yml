@@ -27,6 +27,19 @@ openapi:
   v-world:
     key: ${V_WORLD_OPEN_API_KEY:your_key}
 
+selenium:
+  chrome:
+    headless: true
+    arguments: --disable-gpu
+scraping:
+  target:
+    url: https://popply.co.kr/popup
+    selector:
+      firstPopupLink: div.popuplist-board > ul:nth-of-type(1) > li:nth-of-type(1) div.popup-info-wrap > a
+  wait:
+    timeoutSeconds: 15
+
+
 server:
   port: ${APP_PORT:8080}
   forward-headers-strategy: native

@@ -27,4 +27,11 @@
                 .baseUrl("https://api.vworld.kr")
                 .build()
         }
+
+        @Bean
+        fun popupApiWebClient(): WebClient {
+            return WebClient.builder()
+                .baseUrl("https://www.popply.co.kr/popup")
+                .build()
+        }
     }
