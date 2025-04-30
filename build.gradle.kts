@@ -1,10 +1,9 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-	id("org.springframework.boot") version "3.1.2"
+	id("org.springframework.boot") version "3.4.5"
 	id("io.spring.dependency-management") version "1.1.0"
-	id("org.asciidoctor.jvm.convert") version "3.3.2"
-	id("org.flywaydb.flyway") version "9.22.3"
+	id("org.asciidoctor.jvm.convert") version "4.0.2"
 	kotlin("jvm") version "1.9.23"
 	kotlin("plugin.spring") version "1.9.23"
 	kotlin("plugin.serialization") version "1.9.23"
@@ -12,11 +11,25 @@ plugins {
 
 group = "com.example"
 version = "0.0.1-SNAPSHOT"
-java.sourceCompatibility = JavaVersion.VERSION_17
+java.sourceCompatibility = JavaVersion.VERSION_21
 
 
 repositories {
+//	mavenLocal()
 	mavenCentral()
+	maven { url = uri("https://repo.spring.io/milestone") }
+	maven { url = uri("https://repo.spring.io/snapshot") }
+	maven {
+		url = uri("https://repo.spring.io/milestone")
+		mavenContent {
+			releasesOnly()
+		}
+	}
+	maven {
+		name = "Central Portal Snapshots"
+		url = uri("https://central.sonatype.com/repository/maven-snapshots/")
+	}
+
 }
 
 configurations {
@@ -28,6 +41,14 @@ configurations {
 
 
 dependencies {
+	// Spring AI
+//	implementation(platform("org.springframework.ai:spring-ai-bom:1.0.0-SNAPSHOT"))
+	implementation(platform("org.springframework.ai:spring-ai-bom:1.0.0-M8"))
+	implementation("org.springframework.ai:spring-ai-openai")
+	implementation("org.springframework.ai:spring-ai-starter-model-openai")
+	implementation("org.springframework.ai:spring-ai-starter-mcp-client")
+	implementation("org.springframework.ai:spring-ai-starter-mcp-server")
+
 	// Spring WebFlux + R2DBC
 	implementation("org.springframework.boot:spring-boot-starter-webflux")
 	implementation("org.springframework.boot:spring-boot-starter-data-r2dbc")
@@ -44,6 +65,9 @@ dependencies {
 	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
 	implementation("io.github.microutils:kotlin-logging:3.0.5")
 
+
+
+	
 	// Bean Validation
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 
@@ -65,7 +89,7 @@ dependencies {
 	// for crawling
 	implementation("org.jsoup:jsoup:1.19.1")
 	implementation("org.seleniumhq.selenium:selenium-java:4.31.0")
-	implementation("io.github.bonigarcia:webdrivermanager:5.8.0")
+//	implementation("io.github.bonigarcia:webdrivermanager:5.8.0")
 	implementation("org.apache.httpcomponents.client5:httpclient5:5.3.1")
 
 	// REST Docs
@@ -88,12 +112,12 @@ dependencies {
 
 
 kotlin {
-	jvmToolchain(17)
+	jvmToolchain(21)
 }
 
 tasks.withType<KotlinCompile> {
 	kotlinOptions {
-		jvmTarget = "17"
+		jvmTarget = "21"
 	}
 }
 
