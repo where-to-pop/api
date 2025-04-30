@@ -6,7 +6,11 @@ import com.wheretopop.infrastructure.area.R2dbcAreaRepository
 import com.wheretopop.infrastructure.area.external.opendata.population.AreaPopulationIdToLongConverter
 import com.wheretopop.infrastructure.area.external.opendata.population.LongToAreaPopulationIdConverter
 import com.wheretopop.infrastructure.area.external.opendata.population.R2dbcAreaPopulationRepository
+import com.wheretopop.infrastructure.building.BuildingIdToLongConverter
+import com.wheretopop.infrastructure.building.LongToBuildingIdConverter
 import com.wheretopop.infrastructure.building.R2dbcBuildingRepository
+import com.wheretopop.infrastructure.building.register.BuildingRegisterIdToLongConverter
+import com.wheretopop.infrastructure.building.register.LongToBuildingRegisterIdConverter
 import com.wheretopop.infrastructure.building.register.R2dbcBuildingRegisterRepository
 import io.r2dbc.spi.ConnectionFactory
 import org.mariadb.r2dbc.MariadbConnectionConfiguration
@@ -62,7 +66,9 @@ class R2dbcConfig : AbstractR2dbcConfiguration() {
     override fun getCustomConverters(): MutableList<Any> = mutableListOf(
         AreaIdToLongConverter(), LongToAreaIdConverter(),
         AreaPopulationIdToLongConverter(), LongToAreaPopulationIdConverter(),
-        InstantToLocalDateTimeConverter(), LocalDateTimeToInstantConverter()
+        InstantToLocalDateTimeConverter(), LocalDateTimeToInstantConverter(),
+        BuildingIdToLongConverter(), LongToBuildingIdConverter(),
+        BuildingRegisterIdToLongConverter(), LongToBuildingRegisterIdConverter()
     )
 
 
