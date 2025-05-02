@@ -3,6 +3,9 @@
     import org.springframework.context.annotation.Bean
     import org.springframework.context.annotation.Configuration
     import org.springframework.web.reactive.function.client.WebClient
+    import org.springframework.web.util.DefaultUriBuilderFactory
+    import org.springframework.web.util.DefaultUriBuilderFactory.EncodingMode
+
 
     @Configuration
     class WebClientConfig {
@@ -16,9 +19,13 @@
 
         @Bean
         fun koreaDataPortalApiWebClient(): WebClient {
+            val baseUrl = "https://apis.data.go.kr"
+            val factory: DefaultUriBuilderFactory = DefaultUriBuilderFactory(baseUrl)
+            factory.encodingMode = EncodingMode.VALUES_ONLY
             return WebClient.builder()
-                .baseUrl("https://apis.data.go.kr")
-                .build()
+                .uriBuilderFactory(factory)
+                .baseUrl(baseUrl)
+                .build();
         }
 
         @Bean

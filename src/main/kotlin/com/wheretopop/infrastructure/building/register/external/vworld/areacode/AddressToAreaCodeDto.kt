@@ -19,6 +19,4 @@ data class ResultItem(
 data class AreaCode(
     val sigunguCd: String,
     val bjdongCd: String,
-    val bun: String,
-    val ji: String,
 )

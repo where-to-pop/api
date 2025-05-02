@@ -97,3 +97,45 @@ CREATE TABLE IF NOT EXISTS popup_popply (
     INDEX idx_popup_popply_popply_id (popply_id),
     INDEX idx_popup_popply_deleted_at (deleted_at)
 );
+
+-- building table 생성
+CREATE TABLE IF NOT EXISTS buildings (
+    id BIGINT PRIMARY KEY,
+    address VARCHAR(500) NOT NULL,
+    latitude DOUBLE PRECISION NOT NULL,
+    longitude DOUBLE PRECISION NOT NULL,
+    created_at TIMESTAMP(6) NOT NULL,
+    updated_at TIMESTAMP(6) NOT NULL,
+    deleted_at TIMESTAMP(6) DEFAULT NULL,
+
+    INDEX idx_buildings_address (address)
+);
+
+-- building register table 생성
+CREATE TABLE IF NOT EXISTS building_registers (
+    id BIGINT PRIMARY KEY,
+    building_id BIGINT NOT NULL,
+    address VARCHAR(500) NOT NULL,
+    heit DOUBLE PRECISION DEFAULT NULL,
+    grnd_flr_cnt INT DEFAULT NULL,
+    ugrnd_flr_cnt INT DEFAULT NULL,
+    ride_use_elvt_cnt INT DEFAULT NULL,
+    emgen_use_elvt_cnt INT DEFAULT NULL,
+    use_apr_day TIMESTAMP(6) DEFAULT NULL,
+    bld_nm VARCHAR(255) DEFAULT NULL,
+    plat_area DOUBLE PRECISION DEFAULT NULL,
+    arch_area DOUBLE PRECISION DEFAULT NULL,
+    bc_rat DOUBLE PRECISION DEFAULT NULL,
+    val_rat DOUBLE PRECISION DEFAULT NULL,
+    tot_area DOUBLE PRECISION DEFAULT NULL,
+    latitude DOUBLE PRECISION NOT NULL,
+    longitude DOUBLE PRECISION NOT NULL,
+    created_at TIMESTAMP(6) NOT NULL,
+    updated_at TIMESTAMP(6) NOT NULL,
+    deleted_at TIMESTAMP(6) DEFAULT NULL,
+
+    CONSTRAINT fk_building_building_registers
+        FOREIGN KEY (building_id)
+        REFERENCES buildings(id)
+        ON DELETE CASCADE
+);

@@ -48,8 +48,6 @@ class AddressToAreaCodeApiCaller(
             AreaCode(
                 sigunguCd = code.substring(0, 5),
                 bjdongCd = code.substring(5, 10),
-                bun = code.substring(10, 14),
-                ji = code.substring(14, 18)
             )
         } catch (e: Exception) {
             logger.error(e) { "Error fetching area code data for $address: ${e.message}" }

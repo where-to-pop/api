@@ -13,7 +13,7 @@ import org.springframework.data.relational.core.mapping.Column
 import org.springframework.data.relational.core.mapping.Table
 import java.time.Instant
 
-@Table("building_register")
+@Table("building_registers")
 internal class BuildingRegisterEntity @PersistenceCreator private constructor(
     @Id
     @Column("id")

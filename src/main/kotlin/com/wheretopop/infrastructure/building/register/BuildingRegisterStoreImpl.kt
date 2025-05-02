@@ -47,10 +47,8 @@ class BuildingRegisterStoreImpl(
             val koreaBuildingRegisterResponse = koreaBuildingRegisterApiCaller.fetchBuildingRegisterData(
                 sigunguCd = areaCode.sigunguCd,
                 bjdongCd = areaCode.bjdongCd,
-                bun = areaCode.bun,
-                ji = areaCode.ji
             )
-            val firstKoreaBuildingRegister = koreaBuildingRegisterResponse?.body?.items?.get(0) ?: throw Exception("건축물 대장 정보를 불러오지 못했습니다.")
+            val firstKoreaBuildingRegister = koreaBuildingRegisterResponse?.response?.body?.items?.item?.get(0) ?: throw Exception("건축물 대장 정보를 불러오지 못했습니다.")
 
             val buildingRegister = BuildingRegister.create(
                 buildingId = command.buildingId,

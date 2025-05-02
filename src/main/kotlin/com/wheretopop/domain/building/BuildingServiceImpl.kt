@@ -26,15 +26,15 @@ class BuildingServiceImpl(
             updatedAt = Instant.now(),
             deletedAt = null,
         )
+        this.buildingStore.save(building)
 
         val createBuildingRegisterCommand = BuildingRegisterCommand.CreateBuildingRegisterCommand(
             buildingId = building.id,
             location = building.location,
             address = building.address
         )
-        buildingRegisterService.createBuildingRegister(createBuildingRegisterCommand) ?: return null
+        buildingRegisterService.createBuildingRegister(createBuildingRegisterCommand)
 
-        this.buildingStore.save(building)
         return buildingInfoMapper.of(building)
     }
 }

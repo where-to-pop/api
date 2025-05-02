@@ -19,28 +19,28 @@ class KoreaBuildingRegisterApiCaller(
     @Qualifier("koreaDataPortalApiWebClient") private val webClient: WebClient,
     @Value("\${openapi.korea.building-register.key}") private val apiKey: String
 ) {
-    suspend fun fetchBuildingRegisterData(sigunguCd: String, bjdongCd: String, bun: String, ji: String): KoreaBuildingRegisterResponse? {
+    suspend fun fetchBuildingRegisterData(sigunguCd: String, bjdongCd: String): KoreaBuildingRegisterResponse? {
         return try {
-            logger.info { "Fetching building register data for code: $sigunguCd $bjdongCd $bun $ji" }
-            val rawResponse = webClient.get()
+            logger.info { "Fetching building register data for code: $sigunguCd $bjdongCd $apiKey" }
+            val rawResponse = webClient
+                .get()
                 .uri { builder ->
                     builder
                         .path("/1613000/BldRgstHubService/getBrTitleInfo")
+                        .queryParam("_type", "json")
                         .queryParam("serviceKey", apiKey)
                         .queryParam("sigunguCd", sigunguCd)
                         .queryParam("bjdongCd", bjdongCd)
-                        .queryParam("bun", bun)
-                        .queryParam("ji", ji)
-                        .build()
+                        .build(apiKey)
                 }
                 .retrieve()
                 .awaitBody<String>()
 
-            logger.info { "Raw response for $sigunguCd $bjdongCd $bun $ji: $rawResponse" } // 찍는다
+            logger.info { "Raw response for $sigunguCd $bjdongCd: $rawResponse" } // 찍는다
 
             JsonUtil.objectMapper.readValue(rawResponse, KoreaBuildingRegisterResponse::class.java)
         } catch (e: Exception) {
-            logger.error(e) { "Error fetching builing register data for $sigunguCd $bjdongCd $bun $ji: ${e.message}" }
+            logger.error(e) { "Error fetching builing register data for $sigunguCd $bjdongCd: ${e.message}" }
             null
         }
     }

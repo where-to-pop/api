@@ -5,7 +5,6 @@ import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.JsonDeserializer
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
-import com.wheretopop.infrastructure.area.external.opendata.population.StringToInstantDeserializer
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -16,36 +15,39 @@ import java.time.format.DateTimeFormatterBuilder
  * 한국 건축물 대장 데이터 응답
  */
 data class KoreaBuildingRegisterResponse(
-    @JsonProperty("header")
-    val result: Header? = null,
+    val response: Response
+)
 
-    @JsonProperty("body")
+data class Response(
+    val header: Header,
     val body: Body
 )
 
-/**
- * API 응답 결과 정보
- */
 data class Header(
-    @JsonProperty("header.resultCode")
+    @JsonProperty("resultCode")
     val resultCode: String,
-    
-    @JsonProperty("header.resultMsg")
+
+    @JsonProperty("resultMsg")
     val resultMsg: String
 )
 
 data class Body(
-    @JsonProperty("body.items")
-    val items: List<Item>,
+    @JsonProperty("items")
+    val items: Items,
 
-    @JsonProperty("body.numOfRows")
+    @JsonProperty("numOfRows")
     val numOfRows: String,
 
-    @JsonProperty("body.pageNo")
+    @JsonProperty("pageNo")
     val pageNo: String,
 
-    @JsonProperty("body.totalCount")
+    @JsonProperty("totalCount")
     val totalCount: String,
+)
+
+data class Items(
+    @JsonProperty("item")
+    val item: List<Item>
 )
 
 /**
@@ -135,6 +137,10 @@ class StringToNullableInstantDeserializer : JsonDeserializer<Instant?>() {
                 .withZone(ZoneId.systemDefault()),
             DateTimeFormatterBuilder()
                 .appendPattern("yyyy-MM-dd HH:mm:ss")
+                .toFormatter()
+                .withZone(ZoneId.systemDefault()),
+            DateTimeFormatterBuilder()
+                .appendPattern("yyyyMMdd")
                 .toFormatter()
                 .withZone(ZoneId.systemDefault())
         )
@@ -265,17 +271,17 @@ data class Item(
 
     // 허가일
     @JsonProperty("pmsDay")
-    @JsonDeserialize(using = StringToInstantDeserializer::class)
+    @JsonDeserialize(using = StringToNullableInstantDeserializer::class)
     val pmsDay: Instant? = null,
 
     // 착공일
     @JsonProperty("stcnsDay")
-    @JsonDeserialize(using = StringToInstantDeserializer::class)
+    @JsonDeserialize(using = StringToNullableInstantDeserializer::class)
     val stcnsDay: Instant? = null,
 
     // 사용승인일
     @JsonProperty("useAprDay")
-    @JsonDeserialize(using = StringToInstantDeserializer::class)
+    @JsonDeserialize(using = StringToNullableInstantDeserializer::class)
     val useAprDay: Instant? = null,
 
     // 허가번호년
@@ -332,7 +338,7 @@ data class Item(
 
     // 생성일자
     @JsonProperty("crtnDay")
-    @JsonDeserialize(using = StringToInstantDeserializer::class)
+    @JsonDeserialize(using = StringToNullableInstantDeserializer::class)
     val crtnDay: Instant? = null,
 
     // 순번
