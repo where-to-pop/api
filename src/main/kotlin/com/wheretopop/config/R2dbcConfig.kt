@@ -18,6 +18,7 @@ import com.wheretopop.infrastructure.popup.R2dbcPopupRepository
 import com.wheretopop.infrastructure.popup.external.popply.R2dbcPopupPopplyRepository
 import com.wheretopop.infrastructure.building.R2dbcBuildingRepository
 import com.wheretopop.infrastructure.building.register.R2dbcBuildingRegisterRepository
+import com.wheretopop.infrastructure.popup.external.x.R2dbcXRepository
 import io.r2dbc.spi.ConnectionFactory
 import org.mariadb.r2dbc.MariadbConnectionConfiguration
 import org.mariadb.r2dbc.MariadbConnectionFactory
@@ -89,6 +90,7 @@ class R2dbcConfig : AbstractR2dbcConfiguration() {
     internal fun r2dbcAreaRepository(template: R2dbcEntityTemplate) = R2dbcAreaRepository(template)
     @Bean
     internal fun r2dbcAreaPopulationRepository(template: R2dbcEntityTemplate) = R2dbcAreaPopulationRepository(template)
+
     @Bean
     internal fun r2dbcBuildingRepository(template: R2dbcEntityTemplate) = R2dbcBuildingRepository(template)
     @Bean
@@ -98,6 +100,8 @@ class R2dbcConfig : AbstractR2dbcConfiguration() {
     internal fun r2dbcPopupRepository(template: R2dbcEntityTemplate) = R2dbcPopupRepository(template)
     @Bean
     internal fun r2dbcPopupPopplyRepository(template: R2dbcEntityTemplate) = R2dbcPopupPopplyRepository(template)
+    @Bean
+    internal fun r2dbcXRepository(template: R2dbcEntityTemplate) = R2dbcXRepository(template)
 
 }
 
