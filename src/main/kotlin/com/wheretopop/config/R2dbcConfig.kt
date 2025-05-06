@@ -18,7 +18,9 @@ import com.wheretopop.infrastructure.popup.R2dbcPopupRepository
 import com.wheretopop.infrastructure.popup.external.popply.R2dbcPopupPopplyRepository
 import com.wheretopop.infrastructure.building.R2dbcBuildingRepository
 import com.wheretopop.infrastructure.building.register.R2dbcBuildingRegisterRepository
+import com.wheretopop.infrastructure.popup.external.x.LongToXIdConverter
 import com.wheretopop.infrastructure.popup.external.x.R2dbcXRepository
+import com.wheretopop.infrastructure.popup.external.x.XIdToLongConverter
 import io.r2dbc.spi.ConnectionFactory
 import org.mariadb.r2dbc.MariadbConnectionConfiguration
 import org.mariadb.r2dbc.MariadbConnectionFactory
@@ -76,6 +78,7 @@ class R2dbcConfig : AbstractR2dbcConfiguration() {
         InstantToLocalDateTimeConverter(), LocalDateTimeToInstantConverter(),
         PopupIdToLongConverter(), LongToPopupIdConverter(),
         PopupPopplyIdToLongConverter(), LongToPopupPopplyIdConverter(),
+        XIdToLongConverter(), LongToXIdConverter(),
         BuildingIdToLongConverter(), LongToBuildingIdConverter(),
         BuildingRegisterIdToLongConverter(), LongToBuildingRegisterIdConverter()
     )

@@ -23,6 +23,12 @@ internal class R2dbcBuildingRepository(
             .awaitSingleOrNull()
             ?.toDomain()
 
+    override suspend fun findByAddress(address: String): Building? =
+        entityTemplate
+            .selectOne(query(where("address").`is`(address)), entityClass)
+            .awaitSingleOrNull()
+            ?.toDomain()
+
     override suspend fun findAll(): List<Building> =
         entityTemplate.select(entityClass)
             .all()

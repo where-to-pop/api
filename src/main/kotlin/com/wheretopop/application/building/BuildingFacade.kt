@@ -1,9 +1,6 @@
 package com.wheretopop.application.building
 
-import com.wheretopop.domain.building.BuildingCommand
-import com.wheretopop.domain.building.BuildingCriteria
-import com.wheretopop.domain.building.BuildingInfo
-import com.wheretopop.domain.building.BuildingService
+import com.wheretopop.domain.building.*
 import com.wheretopop.domain.building.register.BuildingRegisterService
 import org.springframework.stereotype.Service
 
@@ -19,5 +16,9 @@ class BuildingFacade(
     suspend fun createBuilding(command: BuildingCommand.CreateBuildingCommand): BuildingInfo.Main? {
         val building = buildingService.createBuilding(command)
         return building
+    }
+
+    suspend fun getOrCreateBuildingId(command: BuildingCommand.CreateBuildingCommand): Long {
+        return buildingService.getOrCreateBuildingId(command)
     }
 }

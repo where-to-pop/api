@@ -35,8 +35,8 @@ data class XEntity(
     @Column("popup_id")
     val popupId: PopupId,
 
-    @Column("date")
-    val date: Instant,
+    @Column("written_at")
+    val writtenAt: Instant,
 
     @Column("content")
     val content: String,
@@ -52,7 +52,7 @@ data class XEntity(
             return XEntity(
                 id = XId.create(),
                 popupId = popupId,
-                date = xResponse.date,
+                writtenAt = xResponse.writtenAt,
                 content = xResponse.content,
                 emotionScore = xResponse.emotionScore,
                 createdAt = Instant.now()

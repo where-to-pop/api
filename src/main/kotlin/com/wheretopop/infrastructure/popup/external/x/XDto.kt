@@ -4,7 +4,7 @@ import java.time.Instant
 
 
 data class XResponse(
-    val date: Instant,
+    val writtenAt: Instant,
     val content: String,
     val emotionScore: EmotionScore,
 )

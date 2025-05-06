@@ -1,5 +1,6 @@
 package com.wheretopop.infrastructure.popup
 
+import com.wheretopop.domain.building.BuildingId
 import com.wheretopop.domain.popup.Popup
 import com.wheretopop.domain.popup.PopupId
 import org.springframework.core.convert.converter.Converter
@@ -16,11 +17,12 @@ data class PopupEntity(
     @Column("id")
     val id: PopupId,
 
+    @Column("building_id")
+    val buildingId: Long?,
+
     @Column("name")
     val name: String,
 
-//    @Column("building_id")
-//    val buildingId: Long?,
     @Column("address")
     val address : String,
 
@@ -36,7 +38,7 @@ data class PopupEntity(
             return PopupEntity(
                 id = popup.id,
                 name = popup.name,
-    //            buildingId = buildingId,
+                buildingId = popup.buildingId,
                 address = popup.address,
                 createdAt = popup.createdAt,
                 deletedAt = popup.deletedAt,
@@ -48,7 +50,7 @@ data class PopupEntity(
         return Popup.create(
             id = id,
             name = name,
-//            buildingId = buildingId,
+            buildingId = buildingId,
             address = address,
             createdAt = createdAt,
             deletedAt = deletedAt,
@@ -59,7 +61,7 @@ data class PopupEntity(
         return PopupEntity(
             id = id,
             name = popup.name,
-//            buildingId = popup.buildingId,
+            buildingId = popup.buildingId,
             address = popup.address,
             createdAt = createdAt,
             deletedAt = deletedAt,

@@ -57,10 +57,16 @@ CREATE TABLE IF NOT EXISTS area_populations (
 -- popups 테이블 생성
 CREATE TABLE IF NOT EXISTS popups (
     id BIGINT PRIMARY KEY,
+    building_id BIGINT,
     name VARCHAR(255) NOT NULL,
     address VARCHAR(500) NOT NULL,
     created_at TIMESTAMP(6) NOT NULL,
     deleted_at TIMESTAMP(6) DEFAULT NULL,
+
+    CONSTRAINT fk_popup_building
+        FOREIGN KEY (building_id)
+        REFERENCES buildings(id)
+        ON DELETE CASCADE,
 
     -- 검색 성능 향상을 위한 인덱스
     INDEX idx_popups_name (name),
@@ -96,6 +102,23 @@ CREATE TABLE IF NOT EXISTS popup_popply (
     INDEX idx_popup_popply_dates (start_date, end_date),
     INDEX idx_popup_popply_popply_id (popply_id),
     INDEX idx_popup_popply_deleted_at (deleted_at)
+);
+
+-- popup_x 테이블 생성
+CREATE TABLE IF NOT EXISTS popup_x (
+    id BIGINT PRIMARY KEY,
+    popup_id BIGINT NOT NULL,
+    written_at DATETIME(6) NOT NULL,
+    content TEXT NOT NULL,
+    emotion_score ENUM('VERY_GOOD', 'GOOD', 'NEUTRAL', 'BAD', 'VERY_BAD') NOT NULL,
+    created_at DATETIME(6) NOT NULL,
+
+    CONSTRAINT fk_popup_x_popup
+        FOREIGN KEY (popup_id)
+        REFERENCES popups(id)
+        ON DELETE CASCADE,
+
+    INDEX idx_popup_x_popup_id (popup_id)
 );
 
 -- building table 생성
