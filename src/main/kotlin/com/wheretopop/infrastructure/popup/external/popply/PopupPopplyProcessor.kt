@@ -55,7 +55,7 @@ class PopupPopplyProcessor(
         return popupDetailData
     }
 
-    suspend fun crawlDownPopupDetailsById(endId: Int, startId:Int = 3416): List<PopupDetail> {
+    suspend fun crawlDownPopupDetailsById(endId: Int, startId:Int = 15): List<PopupDetail> {
         logger.info("ID 범위 {}부터 {}까지 (역순) 팝업 상세 정보 크롤링 시작...", startId, endId)
         var successCount = 0
         var stoppedEarly = false
