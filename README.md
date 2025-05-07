@@ -13,7 +13,7 @@
 
 ### 필수 사항
 
-- JDK 21
+- JDK 17
 - Docker & Docker Compose
 
 ### 시작하기

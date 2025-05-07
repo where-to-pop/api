@@ -4,7 +4,6 @@ import com.wheretopop.domain.area.Area
 import com.wheretopop.domain.area.AreaCriteria
 import com.wheretopop.domain.area.AreaId
 import com.wheretopop.domain.area.AreaReader
-import com.wheretopop.shared.model.UniqueId
 import org.springframework.stereotype.Component
 
 /**

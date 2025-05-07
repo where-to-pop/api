@@ -61,26 +61,25 @@ services:
       elasticsearch:
         condition: service_healthy
 
-  dbgate:
-    image: dbgate/dbgate:latest
-    container_name: wheretopop-dbgate
-    restart: always
-    environment:
-      CONNECTIONS: mariadb
-      LABEL_mariadb: MariaDB
-      SERVER_mariadb: mariadb
-      USER_mariadb: ${MYSQL_USER}
-      PASSWORD_mariadb: ${MYSQL_PASSWORD}
-      PORT_mariadb: ${DB_PORT}
-      DATABASE_mariadb: ${MYSQL_DATABASE}
-      ENGINE_mariadb: mysql@dbgate-plugin-mysql
-    ports:
-      - "8082:3000"
-    volumes:
-      - dbgate_data:/root/.dbgate
-    depends_on:
-      mariadb:
-        condition: service_healthy
+#  ollama:
+#    image: ollama/ollama:latest
+#    container_name: wheretopop-ollama
+#    restart: always
+#    ports:
+#      - "11434:11434"
+#    volumes:
+#      - ollama_data:/root/.ollama
+#    command: serve
+#    environment:
+#      - OLLAMA_MODELS=/root/.ollama/models
+#      - OLLAMA_HOST=0.0.0.0:11434
+#    healthcheck:
+#      test: ["CMD", "curl", "-s", "-f", "http://localhost:11434"]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 10
+
+
 
   api:
     build:
@@ -97,6 +96,8 @@ services:
         condition: service_healthy
       elasticsearch:
         condition: service_healthy
+      ollama:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       interval: 10s
@@ -110,3 +111,7 @@ volumes:
     driver: local
   dbgate_data:
     driver: local
+  ollama_data:
+    driver: local
+
+

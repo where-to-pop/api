@@ -6,7 +6,6 @@
     import org.springframework.web.util.DefaultUriBuilderFactory
     import org.springframework.web.util.DefaultUriBuilderFactory.EncodingMode
 
-
     @Configuration
     class WebClientConfig {
 

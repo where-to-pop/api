@@ -17,6 +17,43 @@ spring:
         enabled: true
   elasticsearch:
     uris: http://${ES_HOST:localhost}:${ES_PORT:9200}
+  ai:
+    mcp:
+      server:
+        name: where-to-pop
+        type: async
+        sse-endpoint: /mcp/sse
+        sse-message-endpoint: /mcp/message
+        enabled: true
+      client:
+        enabled: true
+        initialized: true
+        request-timeout: 30s
+        toolcallback:
+          enabled: true
+        type: async
+        stdio:
+          connections:
+            filesystem:
+              command: npx
+              args:
+                - "-y"
+                - "@modelcontextprotocol/server-filesystem"
+                - "./"
+
+    openai:
+      api-key: ${OPENAI_API_KEY:your_openai_or_gcp_key}
+      base-url: https://generativelanguage.googleapis.com/v1beta/openai
+#      base-url: https://api.openai.com/v1
+      chat:
+        completions-path: /chat/completions
+        options:
+#          model: gpt-4o
+          model: gemini-2.0-flash
+#        NOTE: gemini에서 api-key를 통한 인증을 java client에서 지원하지 않음. gcp를 통한 인증을 해야함
+#        따라서 https://ai.google.dev/gemini-api/docs/openai?hl=ko openai 호환을 활용해 호출
+#        https://github.com/spring-projects/spring-ai/issues/1252
+
 
 openapi:
   seoul:
