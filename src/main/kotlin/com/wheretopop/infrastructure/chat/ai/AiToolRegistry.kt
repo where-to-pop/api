@@ -1,10 +1,10 @@
-package com.wheretopop.interfaces.mcp
+package com.wheretopop.infrastructure.chat.ai
 
 import org.springframework.ai.tool.annotation.Tool
 import org.springframework.stereotype.Component
 
 @Component
-class McpToolRegistry {
+class AiToolRegistry {
     @Tool(description = "returns current local date time.")
     fun now(): String {
 //        return LocalDateTime.now().toString()

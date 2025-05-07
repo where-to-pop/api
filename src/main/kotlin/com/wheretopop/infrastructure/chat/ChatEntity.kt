@@ -2,9 +2,9 @@ package com.wheretopop.infrastructure.chat
 
 import com.wheretopop.domain.chat.Chat
 import com.wheretopop.domain.chat.ChatId
+import com.wheretopop.domain.project.ProjectId
+import com.wheretopop.domain.user.UserId
 import com.wheretopop.infrastructure.chat.message.ChatMessageEntity
-import com.wheretopop.infrastructure.project.ProjectId
-import com.wheretopop.infrastructure.user.UserId
 import org.springframework.core.convert.converter.Converter
 import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.PersistenceCreator

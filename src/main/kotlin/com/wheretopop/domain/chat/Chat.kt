@@ -1,7 +1,7 @@
 package com.wheretopop.domain.chat
 
-import com.wheretopop.infrastructure.project.ProjectId
-import com.wheretopop.infrastructure.user.UserId
+import com.wheretopop.domain.project.ProjectId
+import com.wheretopop.domain.user.UserId
 import java.time.Instant
 
 class Chat private constructor(

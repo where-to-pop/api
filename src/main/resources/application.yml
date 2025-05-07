@@ -32,14 +32,6 @@ spring:
         toolcallback:
           enabled: true
         type: async
-        stdio:
-          connections:
-            filesystem:
-              command: npx
-              args:
-                - "-y"
-                - "@modelcontextprotocol/server-filesystem"
-                - "./"
 
     openai:
       api-key: ${OPENAI_API_KEY:your_openai_or_gcp_key}

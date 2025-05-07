@@ -1,6 +1,6 @@
 package com.wheretopop
 
-import com.wheretopop.interfaces.mcp.McpToolRegistry
+import com.wheretopop.infrastructure.chat.ai.AiToolRegistry
 import org.springframework.ai.tool.ToolCallbackProvider
 import org.springframework.ai.tool.method.MethodToolCallbackProvider
 import org.springframework.boot.autoconfigure.SpringBootApplication
@@ -19,7 +19,7 @@ fun main(args: Array<String>) {
 	runApplication<WhereToPopApplication>(*args)
 
 	@Bean
-	fun tools(mcpToolRegistry: McpToolRegistry?): ToolCallbackProvider {
+	fun tools(mcpToolRegistry: AiToolRegistry?): ToolCallbackProvider {
 		return MethodToolCallbackProvider.builder().toolObjects(mcpToolRegistry).build()
 	}
 }

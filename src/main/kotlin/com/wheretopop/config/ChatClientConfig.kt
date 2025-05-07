@@ -1,9 +1,12 @@
 package com.wheretopop.config
 
-import com.wheretopop.interfaces.mcp.McpToolRegistry
+import com.wheretopop.infrastructure.chat.ai.AiToolRegistry
+import io.modelcontextprotocol.client.McpAsyncClient
 import org.slf4j.LoggerFactory
 import org.springframework.ai.chat.client.ChatClient
 import org.springframework.ai.chat.model.ChatModel
+import org.springframework.ai.mcp.McpToolUtils
+import org.springframework.ai.tool.ToolCallback
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -11,8 +14,8 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 class ChatClientConfig(
     private val chatModel: ChatModel,
-    private val mcpToolRegistry: McpToolRegistry,
-//    private val toolCallbackProvider: ToolCallbackProvider,
+    private val aiToolRegistry: AiToolRegistry,
+    private val asyncClients : List<McpAsyncClient>
 ){
 
     private val logger = LoggerFactory.getLogger(ChatClientConfig::class.java)
@@ -21,16 +24,9 @@ class ChatClientConfig(
 
     @Bean
     fun chatClient(): ChatClient {
- //        val defaultCallbacks = toolCallbackProvider.toolCallbacks
-//        val selfHostedCallbacks = MethodToolCallbackProvider.builder()
-//            .toolObjects(mcpToolRegistry)
-//            .build()
-//            .toolCallbacks
-//        val tool = McpToolUtils.toAsyncToolSpecifications(*defaultCallbacks, *selfHostedCallbacks)
-
-
+        val mcpToolCallbacks: List<ToolCallback> = McpToolUtils.getToolCallbacksFromAsyncClients(asyncClients);
         return ChatClient.builder(chatModel)
-            .defaultTools(mcpToolRegistry)
+            .defaultTools(aiToolRegistry, mcpToolCallbacks)
             .build()
     }
 }
