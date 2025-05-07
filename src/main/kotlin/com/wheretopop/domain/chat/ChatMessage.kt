@@ -1,29 +1,39 @@
 package com.wheretopop.domain.chat
 
-import com.wheretopop.shared.enums.ChatMessageAuthor
+import com.wheretopop.shared.enums.ChatMessageFinishReason
+import com.wheretopop.shared.enums.ChatMessageRole
 import java.time.Instant
 
-class ChatMessage private  constructor(
-    chatMessageId: ChatMessageId,
-    author: ChatMessageAuthor,
-    content: String,
-    createdAt: Instant,
-    updatedAt: Instant,
-    deletedAt: Instant? = null
+class ChatMessage private constructor(
+    val id: ChatMessageId,
+    val chatId: ChatId,
+    val role: ChatMessageRole,
+    val content: String,
+    val finishReason: ChatMessageFinishReason,
+    val latencyMs: Long,
+    val createdAt: Instant,
+    val updatedAt: Instant,
+    val deletedAt: Instant? = null
 ){
     companion object{
         fun create(
-            chatMessageId: ChatMessageId,
-            author: ChatMessageAuthor,
+            id: ChatMessageId,
+            chatId: ChatId,
+            role: ChatMessageRole,
             content: String,
+            finishReason: ChatMessageFinishReason,
+            latencyMs: Long,
             createdAt: Instant,
             updatedAt: Instant,
             deletedAt: Instant? = null
         ): ChatMessage {
             return ChatMessage(
-                chatMessageId,
-                author,
+                id,
+                chatId,
+                role,
                 content,
+                finishReason,
+                latencyMs,
                 createdAt,
                 updatedAt,
                 deletedAt

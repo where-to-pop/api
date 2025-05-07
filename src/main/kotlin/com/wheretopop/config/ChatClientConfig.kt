@@ -21,7 +21,7 @@ class ChatClientConfig(
 
     @Bean
     fun chatClient(): ChatClient {
-//        val defaultCallbacks = toolCallbackProvider.toolCallbacks
+ //        val defaultCallbacks = toolCallbackProvider.toolCallbacks
 //        val selfHostedCallbacks = MethodToolCallbackProvider.builder()
 //            .toolObjects(mcpToolRegistry)
 //            .build()

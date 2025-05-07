@@ -47,7 +47,6 @@ dependencies {
 	implementation("org.springframework.ai:spring-ai-openai")
 	implementation("org.springframework.ai:spring-ai-starter-model-openai")
 	implementation("org.springframework.ai:spring-ai-starter-mcp-client")
-	implementation("org.springframework.ai:spring-ai-starter-mcp-server")
 
 	// Spring WebFlux + R2DBC
 	implementation("org.springframework.boot:spring-boot-starter-webflux")
