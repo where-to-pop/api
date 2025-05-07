@@ -279,7 +279,7 @@ CREATE TABLE IF NOT EXISTS chat_messages (
     chat_id BIGINT NOT NULL,
     role VARCHAR(50) NOT NULL,
     content TEXT NOT NULL,
-    finish_reason VARCHAR(50) NOT NULL,
+    finish_reason VARCHAR(50) NULL,
     latency_ms BIGINT NOT NULL,
     created_at TIMESTAMP(6) NOT NULL,
     updated_at TIMESTAMP(6) NOT NULL,

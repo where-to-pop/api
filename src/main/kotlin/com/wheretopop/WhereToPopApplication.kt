@@ -1,6 +1,6 @@
 package com.wheretopop
 
-import com.wheretopop.infrastructure.chat.ai.AiToolRegistry
+import com.wheretopop.infrastructure.chat.AiToolRegistry
 import org.springframework.ai.tool.ToolCallbackProvider
 import org.springframework.ai.tool.method.MethodToolCallbackProvider
 import org.springframework.boot.autoconfigure.SpringBootApplication

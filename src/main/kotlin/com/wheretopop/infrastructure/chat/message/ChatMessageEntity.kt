@@ -26,7 +26,7 @@ internal class ChatMessageEntity @PersistenceCreator private constructor(
     @Column("content")
     val content: String,
     @Column("finish_reason")
-    val finishReason: ChatMessageFinishReason,
+    val finishReason: ChatMessageFinishReason?,
     @Column("latency_ms")
     val latencyMs: Long,
     @Column("created_at")
