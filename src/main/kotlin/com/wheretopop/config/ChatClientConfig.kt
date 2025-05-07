@@ -1,6 +1,6 @@
 package com.wheretopop.config
 
-import com.wheretopop.infrastructure.chat.ai.AiToolRegistry
+import com.wheretopop.infrastructure.chat.AiToolRegistry
 import io.modelcontextprotocol.client.McpAsyncClient
 import org.slf4j.LoggerFactory
 import org.springframework.ai.chat.client.ChatClient

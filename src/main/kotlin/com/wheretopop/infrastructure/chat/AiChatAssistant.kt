@@ -1,4 +1,4 @@
-package com.wheretopop.infrastructure.chat.ai
+package com.wheretopop.infrastructure.chat
 
 import com.wheretopop.shared.exception.ChatNullResponseException
 import kotlinx.coroutines.flow.Flow
@@ -11,18 +11,16 @@ import org.springframework.ai.chat.prompt.ChatOptions
 import org.springframework.ai.chat.prompt.Prompt
 import org.springframework.stereotype.Component
 
-@Retention(AnnotationRetention.BINARY)
-@Target(AnnotationTarget.FUNCTION)
-annotation class ExperimentalStream
+
 
 @Component
-class AiChatClient(private val chatClient: ChatClient) {
+class AiChatAssistant(private val chatClient: ChatClient) : ChatAssistant {
 
-    fun call(userPrompt: String): String =
+    override suspend fun call(userPrompt: String): String =
         chatClient.prompt().user(userPrompt)
             .call().content() ?: throw ChatNullResponseException()
 
-    fun call(systemPrompt: String?, userPrompt: String): String {
+    override suspend fun call(systemPrompt: String?, userPrompt: String): String {
         val spec = chatClient.prompt().apply {
             systemPrompt?.let { system(it) }
             user(userPrompt)
@@ -30,10 +28,10 @@ class AiChatClient(private val chatClient: ChatClient) {
         return spec.call().content() ?: throw ChatNullResponseException()
     }
 
-    fun call(prompt: Prompt): String =
+    override suspend fun call(prompt: Prompt): String =
         chatClient.prompt(prompt).call().content() ?: throw ChatNullResponseException()
 
-    fun call(messages: List<Message>, options: ChatOptions? = null): String {
+    override suspend fun call(messages: List<Message>, options: ChatOptions?): String {
         val spec = chatClient.prompt().apply {
             messages(messages)
             options?.let { options(it) }
@@ -41,11 +39,11 @@ class AiChatClient(private val chatClient: ChatClient) {
         return spec.call().content() ?: throw ChatNullResponseException()
     }
 
-    fun callWithResponse(userPrompt: String): ChatResponse =
+    override suspend fun callWithResponse(userPrompt: String): ChatResponse =
         chatClient.prompt().user(userPrompt)
             .call().chatResponse() ?: throw ChatNullResponseException()
 
-    fun callWithResponse(systemPrompt: String?, userPrompt: String): ChatResponse {
+    override suspend fun callWithResponse(systemPrompt: String?, userPrompt: String): ChatResponse {
         val spec = chatClient.prompt().apply {
             systemPrompt?.let { system(it) }
             user(userPrompt)
@@ -53,10 +51,10 @@ class AiChatClient(private val chatClient: ChatClient) {
         return spec.call().chatResponse() ?: throw ChatNullResponseException()
     }
 
-    fun callWithResponse(prompt: Prompt): ChatResponse =
+    override suspend fun callWithResponse(prompt: Prompt): ChatResponse =
         chatClient.prompt(prompt).call().chatResponse() ?: throw ChatNullResponseException()
 
-    fun callWithResponse(messages: List<Message>, options: ChatOptions? = null): ChatResponse {
+    override suspend fun callWithResponse(messages: List<Message>, options: ChatOptions?): ChatResponse {
         val spec = chatClient.prompt().apply {
             messages(messages)
             options?.let { options(it) }
@@ -65,13 +63,13 @@ class AiChatClient(private val chatClient: ChatClient) {
     }
 
     @ExperimentalStream
-    suspend fun stream(userPrompt: String): Flow<ChatResponse> = flow {
+    override suspend fun stream(userPrompt: String): Flow<ChatResponse> = flow {
         chatClient.prompt().user(userPrompt)
             .stream().chatResponse().asFlow().collect { emit(it) }
     }
 
     @ExperimentalStream
-    suspend fun stream(systemPrompt: String?, userPrompt: String): Flow<ChatResponse> = flow {
+    override suspend fun stream(systemPrompt: String?, userPrompt: String): Flow<ChatResponse> = flow {
         chatClient.prompt().apply {
             systemPrompt?.let { system(it) }
             user(userPrompt)
@@ -79,13 +77,13 @@ class AiChatClient(private val chatClient: ChatClient) {
     }
 
     @ExperimentalStream
-    suspend fun stream(prompt: Prompt): Flow<ChatResponse> = flow {
+    override suspend fun stream(prompt: Prompt): Flow<ChatResponse> = flow {
         chatClient.prompt(prompt)
             .stream().chatResponse().asFlow().collect { emit(it) }
     }
 
     @ExperimentalStream
-    suspend fun stream(messages: List<Message>, options: ChatOptions? = null): Flow<ChatResponse> = flow {
+    override suspend fun stream(messages: List<Message>, options: ChatOptions?): Flow<ChatResponse> = flow {
         chatClient.prompt().apply {
             messages(messages)
             options?.let { options(it) }

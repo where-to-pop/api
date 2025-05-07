@@ -9,23 +9,23 @@ class ChatMessage private constructor(
     val chatId: ChatId,
     val role: ChatMessageRole,
     val content: String,
-    val finishReason: ChatMessageFinishReason,
+    val finishReason: ChatMessageFinishReason?,
     val latencyMs: Long,
     val createdAt: Instant,
     val updatedAt: Instant,
-    val deletedAt: Instant? = null
+    val deletedAt: Instant?
 ){
     companion object{
         fun create(
-            id: ChatMessageId,
+            id: ChatMessageId = ChatMessageId.create(),
             chatId: ChatId,
             role: ChatMessageRole,
             content: String,
-            finishReason: ChatMessageFinishReason,
+            finishReason: ChatMessageFinishReason?,
             latencyMs: Long,
             createdAt: Instant,
             updatedAt: Instant,
-            deletedAt: Instant? = null
+            deletedAt: Instant?
         ): ChatMessage {
             return ChatMessage(
                 id,

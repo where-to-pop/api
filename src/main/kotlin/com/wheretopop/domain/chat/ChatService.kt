@@ -1,13 +1,12 @@
 package com.wheretopop.domain.chat
 
-import org.springframework.http.codec.ServerSentEvent
-import reactor.core.publisher.Flux
-import reactor.core.publisher.Mono
+import com.wheretopop.domain.user.UserId
 
 interface ChatService {
-    fun sendUserMessage(chatId: Long, userMessage: String): Mono<Void>;
-    fun generateAndSaveAssistantMessage(chatId: Long): Mono<Void>;
-    fun streamAssistantMessages(chatId: Long): Flux<ServerSentEvent<String>>;
-//    fun getChat(chatId: Long): Mono<Chat>;
-//    fun getChatList(): Mono<List<Chat>>;
+    suspend fun initializeChat(command: ChatCommand.InitializeChat): ChatInfo.Detail
+    suspend fun updateChat(command: ChatCommand.UpdateChat): ChatInfo.Main
+    suspend fun deleteChat(command: ChatCommand.DeleteChat): ChatInfo.Main
+    suspend fun sendMessage(chatId: ChatId, message: String): ChatInfo.Simple
+    suspend fun getDetail(chatId: ChatId): ChatInfo.Detail
+    suspend fun getList(userId: UserId): List<ChatInfo.Main>
 }

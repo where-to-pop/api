@@ -1,4 +1,4 @@
-package com.wheretopop.infrastructure.chat.ai
+package com.wheretopop.infrastructure.chat
 
 import org.springframework.ai.tool.annotation.Tool
 import org.springframework.stereotype.Component
