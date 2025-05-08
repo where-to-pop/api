@@ -18,8 +18,8 @@ fun main(args: Array<String>) {
 
 	runApplication<WhereToPopApplication>(*args)
 
-	@Bean
-	fun tools(mcpToolRegistry: McpToolRegistry?): ToolCallbackProvider {
-		return MethodToolCallbackProvider.builder().toolObjects(mcpToolRegistry).build()
-	}
+//	@Bean
+//	fun tools(mcpToolRegistry: McpToolRegistry?): ToolCallbackProvider {
+//		return MethodToolCallbackProvider.builder().toolObjects(mcpToolRegistry).build()
+//	}
 }

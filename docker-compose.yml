@@ -61,23 +61,32 @@ services:
       elasticsearch:
         condition: service_healthy
 
-#  ollama:
-#    image: ollama/ollama:latest
-#    container_name: wheretopop-ollama
-#    restart: always
+#  chroma:
+#    image: chromadb/chroma:1.0.8
+#    container_name: wheretopop-chroma
 #    ports:
-#      - "11434:11434"
+#      - "8000:8000"
 #    volumes:
-#      - ollama_data:/root/.ollama
-#    command: serve
-#    environment:
-#      - OLLAMA_MODELS=/root/.ollama/models
-#      - OLLAMA_HOST=0.0.0.0:11434
-#    healthcheck:
-#      test: ["CMD", "curl", "-s", "-f", "http://localhost:11434"]
-#      interval: 10s
-#      timeout: 5s
-#      retries: 10
+#      - chroma_data:/chroma/chroma
+#    restart: always
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: wheretopop-ollama
+    restart: always
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    command: serve
+    environment:
+      - OLLAMA_MODELS=/root/.ollama/models
+      - OLLAMA_HOST=0.0.0.0:11434
+    healthcheck:
+      test: ["CMD", "curl", "-s", "-f", "http://localhost:11434"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
 
 
@@ -113,5 +122,6 @@ volumes:
     driver: local
   ollama_data:
     driver: local
-
+#  chroma_data:
+#    driver: local
 

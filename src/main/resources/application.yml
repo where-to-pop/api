@@ -18,28 +18,28 @@ spring:
   elasticsearch:
     uris: http://${ES_HOST:localhost}:${ES_PORT:9200}
   ai:
-    mcp:
-      server:
-        name: where-to-pop
-        type: async
-        sse-endpoint: /mcp/sse
-        sse-message-endpoint: /mcp/message
-        enabled: true
-      client:
-        enabled: true
-        initialized: true
-        request-timeout: 30s
-        toolcallback:
-          enabled: true
-        type: async
-        stdio:
-          connections:
-            filesystem:
-              command: npx
-              args:
-                - "-y"
-                - "@modelcontextprotocol/server-filesystem"
-                - "./"
+#    mcp:
+#      server:
+#        name: where-to-pop
+#        type: async
+#        sse-endpoint: /mcp/sse
+#        sse-message-endpoint: /mcp/message
+#        enabled: true
+#      client:
+#        enabled: true
+#        initialized: true
+#        request-timeout: 30s
+#        toolcallback:
+#          enabled: true
+#        type: async
+#        stdio:
+#          connections:
+#            filesystem:
+#              command: npx
+#              args:
+#                - "-y"
+#                - "@modelcontextprotocol/server-filesystem"
+#                - "./"
 
     openai:
       api-key: ${OPENAI_API_KEY:your_openai_or_gcp_key}
@@ -53,6 +53,38 @@ spring:
 #        NOTE: gemini에서 api-key를 통한 인증을 java client에서 지원하지 않음. gcp를 통한 인증을 해야함
 #        따라서 https://ai.google.dev/gemini-api/docs/openai?hl=ko openai 호환을 활용해 호출
 #        https://github.com/spring-projects/spring-ai/issues/1252
+      embedding:
+        base-url: https://generativelanguage.googleapis.com/v1beta/models
+        options:
+#          model: text-embedding-ada-002
+          model: gemini-embedding-exp-03-07
+    vertexai:
+      embedding:
+        project-id: where-to-pop
+
+
+
+    vectorstore:
+      chroma:
+        client:
+          host: localhost
+          port: 8000
+        collection-name: popup_reviews
+        initialize-schema: true
+
+      pinecone:
+        api-key: ${PINECONE_API_KEY:pinecone_key}
+#        environment:
+        host: ${PINECONE_HOST:pinecone_host}
+        index-name: popup-reviews
+
+#    huggingface:
+#      embedding:
+#        url:
+#        api-key: ${HUGGINGFACE_API_KEY:huggingface_api_key}
+#        options:
+#          model: nlpai-lab/KoE5
+
 
 
 openapi:

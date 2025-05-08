@@ -91,6 +91,13 @@ dependencies {
 //	implementation("io.github.bonigarcia:webdrivermanager:5.8.0")
 	implementation("org.apache.httpcomponents.client5:httpclient5:5.3.1")
 
+	// for VectorStore
+//	implementation("org.springframework.ai:spring-ai-chroma-store")
+	implementation("org.springframework.ai:spring-ai-starter-vector-store-pinecone")
+	// embeddings
+//	implementation("org.springframework.ai:spring-ai-huggingface")
+	implementation("org.springframework.ai:spring-ai-vertex-ai-embedding")
+
 	// REST Docs
 	testImplementation("org.springframework.restdocs:spring-restdocs-webtestclient")
 	// 테스트
