@@ -42,15 +42,4 @@ class BuildingServiceImpl(
 
         return buildingInfoMapper.of(building)
     }
-
-    override suspend fun getOrCreateBuildingId(command: BuildingCommand.CreateBuildingCommand): Long {
-        val targetBuilding = this.getBuilding(command.address)
-        if (targetBuilding == null) {
-            val building = this.createBuilding(command)
-            if (building == null) throw Exception("빌딩 생성에 실패했습니다.")
-            return building.id
-        } else {
-            return targetBuilding.id
-        }
-    }
 }

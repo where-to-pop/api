@@ -1,7 +1,7 @@
 package com.wheretopop.application.popup
 
+import com.wheretopop.application.building.BuildingFacade
 import com.wheretopop.domain.building.BuildingCommand
-import com.wheretopop.domain.building.BuildingService
 import com.wheretopop.domain.popup.Popup
 import com.wheretopop.domain.popup.PopupService
 import com.wheretopop.infrastructure.popup.external.popply.PopupDetail
@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service
 @Service
 class PopupFacade(
     private val popupService: PopupService,
-    private val buildingService: BuildingService,
+    private val buildingFacade: BuildingFacade,
     private val popplyUseCase: PopplyUseCase,
     private val xUseCase: XUseCase
 ) {
@@ -24,7 +24,7 @@ class PopupFacade(
         popplyPopupDetails.forEach{ popupDetail: PopupDetail ->
             if (popupDetail.latitude == null || popupDetail.longitude == null) return
             val buildingCommand = BuildingCommand.CreateBuildingCommand(popupDetail.address, Location(popupDetail.latitude, popupDetail.longitude))
-            val buildingId = buildingService.getOrCreateBuildingId(buildingCommand)
+            val buildingId = buildingFacade.getOrCreateBuildingId(buildingCommand)
             val newPopup = Popup.create(
                 name = popupDetail.name,
                 address = popupDetail.address,
