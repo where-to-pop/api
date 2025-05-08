@@ -22,6 +22,9 @@ import com.wheretopop.infrastructure.popup.R2dbcPopupRepository
 import com.wheretopop.infrastructure.popup.external.popply.LongToPopupPopplyIdConverter
 import com.wheretopop.infrastructure.popup.external.popply.PopupPopplyIdToLongConverter
 import com.wheretopop.infrastructure.popup.external.popply.R2dbcPopupPopplyRepository
+import com.wheretopop.infrastructure.popup.external.x.LongToXIdConverter
+import com.wheretopop.infrastructure.popup.external.x.R2dbcXRepository
+import com.wheretopop.infrastructure.popup.external.x.XIdToLongConverter
 import com.wheretopop.infrastructure.project.LongToProjectIdConverter
 import com.wheretopop.infrastructure.project.ProjectIdToLongConverter
 import com.wheretopop.infrastructure.user.LongToUserIdConverter
@@ -87,6 +90,7 @@ class R2dbcConfig : AbstractR2dbcConfiguration() {
         InstantToLocalDateTimeConverter(), LocalDateTimeToInstantConverter(),
         PopupIdToLongConverter(), LongToPopupIdConverter(),
         PopupPopplyIdToLongConverter(), LongToPopupPopplyIdConverter(),
+        XIdToLongConverter(), LongToXIdConverter(),
         BuildingIdToLongConverter(), LongToBuildingIdConverter(),
         BuildingRegisterIdToLongConverter(), LongToBuildingRegisterIdConverter(),
         ChatIdToLongConverter(), LongToChatIdConverter(),
@@ -107,6 +111,7 @@ class R2dbcConfig : AbstractR2dbcConfiguration() {
     internal fun r2dbcAreaRepository(template: R2dbcEntityTemplate) = R2dbcAreaRepository(template)
     @Bean
     internal fun r2dbcAreaPopulationRepository(template: R2dbcEntityTemplate) = R2dbcAreaPopulationRepository(template)
+
     @Bean
     internal fun r2dbcBuildingRepository(template: R2dbcEntityTemplate) = R2dbcBuildingRepository(template)
     @Bean
@@ -116,6 +121,8 @@ class R2dbcConfig : AbstractR2dbcConfiguration() {
     internal fun r2dbcPopupRepository(template: R2dbcEntityTemplate) = R2dbcPopupRepository(template)
     @Bean
     internal fun r2dbcPopupPopplyRepository(template: R2dbcEntityTemplate) = R2dbcPopupPopplyRepository(template)
+    @Bean
+    internal fun r2dbcXRepository(template: R2dbcEntityTemplate) = R2dbcXRepository(template)
 
 }
 

@@ -1,8 +1,10 @@
 package com.wheretopop.infrastructure.popup.external.popply
 
 import com.wheretopop.domain.popup.Popup
+import com.wheretopop.domain.popup.PopupId
 import com.wheretopop.infrastructure.popup.PopupRepository
 import mu.KotlinLogging
+import org.bouncycastle.asn1.cmc.CMCStatus.success
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 
@@ -23,7 +25,66 @@ class PopupPopplyProcessor(
     override suspend fun crawlAndSave() {
         val popupId = popupListCrawler.fetchFirstPopupId()
         if (popupId == null) return
-        crawlDownPopupDetailsById(popupId)
+        crawlDownPopupDetailsByIdAndSave(popupId)
+    }
+
+    override suspend fun crawl():List<PopupDetail> {
+        val popupId = popupListCrawler.fetchFirstPopupId()
+        if (popupId == null) return emptyList()
+        return crawlDownPopupDetailsById(popupId)
+    }
+
+    override suspend fun save(popupDetail: PopupDetail, popupId: PopupId) {
+        val popupPopplyEntity = PopupPopplyEntity.of(
+            popupDetail = popupDetail,
+            popupId = popupId.toLong(),
+        )
+        popupPopplyRepository.save(popupPopplyEntity)
+    }
+
+    suspend fun getPopupDetail(popplyId: Int): PopupDetail? {
+        val existing = popupPopplyRepository.findByPopplyId(popplyId)
+        if (existing != null) return null
+
+        val popupDetailData: PopupDetail = popupPopplyDetailCrawler.crawlDetail(popplyId)
+            ?: run {
+                logger.error("ID {} 에 해당하는 Popply 상세 정보를 찾을 수 없습니다.", popplyId)
+                return null
+            }
+
+        return popupDetailData
+    }
+
+    suspend fun crawlDownPopupDetailsById(endId: Int, startId:Int = 15): List<PopupDetail> {
+        logger.info("ID 범위 {}부터 {}까지 (역순) 팝업 상세 정보 크롤링 시작...", startId, endId)
+        var successCount = 0
+        var stoppedEarly = false
+        var processedCount = 0
+
+        val popupDetailList = mutableListOf<PopupDetail>()
+
+        for (id in endId downTo startId) {
+            processedCount++
+            logger.debug("ID {} 처리 시도", id)
+
+            val popupDetail = getPopupDetail(id)
+
+            if (popupDetail !== null) {
+                popupDetailList.add(popupDetail)
+                successCount++
+            } else {
+                logger.info("ID {} 처리 중 중단 조건 발견. 크롤링을 중단합니다.", id)
+                stoppedEarly = true
+                break
+            }
+        }
+
+        logger.info(
+            "Popups Crawling Completed: Attempts {}, Success {}, {}",
+            processedCount, successCount, if (stoppedEarly) "Stopped" else "Normally Ended"
+        )
+
+        return popupDetailList
     }
 
     /**
@@ -73,7 +134,7 @@ class PopupPopplyProcessor(
      * 주어진 ID부터 역순으로 팝업 상세 정보들을 크롤링
      * 이미 있는 Popup 이면, 종료!
      */
-    suspend fun crawlDownPopupDetailsById(endId: Int, startId:Int = 15) {
+    suspend fun crawlDownPopupDetailsByIdAndSave(endId: Int, startId:Int = 15) {
         logger.info("ID 범위 {}부터 {}까지 (역순) 팝업 상세 정보 크롤링 시작...", startId, endId)
         var successCount = 0
         var stoppedEarly = false

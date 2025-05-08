@@ -8,4 +8,5 @@ interface BuildingReader {
     suspend fun findBuildings(criteria: BuildingCriteria.SearchBuildingCriteria): List<Building>
     suspend fun findById(id: BuildingId): Building?
     suspend fun findByName(name: String): Building?
+    suspend fun findByAddress(address: String): Building?
 }

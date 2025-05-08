@@ -23,6 +23,10 @@ class BuildingReaderImpl(
         return buildingRepository.findByName(name)
     }
 
+    override suspend fun findByAddress(address: String): Building? {
+        return buildingRepository.findByAddress(address)
+    }
+
     override suspend fun findBuildings(criteria: BuildingCriteria.SearchBuildingCriteria): List<Building> {
         TODO("Not yet implemented")
     }

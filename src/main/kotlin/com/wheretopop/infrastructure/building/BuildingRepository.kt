@@ -10,6 +10,7 @@ import com.wheretopop.domain.building.BuildingId
 interface BuildingRepository {
     suspend fun findById(id: BuildingId): Building?
     suspend fun findByName(name: String): Building?
+    suspend fun findByAddress(address: String): Building?
     suspend fun findAll(): List<Building>
     suspend fun save(building: Building): Building
     suspend fun save(buildings: List<Building>): List<Building>
