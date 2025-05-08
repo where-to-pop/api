@@ -8,19 +8,31 @@ import com.wheretopop.infrastructure.area.external.opendata.population.LongToAre
 import com.wheretopop.infrastructure.area.external.opendata.population.R2dbcAreaPopulationRepository
 import com.wheretopop.infrastructure.building.BuildingIdToLongConverter
 import com.wheretopop.infrastructure.building.LongToBuildingIdConverter
+import com.wheretopop.infrastructure.building.R2dbcBuildingRepository
 import com.wheretopop.infrastructure.building.register.BuildingRegisterIdToLongConverter
 import com.wheretopop.infrastructure.building.register.LongToBuildingRegisterIdConverter
+import com.wheretopop.infrastructure.building.register.R2dbcBuildingRegisterRepository
+import com.wheretopop.infrastructure.chat.ChatIdToLongConverter
+import com.wheretopop.infrastructure.chat.LongToChatIdConverter
+import com.wheretopop.infrastructure.chat.message.ChatMessageIdToLongConverter
+import com.wheretopop.infrastructure.chat.message.LongToChatMessageIdConverter
 import com.wheretopop.infrastructure.popup.LongToPopupIdConverter
 import com.wheretopop.infrastructure.popup.PopupIdToLongConverter
+import com.wheretopop.infrastructure.popup.R2dbcPopupRepository
 import com.wheretopop.infrastructure.popup.external.popply.LongToPopupPopplyIdConverter
 import com.wheretopop.infrastructure.popup.external.popply.PopupPopplyIdToLongConverter
-import com.wheretopop.infrastructure.popup.R2dbcPopupRepository
 import com.wheretopop.infrastructure.popup.external.popply.R2dbcPopupPopplyRepository
-import com.wheretopop.infrastructure.building.R2dbcBuildingRepository
-import com.wheretopop.infrastructure.building.register.R2dbcBuildingRegisterRepository
 import com.wheretopop.infrastructure.popup.external.x.LongToXIdConverter
 import com.wheretopop.infrastructure.popup.external.x.R2dbcXRepository
 import com.wheretopop.infrastructure.popup.external.x.XIdToLongConverter
+import com.wheretopop.infrastructure.project.LongToProjectIdConverter
+import com.wheretopop.infrastructure.project.ProjectIdToLongConverter
+import com.wheretopop.infrastructure.user.LongToUserIdConverter
+import com.wheretopop.infrastructure.user.UserIdToLongConverter
+import com.wheretopop.infrastructure.user.auth.AuthUserIdToLongConverter
+import com.wheretopop.infrastructure.user.auth.LongToAuthUserIdConverter
+import com.wheretopop.infrastructure.user.auth.LongToRefreshTokenIdConverter
+import com.wheretopop.infrastructure.user.auth.RefreshTokenIdToLongConverter
 import io.r2dbc.spi.ConnectionFactory
 import org.mariadb.r2dbc.MariadbConnectionConfiguration
 import org.mariadb.r2dbc.MariadbConnectionFactory
@@ -80,7 +92,13 @@ class R2dbcConfig : AbstractR2dbcConfiguration() {
         PopupPopplyIdToLongConverter(), LongToPopupPopplyIdConverter(),
         XIdToLongConverter(), LongToXIdConverter(),
         BuildingIdToLongConverter(), LongToBuildingIdConverter(),
-        BuildingRegisterIdToLongConverter(), LongToBuildingRegisterIdConverter()
+        BuildingRegisterIdToLongConverter(), LongToBuildingRegisterIdConverter(),
+        ChatIdToLongConverter(), LongToChatIdConverter(),
+        ChatMessageIdToLongConverter(), LongToChatMessageIdConverter(),
+        UserIdToLongConverter(), LongToUserIdConverter(),
+        AuthUserIdToLongConverter(), LongToAuthUserIdConverter(),
+        RefreshTokenIdToLongConverter(), LongToRefreshTokenIdConverter(),
+        ProjectIdToLongConverter(), LongToProjectIdConverter()
     )
 
 

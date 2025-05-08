@@ -162,3 +162,160 @@ CREATE TABLE IF NOT EXISTS building_registers (
         REFERENCES buildings(id)
         ON DELETE CASCADE
 );
+
+-- 사용자 테이블 생성
+CREATE TABLE IF NOT EXISTS users (
+    id BIGINT PRIMARY KEY,
+    username VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    profile_image_url VARCHAR(2048) DEFAULT NULL,
+    created_at TIMESTAMP(6) NOT NULL,
+    updated_at TIMESTAMP(6) NOT NULL,
+    deleted_at TIMESTAMP(6) DEFAULT NULL,
+    
+    -- 유니크 제약
+    UNIQUE (email),
+    
+    -- 인덱스
+    INDEX idx_users_username (username),
+    INDEX idx_users_email (email),
+    INDEX idx_users_deleted_at (deleted_at)
+);
+
+-- 인증 사용자 테이블 생성
+CREATE TABLE IF NOT EXISTS auth_users (
+    id BIGINT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    identifier VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP(6) NOT NULL,
+    updated_at TIMESTAMP(6) NOT NULL,
+    deleted_at TIMESTAMP(6) DEFAULT NULL,
+    
+    -- FK 제약
+    CONSTRAINT fk_auth_users_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE,
+    
+    -- 유니크 제약
+    UNIQUE (identifier),
+    
+    -- 인덱스
+    INDEX idx_auth_users_user_id (user_id),
+    INDEX idx_auth_users_identifier (identifier),
+    INDEX idx_auth_users_deleted_at (deleted_at)
+);
+
+-- 리프레시 토큰 테이블 생성
+CREATE TABLE IF NOT EXISTS refresh_tokens (
+    id BIGINT PRIMARY KEY,
+    auth_user_id BIGINT NOT NULL,
+    token VARCHAR(255) NOT NULL,
+    expires_at TIMESTAMP(6) NOT NULL,
+    created_at TIMESTAMP(6) NOT NULL,
+    updated_at TIMESTAMP(6) NOT NULL,
+    deleted_at TIMESTAMP(6) DEFAULT NULL,
+    
+    -- FK 제약
+    CONSTRAINT fk_refresh_tokens_auth_user
+        FOREIGN KEY (auth_user_id)
+        REFERENCES auth_users(id)
+        ON DELETE CASCADE,
+    
+    -- 유니크 제약
+    UNIQUE (token),
+    
+    -- 인덱스
+    INDEX idx_refresh_tokens_auth_user_id (auth_user_id),
+    INDEX idx_refresh_tokens_token (token),
+    INDEX idx_refresh_tokens_expires_at (expires_at),
+    INDEX idx_refresh_tokens_deleted_at (deleted_at)
+);
+
+-- 프로젝트 테이블 생성
+CREATE TABLE IF NOT EXISTS projects (
+    id BIGINT PRIMARY KEY,
+    owner_id BIGINT NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    brand_name VARCHAR(255) NOT NULL,
+    popup_category VARCHAR(50) NOT NULL,
+    popup_type VARCHAR(50) NOT NULL,
+    duration VARCHAR(100) NOT NULL,
+    primary_target_age_group VARCHAR(50) NOT NULL,
+    secondary_target_age_group VARCHAR(50) DEFAULT NULL,
+    brand_scale VARCHAR(50) NOT NULL,
+    project_goal TEXT NOT NULL,
+    additional_brand_info TEXT DEFAULT NULL,
+    additional_project_info TEXT DEFAULT NULL,
+    created_at TIMESTAMP(6) NOT NULL,
+    updated_at TIMESTAMP(6) NOT NULL,
+    deleted_at TIMESTAMP(6) DEFAULT NULL,
+    
+    -- FK 제약
+    CONSTRAINT fk_projects_owner
+        FOREIGN KEY (owner_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE,
+    
+    -- 인덱스
+    INDEX idx_projects_owner_id (owner_id),
+    INDEX idx_projects_name (name),
+    INDEX idx_projects_brand_name (brand_name),
+    INDEX idx_projects_popup_category (popup_category),
+    INDEX idx_projects_popup_type (popup_type),
+    INDEX idx_projects_deleted_at (deleted_at)
+);
+
+-- 채팅 테이블 생성
+CREATE TABLE IF NOT EXISTS chats (
+    id BIGINT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    project_id BIGINT NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP(6) NOT NULL,
+    updated_at TIMESTAMP(6) NOT NULL,
+    deleted_at TIMESTAMP(6) DEFAULT NULL,
+    
+    -- FK 제약
+    CONSTRAINT fk_chats_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_chats_project
+        FOREIGN KEY (project_id)
+        REFERENCES projects(id)
+        ON DELETE CASCADE,
+    
+    -- 인덱스
+    INDEX idx_chats_user_id (user_id),
+    INDEX idx_chats_project_id (project_id),
+    INDEX idx_chats_title (title),
+    INDEX idx_chats_is_active (is_active),
+    INDEX idx_chats_deleted_at (deleted_at)
+);
+
+-- 채팅 메시지 테이블 생성
+CREATE TABLE IF NOT EXISTS chat_messages (
+    id BIGINT PRIMARY KEY,
+    chat_id BIGINT NOT NULL,
+    role VARCHAR(50) NOT NULL,
+    content TEXT NOT NULL,
+    finish_reason VARCHAR(50) NULL,
+    latency_ms BIGINT NOT NULL,
+    created_at TIMESTAMP(6) NOT NULL,
+    updated_at TIMESTAMP(6) NOT NULL,
+    deleted_at TIMESTAMP(6) DEFAULT NULL,
+    
+    -- FK 제약
+    CONSTRAINT fk_chat_messages_chat
+        FOREIGN KEY (chat_id)
+        REFERENCES chats(id)
+        ON DELETE CASCADE,
+    
+    -- 인덱스
+    INDEX idx_chat_messages_chat_id (chat_id),
+    INDEX idx_chat_messages_role (role),
+    INDEX idx_chat_messages_deleted_at (deleted_at)
+);

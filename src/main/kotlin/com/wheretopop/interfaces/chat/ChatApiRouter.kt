@@ -4,54 +4,42 @@ import com.wheretopop.application.chat.ChatFacade
 import com.wheretopop.shared.exception.NotImplementedException
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.http.MediaType
-import org.springframework.http.codec.ServerSentEvent
 import org.springframework.stereotype.Component
+import org.springframework.web.reactive.function.server.RouterFunction
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
-import org.springframework.web.reactive.function.server.router
-import reactor.core.publisher.Flux
-import reactor.core.publisher.Mono
-import java.time.Duration
+import org.springframework.web.reactive.function.server.coRouter
+
+/**
+ * 채팅 요청 본문 데이터 클래스
+ */
+data class ChatRequest(
+    val prompt: String,
+    val systemPrompt: String? = null
+)
 
 @Configuration
 class ChatApiRouter(private val chatHandler: ChatHandler) {
-
     @Bean
-    fun chatRoutes() = router {
-        "/v1/chats".nest {
-            accept(MediaType.APPLICATION_JSON).nest {
+    fun chatRoutes(): RouterFunction<ServerResponse> {
+        return coRouter {
+            "/v1/chats".nest {
+                GET("/{id}", chatHandler::getChat)
                 GET("", chatHandler::getChatList)
-                GET("/:chatId", chatHandler::getChat)
-            }
-            accept(MediaType.TEXT_EVENT_STREAM).nest {
-                GET("/:chatId/streams", chatHandler::getChatStream)
             }
         }
     }
 }
 
 @Component
-class ChatHandler(private val chatFacade: ChatFacade) {
-    fun getChat(request: ServerRequest): Mono<ServerResponse> {
+class ChatHandler(
+    private val chatFacade: ChatFacade,
+) {
+    suspend fun getChat(request: ServerRequest): ServerResponse {
         throw NotImplementedException()
     }
-    fun getChatList(request: ServerRequest): Mono<ServerResponse> {
+    
+    suspend fun getChatList(request: ServerRequest): ServerResponse {
         throw NotImplementedException()
-    }
-
-    fun getChatStream(request: ServerRequest): Mono<ServerResponse> {
-        val eventStream: Flux<ServerSentEvent<String>> =
-            Flux.interval(Duration.ofSeconds(1))
-                .map { tick ->
-                    ServerSentEvent.builder("메시지 #$tick")
-                        .id(tick.toString())
-                        .event("chat-event")
-                        .build()
-                }
-
-        return ServerResponse.ok()
-            .contentType(MediaType.TEXT_EVENT_STREAM)
-            .body(eventStream, ServerSentEvent::class.java)
     }
 }
