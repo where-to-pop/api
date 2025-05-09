@@ -1,41 +1,100 @@
 package com.wheretopop.config
 
-import org.springframework.ai.document.MetadataMode
-import org.springframework.ai.vertexai.embedding.text.VertexAiTextEmbeddingModel
-import org.springframework.ai.vertexai.embedding.VertexAiEmbeddingConnectionDetails
-import org.springframework.ai.vertexai.embedding.text.VertexAiTextEmbeddingOptions
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.http.HttpHeaders
+import org.springframework.http.MediaType
+import org.springframework.web.reactive.function.client.WebClient
+import reactor.core.publisher.Mono
+
+data class TextPart(val text: String)
+data class EmbeddingContent(val parts: List<TextPart>)
+data class GeminiEmbeddingRequest(
+    val model: String,
+    val content: EmbeddingContent
+)
+data class EmbeddingVector(val values: List<Double>)
+data class GeminiEmbeddingResponse(val embedding: EmbeddingVector)
+
+class GeminiEmbeddingClient(
+    private val webClient: WebClient,
+    private val apiKey: String,
+    private val modelName: String
+) {
+    private val logger = LoggerFactory.getLogger(GeminiEmbeddingClient::class.java)
+
+    fun embed(textToEmbed: String): Mono<List<Double>> {
+        val requestModelIdentifier = "models/$modelName"
+
+        val requestPayload = GeminiEmbeddingRequest(
+            model = requestModelIdentifier,
+            content = EmbeddingContent(parts = listOf(TextPart(text = textToEmbed)))
+        )
+
+        val apiPath = "/$modelName:embedContent"
+
+        return webClient.post()
+            .uri { uriBuilder ->
+                uriBuilder
+                    .path(apiPath)
+                    .queryParam("key", apiKey)
+                    .build()
+            }
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(requestPayload)
+            .retrieve()
+            .bodyToMono(GeminiEmbeddingResponse::class.java)
+            .map { response -> response.embedding.values }
+            .doOnError { error ->
+                logger.error("Error calling Gemini Embedding API for model '$modelName'. URI: '$apiPath', Error: ${error.message}", error)
+            }
+    }
+}
+
+interface EmbeddingModel {
+    fun embed(text: String): FloatArray
+}
 
 @Configuration
 class EmbeddingConfig {
-    @Value("\${spring.ai.vertex.ai.embedding.project-id}")
-    private lateinit var projectId: String
 
-    @Value("\${spring.ai.vertex.ai.embedding.location}")
-    private lateinit var location: String
+    @Value("\${spring.ai.openai.api-key}")
+    private lateinit var apiKey: String
 
-    @Value("\${spring.ai.vertex.ai.embedding.options.model}")
-    private lateinit var embeddingModel: String
+    @Value("\${spring.ai.openai.embedding.base-url}")
+    private lateinit var baseUrl: String
+
+    @Value("\${spring.ai.openai.embedding.options.model:gemini-embedding-exp-03-07}")
+    private lateinit var embeddingModelName: String
 
     @Bean
-    fun connectionDetails(): VertexAiEmbeddingConnectionDetails =
-        VertexAiEmbeddingConnectionDetails.builder()
-            .projectId(projectId)
-            .location(location)
+    fun geminiApiWebClient(): WebClient {
+        return WebClient.builder()
+            .baseUrl(baseUrl)
+            .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+            .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
             .build()
+    }
 
     @Bean
-    fun embeddingOptions(): VertexAiTextEmbeddingOptions =
-        VertexAiTextEmbeddingOptions.builder()
-            .model(embeddingModel)
-            .build()
+    fun geminiEmbeddingClient(geminiApiWebClient: WebClient): GeminiEmbeddingClient {
+        return GeminiEmbeddingClient(
+            webClient = geminiApiWebClient,
+            apiKey = apiKey,
+            modelName = embeddingModelName
+        )
+    }
 
     @Bean
-    fun embeddingModel(
-        connectionDetails: VertexAiEmbeddingConnectionDetails,
-        options: VertexAiTextEmbeddingOptions
-    ): VertexAiTextEmbeddingModel =
-        VertexAiTextEmbeddingModel(connectionDetails, options)
+    fun embeddingModel(client: GeminiEmbeddingClient): EmbeddingModel {
+        return object : EmbeddingModel {
+            override fun embed(text: String): FloatArray {
+                val vector = client.embed(text).block()
+                    ?: throw IllegalStateException("Embedding API call returned null or timed out. Text: \"$text\"")
+                return vector.map { it.toFloat() }.toFloatArray()
+            }
+        }
+    }
 }
