@@ -1,6 +1,7 @@
 package com.wheretopop.infrastructure.popup.external.popply
 
 import com.wheretopop.domain.popup.PopupId
+import com.wheretopop.domain.popup.PopupInfo
 import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate
@@ -24,6 +25,13 @@ internal class R2dbcPopupPopplyRepository (
 
     override suspend fun save(entities: List<PopupPopplyEntity>): List<PopupPopplyEntity> =
         entities.map { save(it) }
+
+    override suspend fun findAll(): List<PopupInfo> =
+        entityTemplate.select(entityClass)
+            .all()
+            .map(PopupPopplyEntity::toDomain)
+            .collectList()
+            .awaitSingle()
 
     override suspend fun findByPopupId(popupId: PopupId): PopupPopplyEntity? =
         entityTemplate

@@ -17,7 +17,7 @@ class PopupFacade(
     private val popupService: PopupService,
     private val buildingFacade: BuildingFacade,
     private val popplyUseCase: PopplyUseCase,
-    private val xUseCase: XUseCase
+    private val xUseCase: XUseCase,
 ) {
     suspend fun ingestPopupExternalData() {
         val popplyPopupDetails = popplyUseCase.crawlPopply()
@@ -34,5 +34,10 @@ class PopupFacade(
             popplyUseCase.savePopply(popupDetail, newPopup.id)
             xUseCase.crawlXAndSave(newPopup)
         }
+    }
+
+    suspend fun processPopupInfosForVectorSearch() {
+        val popplyPopupInfos = popplyUseCase.getPopplyList()
+        popplyUseCase.saveEmbeddedPopply(popplyPopupInfos)
     }
 }
