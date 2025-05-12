@@ -29,3 +29,17 @@ class AuthPasswordAlreadyExistsException(
     message = message,
     errorCode = ErrorCode.AUTH_PASSWORD_ALREADY_EXISTS
 )
+
+class AuthInvalidTokenException(
+    message: String? = ErrorCode.AUTH_INVALID_TOKEN.getErrorMsg()
+) : BaseException(
+    message = message,
+    errorCode = ErrorCode.AUTH_INVALID_TOKEN
+)
+
+class AuthRefreshTokenExpiredException(
+    message: String? = ErrorCode.AUTH_REFRESH_TOKEN_EXPIRED.getErrorMsg()
+) : BaseException(
+    message = message,
+    errorCode = ErrorCode.AUTH_REFRESH_TOKEN_EXPIRED
+)

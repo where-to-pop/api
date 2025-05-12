@@ -3,17 +3,17 @@ package com.wheretopop.domain.user.auth
 interface AuthUserService {
     suspend fun createAuthUser(
         command: AuthCommand.CreateAuthUser
-    ): AuthUser
+    ): AuthInfo.Main
 
     suspend fun authenticate(
         command: AuthCommand.Authenticate
-    ): AuthUser
+    ): AuthInfo.Token
 
     suspend fun refresh(
         command: AuthCommand.Refresh
-    ): AuthUser
+    ): AuthInfo.Token
 
-    suspend fun findAuthUserById(id: AuthUserId): AuthUser?
+    suspend fun findAuthUserById(id: AuthUserId): AuthInfo.Main?
 
-    suspend fun findAuthUserByIdentifier(identifier: String): AuthUser?
+    suspend fun findAuthUserByIdentifier(identifier: String): AuthInfo.Main?
 }
