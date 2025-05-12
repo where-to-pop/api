@@ -36,22 +36,20 @@ spring:
     openai:
       api-key: ${OPENAI_API_KEY:your_openai_or_gcp_key}
       base-url: https://generativelanguage.googleapis.com/v1beta/openai
-#      base-url: https://api.openai.com/v1
+      #      base-url: https://api.openai.com/v1
       chat:
         completions-path: /chat/completions
         options:
-#          model: gpt-4o
+          #          model: gpt-4o
           model: gemini-2.0-flash
-#        NOTE: gemini에서 api-key를 통한 인증을 java client에서 지원하지 않음. gcp를 통한 인증을 해야함
-#        따라서 https://ai.google.dev/gemini-api/docs/openai?hl=ko openai 호환을 활용해 호출
-#        https://github.com/spring-projects/spring-ai/issues/1252
+      #        NOTE: gemini에서 api-key를 통한 인증을 java client에서 지원하지 않음. gcp를 통한 인증을 해야함
+      #        따라서 https://ai.google.dev/gemini-api/docs/openai?hl=ko openai 호환을 활용해 호출
+      #        https://github.com/spring-projects/spring-ai/issues/1252
       embedding:
         base-url: https://generativelanguage.googleapis.com/v1beta/models
         options:
-#          model: text-embedding-ada-002
+          #          model: text-embedding-ada-002
           model: gemini-embedding-exp-03-07
-
-
 
     vectorstore:
       chroma:
@@ -65,8 +63,6 @@ spring:
         api-key: ${PINECONE_API_KEY:pinecone_key}
         host: ${PINECONE_HOST:pinecone_host}
         index-name: popup-infos
-
-
 
 openapi:
   seoul:
@@ -89,7 +85,11 @@ scraping:
   wait:
     timeoutSeconds: 15
 
-
 server:
   port: ${APP_PORT:8080}
   forward-headers-strategy: native
+
+jwt:
+  secret: ${JWT_SECRET:whereToPopSecretKeyForJwtTokenMustBeLongEnoughForHS256Algorithm}
+  access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:3600000} # 1시간
+  refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION:604800000} # 7일
