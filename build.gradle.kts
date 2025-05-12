@@ -47,6 +47,8 @@ dependencies {
 	implementation("org.springframework.ai:spring-ai-openai")
 	implementation("org.springframework.ai:spring-ai-starter-model-openai")
 	implementation("org.springframework.ai:spring-ai-starter-mcp-client")
+	implementation("org.springframework.ai:spring-ai-starter-vector-store-pinecone")
+	implementation("org.springframework.ai:spring-ai-vertex-ai-embedding")
 
 	// Spring WebFlux + R2DBC
 	implementation("org.springframework.boot:spring-boot-starter-webflux")
@@ -65,6 +67,9 @@ dependencies {
 	implementation("io.github.microutils:kotlin-logging:3.0.5")
 
 
+	// security
+	implementation("org.springframework.boot:spring-boot-starter-security")
+	
 
 
 	// Bean Validation

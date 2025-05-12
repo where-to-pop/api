@@ -46,4 +46,16 @@ class RefreshToken private constructor(
     fun isValid(): Boolean {
         return !isExpired()
     }
+
+    fun revoke(): RefreshToken {
+        return RefreshToken.create(
+            id = id,
+            userId = userId,
+            token = token,
+            expiresAt = expiresAt,
+            createdAt = createdAt,
+            updatedAt = Instant.now(),
+            deletedAt = Instant.now()
+        )
+    }
 } 
