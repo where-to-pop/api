@@ -1,6 +1,6 @@
 package com.wheretopop.infrastructure.popup.external.popply
 
-import com.wheretopop.domain.popup.PopupId
+import com.wheretopop.domain.popup.PopupInfo
 import com.wheretopop.shared.model.UniqueId
 import org.springframework.core.convert.converter.Converter
 import org.springframework.data.annotation.Id
@@ -100,6 +100,16 @@ data class PopupPopplyEntity(
                 popplyId = popupDetail.popplyId,
                 createdAt = Instant.now(),
                 updatedAt = Instant.now()
+            )
+        }
+
+        fun toDomain(entity: PopupPopplyEntity): PopupInfo {
+            return PopupInfo(
+                id = entity.popupId,
+                name = entity.popupName,
+                address = entity.address,
+                description = entity.description,
+                organizerName = entity.organizerName ?: ""
             )
         }
     }

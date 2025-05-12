@@ -45,6 +45,27 @@ spring:
 #        NOTE: gemini에서 api-key를 통한 인증을 java client에서 지원하지 않음. gcp를 통한 인증을 해야함
 #        따라서 https://ai.google.dev/gemini-api/docs/openai?hl=ko openai 호환을 활용해 호출
 #        https://github.com/spring-projects/spring-ai/issues/1252
+      embedding:
+        base-url: https://generativelanguage.googleapis.com/v1beta/models
+        options:
+#          model: text-embedding-ada-002
+          model: gemini-embedding-exp-03-07
+
+
+
+    vectorstore:
+      chroma:
+        client:
+          host: localhost
+          port: 8000
+        collection-name: popup_reviews
+        initialize-schema: true
+
+      pinecone:
+        api-key: ${PINECONE_API_KEY:pinecone_key}
+        host: ${PINECONE_HOST:pinecone_host}
+        index-name: popup-infos
+
 
 
 openapi:

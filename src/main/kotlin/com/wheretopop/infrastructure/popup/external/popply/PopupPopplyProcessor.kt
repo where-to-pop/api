@@ -2,9 +2,10 @@ package com.wheretopop.infrastructure.popup.external.popply
 
 import com.wheretopop.domain.popup.Popup
 import com.wheretopop.domain.popup.PopupId
+import com.wheretopop.domain.popup.PopupInfo
+import com.wheretopop.domain.popup.PopupVectorRepository
 import com.wheretopop.infrastructure.popup.PopupRepository
 import mu.KotlinLogging
-import org.bouncycastle.asn1.cmc.CMCStatus.success
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 
@@ -20,6 +21,7 @@ class PopupPopplyProcessor(
     private val popupPopplyRepository: PopupPopplyRepository,
     private val popupRepository: PopupRepository,
     private val popupListCrawler: PopupListCrawler,
+    private val popupVectorRepository: PopupVectorRepository
 ) : PopplyProcessor {
 
     override suspend fun crawlAndSave() {
@@ -40,6 +42,14 @@ class PopupPopplyProcessor(
             popupId = popupId.toLong(),
         )
         popupPopplyRepository.save(popupPopplyEntity)
+    }
+
+    override suspend fun saveEmbeddings(popupInfos: List<PopupInfo>) {
+        popupVectorRepository.addPopupInfos(popupInfos)
+    }
+
+    override suspend fun getAllPopups(): List<PopupInfo> {
+        return popupPopplyRepository.findAll()
     }
 
     suspend fun getPopupDetail(popplyId: Int): PopupDetail? {

@@ -66,7 +66,7 @@ dependencies {
 
 
 
-	
+
 	// Bean Validation
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 
@@ -90,6 +90,10 @@ dependencies {
 	implementation("org.seleniumhq.selenium:selenium-java:4.31.0")
 //	implementation("io.github.bonigarcia:webdrivermanager:5.8.0")
 	implementation("org.apache.httpcomponents.client5:httpclient5:5.3.1")
+
+	// for VectorStore
+//	implementation("org.springframework.ai:spring-ai-chroma-store")
+	implementation("org.springframework.ai:spring-ai-starter-vector-store-pinecone")
 
 	// REST Docs
 	testImplementation("org.springframework.restdocs:spring-restdocs-webtestclient")
