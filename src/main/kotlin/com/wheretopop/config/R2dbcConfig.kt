@@ -29,7 +29,10 @@ import com.wheretopop.infrastructure.project.LongToProjectIdConverter
 import com.wheretopop.infrastructure.project.ProjectIdToLongConverter
 import com.wheretopop.infrastructure.user.LongToUserIdConverter
 import com.wheretopop.infrastructure.user.UserIdToLongConverter
-import com.wheretopop.infrastructure.user.auth.*
+import com.wheretopop.infrastructure.user.auth.AuthUserIdToLongConverter
+import com.wheretopop.infrastructure.user.auth.LongToAuthUserIdConverter
+import com.wheretopop.infrastructure.user.auth.LongToRefreshTokenIdConverter
+import com.wheretopop.infrastructure.user.auth.RefreshTokenIdToLongConverter
 import io.r2dbc.spi.ConnectionFactory
 import org.mariadb.r2dbc.MariadbConnectionConfiguration
 import org.mariadb.r2dbc.MariadbConnectionFactory
@@ -95,8 +98,7 @@ class R2dbcConfig : AbstractR2dbcConfiguration() {
         UserIdToLongConverter(), LongToUserIdConverter(),
         AuthUserIdToLongConverter(), LongToAuthUserIdConverter(),
         RefreshTokenIdToLongConverter(), LongToRefreshTokenIdConverter(),
-        ProjectIdToLongConverter(), LongToProjectIdConverter(),
-        PasswordToStringConverter(), StringToPasswordConverter()
+        ProjectIdToLongConverter(), LongToProjectIdConverter()
     )
 
 
