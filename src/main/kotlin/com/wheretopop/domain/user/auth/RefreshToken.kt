@@ -4,7 +4,7 @@ import java.time.Instant
 
 class RefreshToken private constructor(
     val id: RefreshTokenId,
-    val userId: AuthUserId,
+    val authUserId: AuthUserId,
     val token: String,
     val expiresAt: Instant,
     val createdAt: Instant,
@@ -13,8 +13,8 @@ class RefreshToken private constructor(
 ) {
     companion object {
         fun create(
-            id: RefreshTokenId,
-            userId: AuthUserId,
+            id: RefreshTokenId = RefreshTokenId.create(),
+            authUserId: AuthUserId,
             token: String,
             expiresAt: Instant,
             createdAt: Instant,
@@ -23,7 +23,7 @@ class RefreshToken private constructor(
         ): RefreshToken {
             return RefreshToken(
                 id,
-                userId,
+                authUserId,
                 token, 
                 expiresAt,
                 createdAt,
@@ -36,7 +36,7 @@ class RefreshToken private constructor(
     /**
      * 토큰이 만료되었는지 확인
      */
-    fun isExpired(): Boolean {
+    private fun isExpired(): Boolean {
         return Instant.now().isAfter(expiresAt) || deletedAt != null
     }
     

@@ -3,6 +3,7 @@ package com.wheretopop.infrastructure.user.auth
 import com.wheretopop.domain.user.UserId
 import com.wheretopop.domain.user.auth.AuthUser
 import com.wheretopop.domain.user.auth.AuthUserId
+import com.wheretopop.domain.user.auth.Password
 import org.springframework.core.convert.converter.Converter
 import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.PersistenceCreator
@@ -23,7 +24,7 @@ internal class AuthUserEntity @PersistenceCreator private constructor(
     @Column("identifier")
     val identifier: String,
     @Column("password")
-    val password : String,
+    val password : Password,
     @Column("created_at")
     val createdAt: Instant,
     @Column("updated_at")
@@ -78,4 +79,14 @@ class AuthUserIdToLongConverter : Converter<AuthUserId, Long> {
 @ReadingConverter
 class LongToAuthUserIdConverter : Converter<Long, AuthUserId> {
     override fun convert(source: Long) = AuthUserId.of(source)
+}
+
+@WritingConverter
+class PasswordToStringConverter : Converter<Password, String> {
+    override fun convert(source: Password) = source.hashed
+}
+
+@ReadingConverter
+class StringToPasswordConverter : Converter<String, Password> {
+    override fun convert(source: String) = Password.fromHashed(source)
 }
