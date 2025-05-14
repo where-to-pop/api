@@ -5,10 +5,13 @@ import com.wheretopop.domain.user.auth.AuthUser
 import com.wheretopop.domain.user.auth.AuthUserId
 import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.reactor.awaitSingleOrNull
+import mu.KotlinLogging
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate
 import org.springframework.data.relational.core.query.Criteria.where
 import org.springframework.data.relational.core.query.Query.query
 import org.springframework.stereotype.Repository
+
+private val logger = KotlinLogging.logger {}
 
 @Repository
 class R2dbcAuthUserRepository(
@@ -17,24 +20,30 @@ class R2dbcAuthUserRepository(
     private val authUserEntityClass = AuthUserEntity::class.java
 
     override suspend fun findById(id: AuthUserId): AuthUser? {
-        return entityTemplate
+        val authUser = entityTemplate
             .selectOne(query(where("id").`is`(id)), authUserEntityClass)
             .awaitSingleOrNull()
             ?.toDomain()
+        logger.debug { "findById: $id -> $authUser" }
+        return authUser
     }
 
     override suspend fun findByUserId(userId: UserId): AuthUser? {
-        return entityTemplate
+        val authUser = entityTemplate
             .selectOne(query(where("user_id").`is`(userId)), authUserEntityClass)
             .awaitSingleOrNull()
             ?.toDomain()
+        logger.debug { "findByUserId: $userId -> $authUser" }
+        return authUser
     }
 
     override suspend fun findByIdentifier(identifier: String): AuthUser? {
-        return entityTemplate
+        val authUser = entityTemplate
             .selectOne(query(where("identifier").`is`(identifier)), authUserEntityClass)
             .awaitSingleOrNull()
             ?.toDomain()
+        logger.debug { "findByIdentifier: $identifier -> $authUser" }
+        return authUser
     }
 
     override suspend fun save(authUser: AuthUser): AuthUser {

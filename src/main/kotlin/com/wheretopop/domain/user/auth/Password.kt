@@ -2,8 +2,7 @@ package com.wheretopop.domain.user.auth
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 
-@JvmInline
-value class Password private constructor(
+class Password private constructor(
     val hashed: String
 ) {
     companion object {

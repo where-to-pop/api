@@ -1,16 +1,16 @@
 package com.wheretopop.domain.user
 
 class UserCommand {
-    data class Create(
+    data class CreateUser(
         val username: String,
         val email: String,
         val profileImageUrl: String?
     )
 
-    data class Update(
+    data class UpdateUser(
         val id: UserId,
         val username: String,
         val email: String,
         val profileImageUrl: String?
     )
-} 
+}

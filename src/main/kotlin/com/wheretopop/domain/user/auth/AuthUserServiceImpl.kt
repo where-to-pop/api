@@ -1,12 +1,10 @@
 package com.wheretopop.domain.user.auth
 
-import com.wheretopop.shared.exception.AuthIdentifierAlreadyExistsException
-import com.wheretopop.shared.exception.AuthInvalidIdentifierException
-import com.wheretopop.shared.exception.AuthInvalidPasswordException
-import com.wheretopop.shared.exception.AuthInvalidTokenException
+
+import com.wheretopop.shared.exception.toException
+import com.wheretopop.shared.response.ErrorCode
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.Instant
 
 @Service
 class AuthUserServiceImpl(
@@ -19,7 +17,7 @@ class AuthUserServiceImpl(
     override suspend fun createAuthUser(command: AuthCommand.CreateAuthUser): AuthInfo.Main {
         val exists = authUserReader.findAuthUserByIdentifier(command.identifier) != null
         if (exists) {
-            throw AuthIdentifierAlreadyExistsException("이미 존재하는 아이디입니다.")
+            throw ErrorCode.AUTH_IDENTIFIER_ALREADY_EXISTS.toException()
         }
         val authUser = command.toDomain();
         return AuthInfoMapper.toMainInfo(authUserStore.save(authUser));
@@ -29,12 +27,12 @@ class AuthUserServiceImpl(
     override suspend fun authenticate(command: AuthCommand.Authenticate): AuthInfo.Token {
         val (identifier, rawPassword) = command
         val authUser = authUserReader.findAuthUserByIdentifier(identifier)
-            ?: throw AuthInvalidIdentifierException()
+            ?: throw ErrorCode.AUTH_INVALID_IDENTIFIER.toException()
         val isLoginSuccess = authUser.authenticate(identifier, rawPassword)
         if (!isLoginSuccess) {
-            throw AuthInvalidPasswordException()
+            throw ErrorCode.AUTH_INVALID_PASSWORD.toException()
         }
-        val tokens = tokenManager.issue(authUser.userId)
+        val tokens = tokenManager.issue(authUser)
         return tokens
     }
 
@@ -42,22 +40,14 @@ class AuthUserServiceImpl(
     override suspend fun refresh(command: AuthCommand.Refresh): AuthInfo.Token {
         val (rawRefreshToken, userId) = command
         val existingRefreshToken: RefreshToken = tokenManager.load(rawRefreshToken) ?:
-            throw AuthInvalidTokenException()
-        existingRefreshToken.takeIf { it.isValid() } ?: throw AuthInvalidTokenException()
+            throw ErrorCode.AUTH_INVALID_TOKEN.toException()
+        existingRefreshToken.takeIf { it.isValid() } ?: throw ErrorCode.AUTH_INVALID_TOKEN.toException()
         val authUser = authUserReader.findAuthUserById(existingRefreshToken.authUserId)
-            ?: throw AuthInvalidTokenException()
-        authUser.userId != userId && throw AuthInvalidTokenException()
+            ?: throw ErrorCode.AUTH_INVALID_TOKEN.toException()
+        authUser.userId != userId && throw ErrorCode.AUTH_INVALID_TOKEN.toException()
 
-        val newTokens = tokenManager.issue(userId)
-        val newRefreshToken = RefreshToken.create(
-            authUserId = authUser.id,
-            token = newTokens.refreshToken,
-            expiresAt = newTokens.refreshTokenExpiresAt,
-            createdAt = Instant.now(),
-            updatedAt = Instant.now(),
-        )
+        val newTokens = tokenManager.issue(authUser)
         val revokedExistingRefreshToken = existingRefreshToken.revoke()
-        tokenManager.save(newRefreshToken)
         tokenManager.save(revokedExistingRefreshToken)
         return newTokens
     }
