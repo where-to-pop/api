@@ -1,28 +1,37 @@
 package com.wheretopop.application.chat
 
-import org.springframework.http.codec.ServerSentEvent
-import org.springframework.stereotype.Service
-import reactor.core.publisher.Flux
-import reactor.core.publisher.Mono
+import com.wheretopop.domain.chat.ChatId
+import com.wheretopop.domain.chat.ChatInfo
+import com.wheretopop.domain.user.UserId
 
-@Service
-class ChatFacade(
-//    private val chatService: ChatService
-//    private val aiChatClient: AiChatClient
-) {
+interface ChatFacade {
+    /**
+     * 새로운 채팅을 초기화합니다.
+     */
+    suspend fun initialize(input: ChatInput.Initialize): ChatInfo.Detail
 
-    fun sendUserMessage(chatId: Long, userMessage: String): Mono<Void> {
-        TODO()
-//        return chatService.sendUserMessage(chatId, message)
-    }
+    /**
+     * 채팅 정보를 업데이트합니다.
+     */
+    suspend fun update(input: ChatInput.Update): ChatInfo.Main
 
-    fun streamChat(chatId: Long): Flux<ServerSentEvent<String>> {
-        TODO()
-//        return chatService.streamAssistantMessages(chatId)
-    }
+    /**
+     * 채팅을 삭제합니다.
+     */
+    suspend fun delete(input: ChatInput.Delete): ChatInfo.Main
 
+    /**
+     * 채팅 메시지를 전송합니다.
+     */
+    suspend fun sendMessage(input: ChatInput.SendMessage): ChatInfo.Simple
 
-    suspend fun chat(userMessage: String): String {
-        TODO()
-    }
+    /**
+     * 채팅의 상세 정보를 조회합니다.
+     */
+    suspend fun getDetail(chatId: ChatId): ChatInfo.Detail
+
+    /**
+     * 사용자의 채팅 목록을 조회합니다.
+     */
+    suspend fun getList(userId: UserId): List<ChatInfo.Main>
 }
