@@ -11,6 +11,8 @@ enum class ErrorCode(private val errorMsg: String) {
     AUTH_IDENTIFIER_ALREADY_EXISTS("이미 존재하는 아이디입니다."),
     AUTH_PASSWORD_ALREADY_EXISTS("이미 존재하는 비밀번호입니다."),
     AUTH_INVALID_TOKEN("유효하지 않은 토큰입니다."),
+    AUTH_ACCESS_TOKEN_NOT_FOUND("엑세스 토큰이 존재하지 않습니다."),
+    AUTH_ACCESS_TOKEN_EXPIRED("엑세스 토큰이 만료되었습니다."),
     AUTH_REFRESH_TOKEN_EXPIRED("리프레시 토큰이 만료되었습니다."),
     CHAT_NULL_RESPONSE("AI 모델에서 응답을 받지 못했습니다."),;
     fun getErrorMsg(vararg args: Any?): String {

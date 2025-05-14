@@ -1,18 +1,15 @@
 package com.wheretopop.config.security
 
 import com.wheretopop.domain.user.UserId
-import com.wheretopop.shared.response.CommonResponse
+import com.wheretopop.shared.exception.WhereToPoPException
 import com.wheretopop.shared.response.ErrorCode
 import kotlinx.coroutines.reactor.awaitSingleOrNull
-import org.springframework.http.HttpStatus
-import org.springframework.http.MediaType
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.context.ReactiveSecurityContextHolder
 import org.springframework.security.core.context.SecurityContext
 import org.springframework.web.reactive.function.server.CoRouterFunctionDsl
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
-import org.springframework.web.reactive.function.server.bodyValueAndAwait
 
 /**
  * JWT 인증된 사용자의 ID를 추출하는 확장 함수
@@ -41,75 +38,63 @@ suspend fun ServerRequest.extractUserId(): UserId? {
 }
 
 /**
- * 인증이 필요한 GET API 엔드포인트를 위한 DSL 확장 함수
- * 인증된 사용자 ID를 쉽게 추출하여 핸들러에 전달
+ * 인증이 필요한 API 엔드포인트를 위한 DSL 확장 함수
  */
-inline fun CoRouterFunctionDsl.AUTH_GET(
+internal fun CoRouterFunctionDsl.AUTH_GET(
     pattern: String,
-    crossinline handler: suspend (ServerRequest, UserId) -> ServerResponse
+    handler: suspend (ServerRequest, UserId) -> ServerResponse
 ) {
     GET(pattern) { request ->
-        val userId = request.extractUserId() ?: run {
-            return@GET ServerResponse.status(HttpStatus.UNAUTHORIZED)
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValueAndAwait(CommonResponse.fail(ErrorCode.AUTH_INVALID_TOKEN))
-        }
-        
-        handler(request, userId)
+        checkAuthAndHandle(request, handler)
     }
 }
 
-/**
- * 인증이 필요한 POST API 엔드포인트를 위한 DSL 확장 함수
- */
-inline fun CoRouterFunctionDsl.AUTH_POST(
+internal fun CoRouterFunctionDsl.AUTH_POST(
     pattern: String,
-    crossinline handler: suspend (ServerRequest, UserId) -> ServerResponse
+    handler: suspend (ServerRequest, UserId) -> ServerResponse
 ) {
     POST(pattern) { request ->
-        val userId = request.extractUserId() ?: run {
-            return@POST ServerResponse.status(HttpStatus.UNAUTHORIZED)
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValueAndAwait(CommonResponse.fail(ErrorCode.AUTH_INVALID_TOKEN))
-        }
-        
-        handler(request, userId)
+        checkAuthAndHandle(request, handler)
     }
 }
 
-/**
- * 인증이 필요한 PUT API 엔드포인트를 위한 DSL 확장 함수
- */
-inline fun CoRouterFunctionDsl.AUTH_PUT(
+internal fun CoRouterFunctionDsl.AUTH_PUT(
     pattern: String,
-    crossinline handler: suspend (ServerRequest, UserId) -> ServerResponse
+    handler: suspend (ServerRequest, UserId) -> ServerResponse
 ) {
     PUT(pattern) { request ->
-        val userId = request.extractUserId() ?: run {
-            return@PUT ServerResponse.status(HttpStatus.UNAUTHORIZED)
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValueAndAwait(CommonResponse.fail(ErrorCode.AUTH_INVALID_TOKEN))
-        }
-        
-        handler(request, userId)
+        checkAuthAndHandle(request, handler)
     }
 }
 
-/**
- * 인증이 필요한 DELETE API 엔드포인트를 위한 DSL 확장 함수
- */
-inline fun CoRouterFunctionDsl.AUTH_DELETE(
+internal fun CoRouterFunctionDsl.AUTH_DELETE(
     pattern: String,
-    crossinline handler: suspend (ServerRequest, UserId) -> ServerResponse
+    handler: suspend (ServerRequest, UserId) -> ServerResponse
 ) {
     DELETE(pattern) { request ->
-        val userId = request.extractUserId() ?: run {
-            return@DELETE ServerResponse.status(HttpStatus.UNAUTHORIZED)
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValueAndAwait(CommonResponse.fail(ErrorCode.AUTH_INVALID_TOKEN))
+        checkAuthAndHandle(request, handler)
+    }
+}
+
+internal suspend fun checkAuthAndHandle(
+    request: ServerRequest,
+    handler: suspend (ServerRequest, UserId) -> ServerResponse
+): ServerResponse {
+    val status = request.exchange().attributes[JwtAuthenticationConverter.AUTH_STATUS] as? String
+    val userId = request.exchange().attributes[JwtAuthenticationConverter.AUTH_USER_ID] as? UserId
+
+    return when (status) {
+        "VALID" -> {
+            if (userId != null) {
+                handler(request, userId)
+            } else {
+                throw WhereToPoPException(ErrorCode.AUTH_INVALID_TOKEN)
+            }
         }
-        
-        handler(request, userId)
+        "NO_TOKEN" -> throw WhereToPoPException(ErrorCode.AUTH_ACCESS_TOKEN_NOT_FOUND)
+        "EXPIRED_TOKEN" -> throw WhereToPoPException(ErrorCode.AUTH_ACCESS_TOKEN_EXPIRED)
+        "INVALID_TOKEN" -> throw WhereToPoPException(ErrorCode.AUTH_INVALID_TOKEN)
+        else -> throw WhereToPoPException(ErrorCode.AUTH_INVALID_TOKEN)
     }
 }
 
