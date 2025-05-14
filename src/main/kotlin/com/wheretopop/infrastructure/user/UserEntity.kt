@@ -56,18 +56,6 @@ internal class UserEntity @PersistenceCreator private constructor(
             deletedAt = deletedAt
         )
     }
-
-    fun update(user: User): UserEntity {
-        return UserEntity(
-            id = id,
-            username = user.username,
-            email = user.email,
-            profileImageUrl = user.profileImageUrl,
-            createdAt = createdAt,
-            updatedAt = Instant.now(),
-            deletedAt = deletedAt
-        )
-    }
 }
 
 @WritingConverter

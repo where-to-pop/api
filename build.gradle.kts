@@ -101,7 +101,7 @@ dependencies {
 
 	// for VectorStore
 //	implementation("org.springframework.ai:spring-ai-chroma-store")
-	implementation("org.springframework.ai:spring-ai-starter-vector-store-pinecone")
+		implementation("org.springframework.ai:spring-ai-starter-vector-store-pinecone")
 
 	// REST Docs
 	testImplementation("org.springframework.restdocs:spring-restdocs-webtestclient")
