@@ -15,6 +15,14 @@ interface ChatCoordinator {
     suspend fun processUserMessage(chat: Chat, userContent: String): Chat
 
     /**
+     * 시스템 프롬프트를 기반으로 요약 제목을 생성합니다.
+     *
+     * @param chat 현재 채팅 상태
+     * @return 요약 제목
+     */
+    suspend fun summarizeTitle(chat: Chat): String
+
+    /**
      * 시스템 프롬프트를 설정하고 사용자 메시지를 처리합니다.
      *
      * @param chat 현재 채팅 상태

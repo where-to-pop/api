@@ -9,7 +9,6 @@ class ChatCommand {
         val userId: UserId,
         val projectId: ProjectId,
         val isActive: Boolean,
-        val title: String,
         val initialMessage: String,
     ){
         fun toDomain(): Chat {
@@ -17,7 +16,7 @@ class ChatCommand {
                 userId = userId,
                 projectId = projectId,
                 isActive = isActive,
-                title = title,
+                title = "새로운 채팅", // ai 응답을 통해 값 업데이트
                 messages = emptyList(),
                 createdAt = Instant.now(),
                 updatedAt = Instant.now(),

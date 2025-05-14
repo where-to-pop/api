@@ -66,7 +66,7 @@ class Chat private constructor(
     /**
      * 채팅 정보를 업데이트한 새 Chat 객체를 반환합니다.
      */
-    fun update(title: String?, isActive: Boolean?): Chat {
+    fun update(title: String? = null, isActive: Boolean? = null): Chat {
         return Chat(
             id = id,
             userId = userId,

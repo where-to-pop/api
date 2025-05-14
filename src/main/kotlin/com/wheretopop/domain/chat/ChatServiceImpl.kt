@@ -22,8 +22,9 @@ class ChatServiceImpl(
     override suspend fun initializeChat(command: ChatCommand.InitializeChat): ChatInfo.Detail {
         val chat = command.toDomain()
         val chatWithResponse = chatCoordinator.processUserMessage(chat, command.initialMessage)
-        val savedChat = chatStore.save(chatWithResponse)
-
+        val title = chatCoordinator.summarizeTitle(chatWithResponse)
+        val updatedChat = chatWithResponse.update(title = title)
+        val savedChat = chatStore.save(updatedChat)
         return ChatInfoMapper.toDetailInfo(savedChat)
     }
 
