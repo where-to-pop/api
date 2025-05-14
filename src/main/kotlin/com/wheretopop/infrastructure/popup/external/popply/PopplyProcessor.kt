@@ -12,4 +12,5 @@ interface PopplyProcessor {
     suspend fun save(popupDetail: PopupDetail, popupId: PopupId)
     suspend fun saveEmbeddings(popupInfos: List<PopupInfo>)
     suspend fun getAllPopups(): List<PopupInfo>
+    suspend fun getSiliarPopups(query: String)
 }

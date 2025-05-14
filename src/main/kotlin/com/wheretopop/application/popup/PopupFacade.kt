@@ -40,4 +40,8 @@ class PopupFacade(
         val popplyPopupInfos = popplyUseCase.getPopplyList()
         popplyUseCase.saveEmbeddedPopply(popplyPopupInfos)
     }
+
+    suspend fun findSimilarPopupInfos(query: String) {
+        popplyUseCase.getSimilarPopupInfos(query)
+    }
 }

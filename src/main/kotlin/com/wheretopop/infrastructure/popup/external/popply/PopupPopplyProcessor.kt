@@ -65,6 +65,12 @@ class PopupPopplyProcessor(
         return popupDetailData
     }
 
+    override suspend fun getSiliarPopups(query: String) {
+        val similarPopups = popupVectorRepository.findSimilarPopups(query)
+        println(similarPopups)
+    }
+
+
     suspend fun crawlDownPopupDetailsById(endId: Int, startId:Int = 15): List<PopupDetail> {
         logger.info("ID 범위 {}부터 {}까지 (역순) 팝업 상세 정보 크롤링 시작...", startId, endId)
         var successCount = 0

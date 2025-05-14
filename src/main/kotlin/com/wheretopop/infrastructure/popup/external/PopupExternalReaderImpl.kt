@@ -11,4 +11,8 @@ class PopupExternalReaderImpl(
     override suspend fun getAllPopply(): List<PopupInfo> {
         return popplyProcessor.getAllPopups()
     }
+
+    override suspend fun getSimilarPopups(query: String) {
+        return popplyProcessor.getSiliarPopups(query)
+    }
 }

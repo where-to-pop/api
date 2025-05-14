@@ -2,9 +2,11 @@ package com.wheretopop.infrastructure.popup.external
 
 import com.wheretopop.domain.popup.PopupInfo
 import com.wheretopop.domain.popup.PopupVectorRepository
+import io.grpc.StatusRuntimeException
 import kotlinx.coroutines.delay
 import mu.KotlinLogging
 import org.springframework.ai.document.Document
+import org.springframework.ai.vectorstore.SearchRequest
 import org.springframework.ai.vectorstore.VectorStore
 import org.springframework.stereotype.Repository
 import org.springframework.web.reactive.function.client.WebClientResponseException
@@ -58,6 +60,16 @@ class PopupVectorRepositoryImpl(
                 logger.info("${delayBetweenChunksMillis/1000}초 후 다음 청크 처리 시작...")
                 delay(delayBetweenChunksMillis)
             }
+        }
+    }
+
+    override suspend fun findSimilarPopups(query: String): List<Document> {
+        val searchRequest = SearchRequest.builder().query(query).topK(3).build()
+        try {
+            return vectorStore.similaritySearch(searchRequest) ?: emptyList()
+        } catch (e: StatusRuntimeException) {
+            logger.error("Vector similarity search failed", e)
+            return emptyList()
         }
     }
 }
