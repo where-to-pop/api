@@ -7,11 +7,9 @@ class WhereToPoPException(
     val errorCode: ErrorCode,
     override val message: String = errorCode.getErrorMsg(),
     val status: HttpStatus = when {
-        errorCode.name.startsWith("AUTH_") -> HttpStatus.UNAUTHORIZED
-        errorCode == ErrorCode.COMMON_ENTITY_NOT_FOUND -> HttpStatus.NOT_FOUND
-        errorCode == ErrorCode.AUTH_IDENTIFIER_ALREADY_EXISTS -> HttpStatus.CONFLICT
-        errorCode.name.startsWith("COMMON_") -> HttpStatus.BAD_REQUEST
-        else -> HttpStatus.INTERNAL_SERVER_ERROR
+        errorCode == ErrorCode.COMMON_SYSTEM_ERROR -> HttpStatus.INTERNAL_SERVER_ERROR
+        errorCode == ErrorCode.COMMON_INVALID_PARAMETER -> HttpStatus.BAD_REQUEST
+        else -> HttpStatus.OK
     }
 ) : RuntimeException(message)
 
