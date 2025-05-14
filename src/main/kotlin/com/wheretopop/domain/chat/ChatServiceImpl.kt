@@ -1,7 +1,8 @@
 package com.wheretopop.domain.chat
 
 import com.wheretopop.domain.user.UserId
-import com.wheretopop.shared.exception.EntityNotFoundException
+import com.wheretopop.shared.exception.toException
+import com.wheretopop.shared.response.ErrorCode
 import org.springframework.stereotype.Service
 
 /**
@@ -31,7 +32,7 @@ class ChatServiceImpl(
      */
     override suspend fun updateChat(command: ChatCommand.UpdateChat): ChatInfo.Main {
         val (chatId, title, isActive) = command
-        val chat = chatReader.findById(chatId) ?: throw EntityNotFoundException("Chat $chatId not found")
+        val chat = chatReader.findById(chatId) ?: throw ErrorCode.COMMON_ENTITY_NOT_FOUND.toException()
         val updatedChat = chat.update(title, isActive)
         val savedChat = chatStore.save(updatedChat)
         return ChatInfoMapper.toMainInfo(savedChat)
@@ -42,7 +43,7 @@ class ChatServiceImpl(
      */
     override suspend fun deleteChat(command: ChatCommand.DeleteChat): ChatInfo.Main {
         val (chatId) = command
-        val chat = chatReader.findById(chatId) ?: throw EntityNotFoundException("Chat $chatId not found")
+        val chat = chatReader.findById(chatId) ?: throw ErrorCode.COMMON_ENTITY_NOT_FOUND.toException()
         
         val deletedChat = chat.delete()
         val savedChat = chatStore.save(deletedChat)
@@ -54,7 +55,7 @@ class ChatServiceImpl(
      * 채팅에 사용자 메시지를 추가하고 AI 응답을 반환합니다.
      */
     override suspend fun sendMessage(chatId: ChatId, message: String): ChatInfo.Simple {
-        val chat = chatReader.findById(chatId) ?: throw EntityNotFoundException("Chat $chatId not found")
+        val chat = chatReader.findById(chatId) ?: throw ErrorCode.COMMON_ENTITY_NOT_FOUND.toException()
         
         val updatedChat = chatCoordinator.processUserMessage(chat, message)
         val savedChat = chatStore.save(updatedChat)
@@ -66,7 +67,7 @@ class ChatServiceImpl(
      * 채팅의 상세 정보를 조회합니다.
      */
     override suspend fun getDetail(chatId: ChatId): ChatInfo.Detail {
-        val chat = chatReader.findById(chatId) ?: throw EntityNotFoundException("Chat $chatId not found")
+        val chat = chatReader.findById(chatId) ?: throw ErrorCode.COMMON_ENTITY_NOT_FOUND.toException()
         return ChatInfoMapper.toDetailInfo(chat)
     }
     

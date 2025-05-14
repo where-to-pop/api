@@ -11,7 +11,7 @@ class UserInfoMapper {
          */
         fun toMainInfo(user: User): UserInfo.Main {
             return UserInfo.Main(
-                id = user.id.toLong(),
+                id = user.id,
                 username = user.username,
                 email = user.email,
                 profileImageUrl = user.profileImageUrl,

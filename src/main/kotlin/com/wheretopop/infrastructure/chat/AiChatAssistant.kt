@@ -1,6 +1,7 @@
 package com.wheretopop.infrastructure.chat
 
-import com.wheretopop.shared.exception.ChatNullResponseException
+import com.wheretopop.shared.exception.toException
+import com.wheretopop.shared.response.ErrorCode
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.reactive.asFlow
@@ -18,48 +19,48 @@ class AiChatAssistant(private val chatClient: ChatClient) : ChatAssistant {
 
     override suspend fun call(userPrompt: String): String =
         chatClient.prompt().user(userPrompt)
-            .call().content() ?: throw ChatNullResponseException()
+            .call().content() ?: throw ErrorCode.CHAT_NULL_RESPONSE.toException()
 
     override suspend fun call(systemPrompt: String?, userPrompt: String): String {
         val spec = chatClient.prompt().apply {
             systemPrompt?.let { system(it) }
             user(userPrompt)
         }
-        return spec.call().content() ?: throw ChatNullResponseException()
+        return spec.call().content() ?: throw ErrorCode.CHAT_NULL_RESPONSE.toException()
     }
 
     override suspend fun call(prompt: Prompt): String =
-        chatClient.prompt(prompt).call().content() ?: throw ChatNullResponseException()
+        chatClient.prompt(prompt).call().content() ?: throw ErrorCode.CHAT_NULL_RESPONSE.toException()
 
     override suspend fun call(messages: List<Message>, options: ChatOptions?): String {
         val spec = chatClient.prompt().apply {
             messages(messages)
             options?.let { options(it) }
         }
-        return spec.call().content() ?: throw ChatNullResponseException()
+        return spec.call().content() ?: throw ErrorCode.CHAT_NULL_RESPONSE.toException()
     }
 
     override suspend fun callWithResponse(userPrompt: String): ChatResponse =
         chatClient.prompt().user(userPrompt)
-            .call().chatResponse() ?: throw ChatNullResponseException()
+            .call().chatResponse() ?: throw ErrorCode.CHAT_NULL_RESPONSE.toException()
 
     override suspend fun callWithResponse(systemPrompt: String?, userPrompt: String): ChatResponse {
         val spec = chatClient.prompt().apply {
             systemPrompt?.let { system(it) }
             user(userPrompt)
         }
-        return spec.call().chatResponse() ?: throw ChatNullResponseException()
+        return spec.call().chatResponse() ?: throw ErrorCode.CHAT_NULL_RESPONSE.toException()
     }
 
     override suspend fun callWithResponse(prompt: Prompt): ChatResponse =
-        chatClient.prompt(prompt).call().chatResponse() ?: throw ChatNullResponseException()
+        chatClient.prompt(prompt).call().chatResponse() ?: throw ErrorCode.CHAT_NULL_RESPONSE.toException()
 
     override suspend fun callWithResponse(messages: List<Message>, options: ChatOptions?): ChatResponse {
         val spec = chatClient.prompt().apply {
             messages(messages)
             options?.let { options(it) }
         }
-        return spec.call().chatResponse() ?: throw ChatNullResponseException()
+        return spec.call().chatResponse() ?: throw ErrorCode.CHAT_NULL_RESPONSE.toException()
     }
 
     @ExperimentalStream

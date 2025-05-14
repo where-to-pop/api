@@ -1,7 +1,8 @@
 package com.wheretopop.interfaces.chat
 
 import com.wheretopop.application.chat.ChatFacade
-import com.wheretopop.shared.exception.NotImplementedException
+import com.wheretopop.shared.exception.toException
+import com.wheretopop.shared.response.ErrorCode
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.stereotype.Component
@@ -36,10 +37,10 @@ class ChatHandler(
     private val chatFacade: ChatFacade,
 ) {
     suspend fun getChat(request: ServerRequest): ServerResponse {
-        throw NotImplementedException()
+        throw ErrorCode.COMMON_NOT_IMPLEMENTED.toException()
     }
     
     suspend fun getChatList(request: ServerRequest): ServerResponse {
-        throw NotImplementedException()
+        throw ErrorCode.COMMON_NOT_IMPLEMENTED.toException()
     }
 }

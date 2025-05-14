@@ -211,7 +211,7 @@ CREATE TABLE IF NOT EXISTS auth_users (
 CREATE TABLE IF NOT EXISTS refresh_tokens (
     id BIGINT PRIMARY KEY,
     auth_user_id BIGINT NOT NULL,
-    token VARCHAR(255) NOT NULL,
+    token VARCHAR(512) NOT NULL,
     expires_at TIMESTAMP(6) NOT NULL,
     created_at TIMESTAMP(6) NOT NULL,
     updated_at TIMESTAMP(6) NOT NULL,
