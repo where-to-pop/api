@@ -3,8 +3,10 @@ package com.wheretopop.infrastructure.popup.external.popply
 import com.wheretopop.domain.popup.Popup
 import com.wheretopop.domain.popup.PopupId
 import com.wheretopop.domain.popup.PopupInfo
+import com.wheretopop.domain.popup.PopupInfoWithScore
 import com.wheretopop.domain.popup.PopupVectorRepository
 import com.wheretopop.infrastructure.popup.PopupRepository
+import com.wheretopop.infrastructure.popup.external.RetrievedPopupInfoMetadata
 import mu.KotlinLogging
 import org.springframework.stereotype.Service
 import java.time.LocalDate
@@ -65,39 +67,62 @@ class PopupPopplyProcessor(
         return popupDetailData
     }
 
-    override suspend fun getSiliarPopups(query: String) {
-        val similarPopups = popupVectorRepository.findSimilarPopups(query)
-        println(similarPopups)
+    override suspend fun getSiliarPopups(query: String): List<PopupInfoWithScore> {
+        val vectorSearchResults = popupVectorRepository.findSimilarPopups(query)
+        return vectorSearchResults.mapNotNull { popup ->
+            val metadataMap: Map<String, Any?> = popup.metadata
+            val metadata = RetrievedPopupInfoMetadata.fromMap(metadataMap)
+            val popupInfo: PopupInfo? = metadata.toDomain()
+            if (popupInfo == null || popup.score == null) {
+                null
+            } else {
+                PopupInfoWithScore(popupInfo, popup.score)
+            }
+        }
     }
 
 
-    suspend fun crawlDownPopupDetailsById(endId: Int, startId:Int = 15): List<PopupDetail> {
+    suspend fun crawlDownPopupDetailsById(endId: Int, startId: Int = 15): List<PopupDetail> {
         logger.info("ID 범위 {}부터 {}까지 (역순) 팝업 상세 정보 크롤링 시작...", startId, endId)
-        var successCount = 0
-        var stoppedEarly = false
-        var processedCount = 0
 
         val popupDetailList = mutableListOf<PopupDetail>()
+        var successCount = 0
+        var processedCount = 0
+        val failedIds = mutableListOf<Int>()
+        var consecutiveFailures = 0
+        val maxConsecutiveFailures = 10 // 연속 실패 허용치
 
         for (id in endId downTo startId) {
             processedCount++
             logger.debug("ID {} 처리 시도", id)
 
-            val popupDetail = getPopupDetail(id)
+            val popupDetail = try {
+                getPopupDetail(id)
+            } catch (e: Exception) {
+                logger.error(e) { "ID $id: 예외 발생, 건너뜁니다." }
+                null
+            }
 
-            if (popupDetail !== null) {
+            if (popupDetail != null) {
                 popupDetailList.add(popupDetail)
                 successCount++
+                consecutiveFailures = 0 // 성공했으므로 초기화
             } else {
-                logger.info("ID {} 처리 중 중단 조건 발견. 크롤링을 중단합니다.", id)
-                stoppedEarly = true
-                break
+                logger.warn("ID {}: 실패 (null 반환).", id)
+                failedIds.add(id)
+                consecutiveFailures++
+
+                if (consecutiveFailures >= maxConsecutiveFailures) {
+                    logger.error("연속 $maxConsecutiveFailures 회 실패. 크롤링 중단.")
+                    break
+                }
             }
         }
 
         logger.info(
-            "Popups Crawling Completed: Attempts {}, Success {}, {}",
-            processedCount, successCount, if (stoppedEarly) "Stopped" else "Normally Ended"
+            "Popups Crawling Completed: Attempts {}, Success {}, Failures {}, {}",
+            processedCount, successCount, failedIds.size,
+            if (consecutiveFailures >= maxConsecutiveFailures) "Stopped Early (Too many failures)" else "Normally Ended"
         )
 
         return popupDetailList

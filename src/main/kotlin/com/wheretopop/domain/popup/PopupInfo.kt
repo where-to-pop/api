@@ -7,7 +7,7 @@ data class PopupInfo(
     val name: String,
     val address: String,
     val description: String,
-    val organizerName: String
+    val organizerName: String,
 ) {
     fun getContentForEmbedding(): String {
         return listOf(name, address, organizerName, description).joinToString(separator = "\n")

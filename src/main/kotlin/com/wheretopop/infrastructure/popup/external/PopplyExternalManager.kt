@@ -3,6 +3,7 @@ package com.wheretopop.infrastructure.popup.external
 import com.wheretopop.application.popup.PopplyUseCase
 import com.wheretopop.domain.popup.PopupId
 import com.wheretopop.domain.popup.PopupInfo
+import com.wheretopop.domain.popup.PopupInfoWithScore
 import com.wheretopop.infrastructure.popup.external.popply.PopupDetail
 import org.springframework.stereotype.Component
 
@@ -23,7 +24,7 @@ class PopplyExternalManager(
     override suspend fun saveEmbeddedPopply(popupInfos: List<PopupInfo>) {
         return popupExternalStore.saveEmbeddedPopply(popupInfos)
     }
-    override suspend fun getSimilarPopupInfos(query: String) {
+    override suspend fun getSimilarPopupInfos(query: String): List<PopupInfoWithScore> {
         return popupExternalReader.getSimilarPopups(query)
     }
 }

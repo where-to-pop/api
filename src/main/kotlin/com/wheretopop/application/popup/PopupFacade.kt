@@ -3,6 +3,7 @@ package com.wheretopop.application.popup
 import com.wheretopop.application.building.BuildingFacade
 import com.wheretopop.domain.building.BuildingCommand
 import com.wheretopop.domain.popup.Popup
+import com.wheretopop.domain.popup.PopupInfoWithScore
 import com.wheretopop.domain.popup.PopupService
 import com.wheretopop.infrastructure.popup.external.popply.PopupDetail
 import com.wheretopop.shared.model.Location
@@ -41,7 +42,7 @@ class PopupFacade(
         popplyUseCase.saveEmbeddedPopply(popplyPopupInfos)
     }
 
-    suspend fun findSimilarPopupInfos(query: String) {
-        popplyUseCase.getSimilarPopupInfos(query)
+    suspend fun findSimilarPopupInfos(query: String): List<PopupInfoWithScore> {
+        return popplyUseCase.getSimilarPopupInfos(query)
     }
 }
