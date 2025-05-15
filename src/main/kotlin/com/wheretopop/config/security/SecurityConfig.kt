@@ -4,7 +4,6 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.Ordered
 import org.springframework.core.annotation.Order
-import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.security.authentication.ReactiveAuthenticationManager
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity
@@ -93,10 +92,6 @@ class SecurityConfig {
     @Bean
     fun authSecurityFilterChain(http: ServerHttpSecurity): SecurityWebFilterChain {
         return http {
-            // 인증 관련 경로에만 적용
-            securityMatcher(PathPatternParserServerWebExchangeMatcher("/v1/auth/login", HttpMethod.POST))
-            securityMatcher(PathPatternParserServerWebExchangeMatcher("/v1/auth/refresh", HttpMethod.POST))
-            securityMatcher(PathPatternParserServerWebExchangeMatcher("/v1/users", HttpMethod.POST))
             
             cors {
                 configurationSource = corsConfigurationSource()

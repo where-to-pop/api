@@ -16,16 +16,16 @@ import org.springframework.web.reactive.function.server.ServerResponse
  */
 suspend fun ServerRequest.extractUserId(): UserId? {
     // 헤더에서 User-Id 확인 (JwtAuthenticationConverter에서 설정)
-    val userIdHeader = this.headers().firstHeader("X-User-Id")
-    if (userIdHeader != null) {
-        return try {
-            UserId.of(userIdHeader.toLong())
-        } catch (e: Exception) {
-            null
-        }
-    }
-
-    // 헤더가 없는 경우 SecurityContext에서 인증 정보 추출
+//    val userIdHeader = this.headers().firstHeader("X-User-Id")
+//    if (userIdHeader != null) {
+//        return try {
+//            UserId.of(userIdHeader.toLong())
+//        } catch (e: Exception) {
+//            null
+//        }
+//    }
+//
+//    // 헤더가 없는 경우 SecurityContext에서 인증 정보 추출
     return try {
         ReactiveSecurityContextHolder.getContext()
             .map(SecurityContext::getAuthentication)
