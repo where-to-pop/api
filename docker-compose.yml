@@ -94,11 +94,6 @@ services:
     depends_on:
       mariadb:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
 volumes:
   mariadb_data:
