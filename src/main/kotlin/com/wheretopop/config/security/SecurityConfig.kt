@@ -141,7 +141,7 @@ class SecurityConfig {
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
         val configuration = CorsConfiguration()
-        configuration.allowedOrigins = listOf("*") // 프로덕션에서는 특정 도메인으로 제한하세요
+        configuration.allowedOrigins = listOf("wheretopop.devkor.club", "localhost:3000")
         configuration.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS")
         configuration.allowedHeaders = listOf("*")
         configuration.allowCredentials = true
