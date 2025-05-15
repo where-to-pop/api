@@ -4,8 +4,11 @@ import com.wheretopop.domain.popup.PopupId
 import com.wheretopop.domain.popup.PopupInfo
 import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.reactor.awaitSingleOrNull
+import org.springframework.data.domain.Sort
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate
+import org.springframework.data.relational.core.query.Criteria
 import org.springframework.data.relational.core.query.Criteria.where
+import org.springframework.data.relational.core.query.Query
 import org.springframework.data.relational.core.query.Query.query
 
 internal class R2dbcPopupPopplyRepository (
@@ -27,8 +30,8 @@ internal class R2dbcPopupPopplyRepository (
         entities.map { save(it) }
 
     override suspend fun findAll(): List<PopupInfo> =
-        entityTemplate.select(entityClass)
-            .all()
+        entityTemplate.select(Query.query(Criteria.empty())
+            .sort(Sort.by(Sort.Direction.DESC, "createdAt")), entityClass)
             .map(PopupPopplyEntity::toDomain)
             .collectList()
             .awaitSingle()

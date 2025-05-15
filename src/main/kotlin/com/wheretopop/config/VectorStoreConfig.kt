@@ -1,8 +1,10 @@
 package com.wheretopop.config
 
+import io.weaviate.client.Config
+import io.weaviate.client.WeaviateClient
 import org.springframework.ai.embedding.EmbeddingModel
 import org.springframework.ai.vectorstore.VectorStore
-import org.springframework.ai.vectorstore.pinecone.PineconeVectorStore
+import org.springframework.ai.vectorstore.weaviate.WeaviateVectorStore
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -12,19 +14,32 @@ import org.springframework.context.annotation.Configuration
 class VectorStoreConfig(
     private val embeddingModel: EmbeddingModel,
 ) {
-    @Value("\${spring.ai.vectorstore.pinecone.api-key}")
-    private lateinit var apiKey: String
+    @Value("\${spring.ai.vectorstore.weaviate.scheme:http}")
+    private lateinit var scheme: String
 
-    @Value("\${spring.ai.vectorstore.pinecone.index-name}")
-    private lateinit var indexName: String
+    @Value("\${spring.ai.vectorstore.weaviate.host:localhost}")
+    private lateinit var host: String
 
+    @Value("\${spring.ai.vectorstore.weaviate.port:8081}")
+    private var port: Int = 0
+
+    @Value("\${spring.ai.vectorstore.weaviate.object-class:PopupStore}")
+    private lateinit var objectClass: String
 
     @Bean
-    fun vectorStore(): PineconeVectorStore {
-        return PineconeVectorStore
-            .builder(embeddingModel)
-            .apiKey(apiKey)
-            .indexName(indexName)
+    fun weaviateClient(): WeaviateClient {
+        val fullHost = "$host:$port"
+        return WeaviateClient(Config(scheme, fullHost))
+    }
+
+    @Bean(name = ["customVectorStore"])
+    fun vectorStore(
+        weaviateClient: WeaviateClient,
+        embeddingModel: EmbeddingModel,
+    ): VectorStore {
+        return WeaviateVectorStore
+            .builder(weaviateClient, embeddingModel)
+            .objectClass(objectClass)
             .build()
     }
 }

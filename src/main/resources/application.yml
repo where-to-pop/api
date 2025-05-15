@@ -52,17 +52,12 @@ spring:
           model: gemini-embedding-exp-03-07
 
     vectorstore:
-      chroma:
-        client:
-          host: localhost
-          port: 8000
-        collection-name: popup_reviews
-        initialize-schema: true
-
-      pinecone:
-        api-key: ${PINECONE_API_KEY:pinecone_key}
-        host: ${PINECONE_HOST:pinecone_host}
-        index-name: popup-infos
+      weaviate:
+        enabled: true
+        scheme: ${VECTOR_DB_SCHEME:http}
+        host: ${VECTOR_DB_HOST:localhost}
+        port: ${VECTOR_DB_PORT:8081}
+        object-class: PopupStore
 
 openapi:
   seoul:
