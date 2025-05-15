@@ -19,6 +19,7 @@ data class PopupInfo(
             "popup_name" to this.name,
             "address" to this.address,
             "organizer_name" to this.organizerName,
+            "description" to this.description,
         )
     }
 

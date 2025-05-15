@@ -7,10 +7,10 @@ data class RetrievedPopupInfoMetadata(
     val popupName: String?,
     val address: String?,
     val organizerName: String?,
-    val embeddedText: String?
+    val description: String?
 ) {
     fun toDomain(): PopupInfo? {
-        if (originalId == null || popupName == null || address == null || embeddedText == null || organizerName == null) {
+        if (originalId == null || popupName == null || address == null || description == null || organizerName == null) {
             return null
         }
 
@@ -18,7 +18,7 @@ data class RetrievedPopupInfoMetadata(
             id = originalId,
             name = popupName,
             address = address,
-            description = embeddedText,
+            description = description,
             organizerName = organizerName,
         )
     }
@@ -30,7 +30,7 @@ data class RetrievedPopupInfoMetadata(
                 popupName = metadataMap["popup_name"] as? String,
                 address = metadataMap["address"] as? String,
                 organizerName = metadataMap["organizer_name"] as? String,
-                embeddedText = metadataMap["text"] as? String,
+                description = metadataMap["description"] as? String,
             )
         }
 
