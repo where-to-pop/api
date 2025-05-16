@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.Ordered
 import org.springframework.core.annotation.Order
+import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.security.authentication.ReactiveAuthenticationManager
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity
@@ -15,7 +16,6 @@ import org.springframework.security.web.server.SecurityWebFilterChain
 import org.springframework.security.web.server.authentication.AuthenticationWebFilter
 import org.springframework.security.web.server.authentication.ServerAuthenticationConverter
 import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository
-import org.springframework.security.web.server.util.matcher.PathPatternParserServerWebExchangeMatcher
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.reactive.CorsConfigurationSource
@@ -30,18 +30,34 @@ import reactor.core.publisher.Mono
 @EnableWebFluxSecurity
 @EnableReactiveMethodSecurity
 class SecurityConfig {
-    
+
     /**
-     * API 엔드포인트를 위한 보안 필터 체인 설정
+     * favicon 처리를 위한 보안 필터 체인 설정
      */
     @Bean
     @Order(Ordered.HIGHEST_PRECEDENCE)
-    fun apiSecurityFilterChain(
-        http: ServerHttpSecurity,
-        jwtAuthenticationFilter: AuthenticationWebFilter
-    ): SecurityWebFilterChain {
+    fun faviconSecurityFilterChain(http: ServerHttpSecurity): SecurityWebFilterChain {
         return http {
-            securityMatcher(PathPatternParserServerWebExchangeMatcher("/v1/api/**"))
+            securityMatcher(ServerWebExchangeMatchers.pathMatchers("/favicon.ico"))
+            
+            csrf {
+                disable()
+            }
+            
+            authorizeExchange {
+                authorize(anyExchange, permitAll)
+            }
+        }
+    }
+    
+    /**
+     * CORS preflight 요청을 위한 보안 필터 체인 설정
+     */
+    @Bean
+    @Order(Ordered.HIGHEST_PRECEDENCE + 1)
+    fun corsSecurityFilterChain(http: ServerHttpSecurity): SecurityWebFilterChain {
+        return http {
+            securityMatcher(ServerWebExchangeMatchers.pathMatchers(HttpMethod.OPTIONS, "/**"))
             
             cors {
                 configurationSource = corsConfigurationSource()
@@ -51,6 +67,31 @@ class SecurityConfig {
                 disable()
             }
             
+            authorizeExchange {
+                authorize(anyExchange, permitAll)
+            }
+        }
+    }
+
+    /**
+     * API 엔드포인트를 위한 보안 필터 체인 설정
+     */
+    @Bean
+    @Order(Ordered.HIGHEST_PRECEDENCE + 2)
+    fun apiSecurityFilterChain(
+        http: ServerHttpSecurity,
+        jwtAuthenticationFilter: AuthenticationWebFilter
+    ): SecurityWebFilterChain {
+        return http {
+
+            cors {
+                configurationSource = corsConfigurationSource()
+            }
+
+            csrf {
+                disable()
+            }
+
             httpBasic {
                 disable()
             }
@@ -60,9 +101,9 @@ class SecurityConfig {
             logout {
                 disable()
             }
-            
+
             securityContextRepository = NoOpServerSecurityContextRepository.getInstance()
-            
+
             // 단순화된 예외 처리 방식
             exceptionHandling {
                 authenticationEntryPoint = org.springframework.security.web.server.ServerAuthenticationEntryPoint { exchange, _ ->
@@ -76,31 +117,31 @@ class SecurityConfig {
                     }
                 }
             }
-            
+
             // 필터 추가
             http.addFilterAt(jwtAuthenticationFilter, SecurityWebFiltersOrder.AUTHENTICATION)
-            
+
             authorizeExchange {
                 authorize(anyExchange, authenticated)
             }
         }
     }
-    
+
     /**
      * 인증 관련 엔드포인트를 위한 보안 필터 체인 설정
      */
     @Bean
     fun authSecurityFilterChain(http: ServerHttpSecurity): SecurityWebFilterChain {
         return http {
-            
+
             cors {
                 configurationSource = corsConfigurationSource()
             }
-            
+
             csrf {
                 disable()
             }
-            
+
             // 단순화된 예외 처리
             exceptionHandling {
                 authenticationEntryPoint = org.springframework.security.web.server.ServerAuthenticationEntryPoint { exchange, _ ->
@@ -109,13 +150,13 @@ class SecurityConfig {
                     }
                 }
             }
-            
+
             authorizeExchange {
                 authorize(anyExchange, permitAll)
             }
         }
     }
-    
+
     /**
      * JWT 인증 필터 설정
      */
@@ -123,27 +164,29 @@ class SecurityConfig {
     fun jwtAuthenticationFilter(jwtAuthenticationConverter: ServerAuthenticationConverter): AuthenticationWebFilter {
         // ReactiveAuthenticationManager 구현
         val authManager = ReactiveAuthenticationManager { authentication -> Mono.just(authentication) }
-        
+
         val filter = AuthenticationWebFilter(authManager)
         filter.setServerAuthenticationConverter(jwtAuthenticationConverter)
         filter.setRequiresAuthenticationMatcher(ServerWebExchangeMatchers.anyExchange())
         return filter
     }
-    
+
     /**
      * CORS 설정
      */
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
         val configuration = CorsConfiguration()
-        configuration.allowedOrigins = listOf("https://wheretopop.devkor.club", "http://localhost:3000")
+        configuration.allowedOrigins = listOf("https://wheretopop.devkor.club", "https://www.wheretopop.devkor.club", "http://localhost:3000")
         configuration.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS")
         configuration.allowedHeaders = listOf("*")
+        configuration.exposedHeaders = listOf("Authorization", "Content-Type", "Set-Cookie")
         configuration.allowCredentials = true
         configuration.maxAge = 3600L
-        
+
         val source = UrlBasedCorsConfigurationSource()
         source.registerCorsConfiguration("/**", configuration)
         return source
     }
-} 
+
+}

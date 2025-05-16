@@ -6,7 +6,9 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.codec.ServerCodecConfigurer
 import org.springframework.web.reactive.accept.RequestedContentTypeResolver
+import org.springframework.web.reactive.config.CorsRegistry
 import org.springframework.web.reactive.config.EnableWebFlux
+import org.springframework.web.reactive.config.ResourceHandlerRegistry
 import org.springframework.web.reactive.config.WebFluxConfigurer
 import org.springframework.web.reactive.result.method.annotation.ArgumentResolverConfigurer
 
@@ -34,6 +36,15 @@ class WebfluxConfig(
      */
     override fun configureArgumentResolvers(configurer: ArgumentResolverConfigurer) {
         configurer.addCustomResolver(userPrincipalResolver)
+    }
+    
+    /**
+     * 정적 리소스 핸들러 설정 - favicon.ico 처리
+     */
+    override fun addResourceHandlers(registry: ResourceHandlerRegistry) {
+        registry.addResourceHandler("/favicon.ico")
+            .addResourceLocations("classpath:/static/")
+            .setCacheControl(org.springframework.http.CacheControl.noCache())
     }
 
 } 
