@@ -29,7 +29,9 @@ import reactor.core.publisher.Mono
 @Configuration
 @EnableWebFluxSecurity
 @EnableReactiveMethodSecurity
-class SecurityConfig {
+class SecurityConfig(
+    private val corsConfiguration: CorsConfiguration
+) {
 
     /**
      * favicon 처리를 위한 보안 필터 체인 설정
@@ -57,6 +59,7 @@ class SecurityConfig {
     @Order(Ordered.HIGHEST_PRECEDENCE + 1)
     fun corsSecurityFilterChain(http: ServerHttpSecurity): SecurityWebFilterChain {
         return http {
+            // OPTIONS 메서드와 일치하는 모든 요청에 대해 적용
             securityMatcher(ServerWebExchangeMatchers.pathMatchers(HttpMethod.OPTIONS, "/**"))
             
             cors {
@@ -66,7 +69,16 @@ class SecurityConfig {
             csrf {
                 disable()
             }
+
+            // 명시적으로 OPTIONS 요청에 대한 인증 비활성화
+            httpBasic {
+                disable()
+            }
+            formLogin {
+                disable()
+            }
             
+            // 명시적으로 모든 프리플라이트 요청 허용
             authorizeExchange {
                 authorize(anyExchange, permitAll)
             }
@@ -121,7 +133,9 @@ class SecurityConfig {
             // 필터 추가
             http.addFilterAt(jwtAuthenticationFilter, SecurityWebFiltersOrder.AUTHENTICATION)
 
+            // OPTIONS 메서드는 항상 허용
             authorizeExchange {
+                authorize(ServerWebExchangeMatchers.pathMatchers(HttpMethod.OPTIONS, "/**"), permitAll)
                 authorize(anyExchange, authenticated)
             }
         }
@@ -172,21 +186,12 @@ class SecurityConfig {
     }
 
     /**
-     * CORS 설정
+     * CORS 설정 - WebfluxConfig에서 정의한 corsConfiguration 빈을 사용
      */
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
-        val configuration = CorsConfiguration()
-        configuration.allowedOrigins = listOf("https://wheretopop.devkor.club", "https://www.wheretopop.devkor.club", "http://localhost:3000")
-        configuration.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS")
-        configuration.allowedHeaders = listOf("*")
-        configuration.exposedHeaders = listOf("Authorization", "Content-Type", "Set-Cookie")
-        configuration.allowCredentials = true
-        configuration.maxAge = 3600L
-
         val source = UrlBasedCorsConfigurationSource()
-        source.registerCorsConfiguration("/**", configuration)
+        source.registerCorsConfiguration("/**", corsConfiguration)
         return source
     }
-
 }
