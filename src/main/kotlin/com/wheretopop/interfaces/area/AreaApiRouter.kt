@@ -51,7 +51,7 @@ class AreaHandler(private val areaFacade: AreaFacade) {
             limit = request.queryParam("limit").map { it.toInt() }.orElse(20)
         )
         val criteria = areaDtoMapper.toCriteria(searchRequest)
-        val domainResults = areaFacade.searchAreas(criteria)
+        val domainResults = areaFacade.findAll()
         val response = areaDtoMapper.toAreaResponses(domainResults)
 
         return ServerResponse.ok()

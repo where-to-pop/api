@@ -1,9 +1,6 @@
-package com.wheretopop.infrastructure.area.external
+package com.wheretopop.domain.area
 
-import com.wheretopop.domain.area.AreaId
-import com.wheretopop.domain.area.AreaInfo
-
-interface AreaExternalReader {
+interface AreaInsightProvider{
     suspend fun findPopulationInsightByAreaId(areaId: AreaId): AreaInfo.PopulationInsight?
     suspend fun findPopulationInsightsByAreaIds(areaIds: List<AreaId>): List<AreaInfo.PopulationInsight>
 }

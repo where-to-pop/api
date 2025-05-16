@@ -1,9 +1,10 @@
 package com.wheretopop.application.area
 
 import com.wheretopop.domain.area.AreaCriteria
+import com.wheretopop.domain.area.AreaId
 import com.wheretopop.domain.area.AreaInfo
 import com.wheretopop.domain.area.AreaService
-import com.wheretopop.infrastructure.area.external.AreaExternalStore
+import mu.KotlinLogging
 import org.springframework.stereotype.Service
 
 /**
@@ -15,11 +16,24 @@ class AreaFacade(
     private val areaService: AreaService,
     private val areaOpenDataUseCase: AreaOpenDataUseCase
 ) {
+    private val logger = KotlinLogging.logger {}
+
     /**
      * 필터 조건으로 지역 검색
      */
     suspend fun searchAreas(criteria: AreaCriteria.SearchAreaCriteria): List<AreaInfo.Main> {
         return areaService.searchAreas(criteria)
+    }
+
+    suspend fun findAll(): List<AreaInfo.Main> {
+        logger.info { "findAll() 호출" }
+        val value =  areaService.findAll()
+        logger.info { "findAll() - ${value.size}개 지역 정보 조회" }
+        return value
+    }
+
+    suspend fun getAreaDetailById(areaId: AreaId): AreaInfo.Detail? {
+        return areaService.getAreaDetailById(areaId)
     }
 
     suspend fun ingestAreaExternalData() {

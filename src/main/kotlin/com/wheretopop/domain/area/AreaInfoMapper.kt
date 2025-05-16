@@ -27,4 +27,19 @@ class AreaInfoMapper {
         return domains.map(::of)
     }
 
+    /**
+     * Area 도메인 객체와 AreaInsight 도메인 객체를 AreaInfo.Detail DTO로 변환
+     */
+    fun of(domain: Area, areaInsight: AreaInfo.PopulationInsight?): AreaInfo.Detail {
+        return AreaInfo.Detail(
+            id = domain.id,
+            name = domain.name,
+            description = domain.description,
+            location = AreaInfo.LocationInfo(
+                latitude = domain.location.latitude,
+                longitude = domain.location.longitude
+            ),
+            populationInsight = areaInsight,
+        )
+    }
 }
