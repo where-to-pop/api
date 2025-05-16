@@ -15,5 +15,10 @@ class AreaId private constructor(
         fun of(value: Long): AreaId {
             return AreaId(UniqueId.of(value).value)
         }
+
+        @JvmStatic
+        fun of(value: String): AreaId {
+            return AreaId(UniqueId.of(value).value)
+        }
     }
 }

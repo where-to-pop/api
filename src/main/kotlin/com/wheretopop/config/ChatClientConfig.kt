@@ -1,6 +1,6 @@
 package com.wheretopop.config
 
-import com.wheretopop.infrastructure.chat.AiToolRegistry
+import com.wheretopop.interfaces.area.AreaToolRegistry
 import io.modelcontextprotocol.client.McpAsyncClient
 import org.slf4j.LoggerFactory
 import org.springframework.ai.chat.client.ChatClient
@@ -14,7 +14,7 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 class ChatClientConfig(
     private val chatModel: ChatModel,
-    private val aiToolRegistry: AiToolRegistry,
+    private val areaToolRegistry: AreaToolRegistry,
     private val asyncClients : List<McpAsyncClient>
 ){
 
@@ -26,7 +26,7 @@ class ChatClientConfig(
     fun chatClient(): ChatClient {
         val mcpToolCallbacks: List<ToolCallback> = McpToolUtils.getToolCallbacksFromAsyncClients(asyncClients);
         return ChatClient.builder(chatModel)
-            .defaultTools(aiToolRegistry, mcpToolCallbacks)
+            .defaultTools(areaToolRegistry, mcpToolCallbacks)
             .build()
     }
 }
