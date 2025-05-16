@@ -11,9 +11,9 @@ class ChatInfoMapper {
          */
         fun toMainInfo(chat: Chat): ChatInfo.Main {
             return ChatInfo.Main(
-                id = chat.id.toLong(),
-                userId = chat.userId.toLong(),
-                projectId = chat.projectId.toLong(),
+                id = chat.id,
+                userId = chat.userId,
+                projectId = chat.projectId,
                 isActive = chat.isActive,
                 title = chat.title,
                 createdAt = chat.createdAt,
@@ -26,9 +26,9 @@ class ChatInfoMapper {
          */
         fun toDetailInfo(chat: Chat): ChatInfo.Detail {
             return ChatInfo.Detail(
-                id = chat.id.toLong(),
-                userId = chat.userId.toLong(),
-                projectId = chat.projectId.toLong(),
+                id = chat.id,
+                userId = chat.userId,
+                projectId = chat.projectId,
                 isActive = chat.isActive,
                 title = chat.title,
                 messages = chat.messages.map { toMessageInfo(it) },
@@ -45,9 +45,9 @@ class ChatInfoMapper {
             val latestAssistantMessage = chat.getLatestAssistantMessage()?.let { toMessageInfo(it) }
 
             return ChatInfo.Simple(
-                id = chat.id.toLong(),
-                userId = chat.userId.toLong(),
-                projectId = chat.projectId.toLong(),
+                id = chat.id,
+                userId = chat.userId,
+                projectId = chat.projectId,
                 title = chat.title,
                 latestUserMessage = latestUserMessage,
                 latestAssistantMessage = latestAssistantMessage
@@ -59,7 +59,7 @@ class ChatInfoMapper {
          */
         private fun toMessageInfo(message: ChatMessage): ChatInfo.MessageInfo {
             return ChatInfo.MessageInfo(
-                id = message.id.toLong(),
+                id = message.id,
                 role = message.role.name,
                 content = message.content,
                 createdAt = message.createdAt

@@ -1,6 +1,7 @@
 package com.wheretopop.domain.chat
 
-import com.wheretopop.shared.enums.ChatMessageRole
+import com.wheretopop.domain.project.ProjectId
+import com.wheretopop.domain.user.UserId
 import java.time.Instant
 
 /**
@@ -14,9 +15,9 @@ class ChatInfo {
      * 채팅의 기본 정보를 담은 DTO
      */
     data class Main(
-        val id: Long,
-        val userId: Long,
-        val projectId: Long,
+        val id: ChatId,
+        val userId: UserId,
+        val projectId: ProjectId,
         val isActive: Boolean,
         val title: String,
         val createdAt: Instant,
@@ -27,9 +28,9 @@ class ChatInfo {
      * 채팅의 모든 정보를 포함하는 DTO (모든 메시지 포함)
      */
     data class Detail(
-        val id: Long,
-        val userId: Long,
-        val projectId: Long,
+        val id: ChatId,
+        val userId: UserId,
+        val projectId: ProjectId,
         val isActive: Boolean,
         val title: String,
         val messages: List<MessageInfo>,
@@ -41,9 +42,9 @@ class ChatInfo {
      * 최근 질문과 응답만 포함하는 간단한 DTO
      */
     data class Simple(
-        val id: Long,
-        val userId: Long,
-        val projectId: Long,
+        val id: ChatId,
+        val userId: UserId,
+        val projectId: ProjectId,
         val title: String,
         val latestUserMessage: MessageInfo?,
         val latestAssistantMessage: MessageInfo?
@@ -53,7 +54,7 @@ class ChatInfo {
      * 채팅 메시지 정보를 담은 DTO
      */
     data class MessageInfo(
-        val id: Long,
+        val id: ChatMessageId,
         val role: String,
         val content: String,
         val createdAt: Instant

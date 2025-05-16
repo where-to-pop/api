@@ -11,8 +11,8 @@ class ProjectInfoMapper {
          */
         fun toMainInfo(project: Project): ProjectInfo.Main {
             return ProjectInfo.Main(
-                id = project.id.toLong(),
-                ownerId = project.ownerId.toLong(),
+                id = project.id,
+                ownerId = project.ownerId,
                 name = project.name,
                 brandName = project.brandName,
                 popupCategory = project.popupCategory,

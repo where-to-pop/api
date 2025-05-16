@@ -15,5 +15,10 @@ class ProjectId private constructor(
         fun of(value: Long): ProjectId {
             return ProjectId(UniqueId.of(value).value)
         }
+
+        @JvmStatic
+        fun of(value: String): ProjectId {
+            return ProjectId(UniqueId.of(value).value)
+        }
     }
 }

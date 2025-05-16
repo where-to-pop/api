@@ -12,7 +12,7 @@ object AreaDto {
      * 지역 응답 DTO
      */
     data class AreaResponse(
-        val id: Long,
+        val id: String,
         val name: String,
         val description: String?,
         val location: LocationResponse,
@@ -31,7 +31,7 @@ object AreaDto {
      * 지역 통계 응답 DTO
      */
     data class StatisticResponse(
-        val id: Long,
+        val id: String,
         val collectedAt: LocalDateTime,
         val commercial: CommercialResponse,
         val realEstate: RealEstateResponse,

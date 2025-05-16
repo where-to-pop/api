@@ -82,6 +82,11 @@ open class UniqueId protected constructor(
             require(value >= 0) { "UniqueId value must be non-negative" }
             return UniqueId(value)
         }
+
+        @JvmStatic
+        fun of(value: String): UniqueId {
+            return of(value.toLongOrNull() ?: throw IllegalArgumentException("Invalid UniqueId value"))
+        }
         
         private fun getCurrentTimestamp(): Long {
             return Instant.now().toEpochMilli()

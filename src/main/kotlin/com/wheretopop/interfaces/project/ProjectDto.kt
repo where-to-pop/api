@@ -69,7 +69,7 @@ class ProjectDto {
     }
 
     data class ProjectResponse(
-        val id: Long,
+        val id: String,
         val name: String,
         val brandName: String,
         val popupCategory: PopUpCategory,
@@ -81,12 +81,12 @@ class ProjectDto {
         val projectGoal: String,
         val additionalBrandInfo: String?,
         val additionalProjectInfo: String?,
-        val ownerId: Long
+        val ownerId: String
     ) {
         companion object {
             fun from(info: ProjectInfo.Main): ProjectResponse {
                 return ProjectResponse(
-                    id = info.id.toLong(),
+                    id = info.id.toString(),
                     name = info.name,
                     brandName = info.brandName,
                     popupCategory = info.popupCategory,
@@ -98,7 +98,7 @@ class ProjectDto {
                     projectGoal = info.projectGoal,
                     additionalBrandInfo = info.additionalBrandInfo,
                     additionalProjectInfo = info.additionalProjectInfo,
-                    ownerId = info.ownerId.toLong()
+                    ownerId = info.ownerId.toString()
                 )
             }
         }

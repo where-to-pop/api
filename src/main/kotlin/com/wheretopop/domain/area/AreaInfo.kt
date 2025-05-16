@@ -11,7 +11,7 @@ class AreaInfo {
      * Area 기본 정보를 담은 DTO
      */
     data class Main(
-        val id: Long,
+        val id: AreaId,
         val name: String,
         val description: String?,
         val location: LocationInfo,

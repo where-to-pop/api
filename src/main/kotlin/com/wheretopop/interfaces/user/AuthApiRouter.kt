@@ -78,6 +78,15 @@ class AuthHandler(
             null
         }
     }
+
+    /**
+     * 주어진 도메인이 안전한 Public Suffix인지 확인합니다.
+     * 일부 브라우저는 .dev, .app, .club 등의 도메인에서 쿠키 설정에 제한이 있을 수 있습니다.
+     */
+    private fun shouldPrefixWithDot(domain: String): Boolean {
+        val publicSuffixes = listOf(".com", ".org", ".net", ".club", ".dev", ".app", ".io")
+        return publicSuffixes.any { domain.endsWith(it) }
+    }
     
     /**
      * 로그인 요청을 처리합니다.
@@ -102,7 +111,13 @@ class AuthHandler(
         println("Origin: $origin")
         
         // 오리진에서 도메인 추출
-        val domain = extractDomainFromOrigin(origin)
+        var domain = extractDomainFromOrigin(origin)
+        
+        // 일부 도메인에서는 앞에 점을 추가해 모든 서브도메인에서 사용 가능하게 함
+        if (domain != null && shouldPrefixWithDot(domain) && !domain.startsWith(".")) {
+            // 이미 점으로 시작하는 경우 중복으로 추가하지 않음
+            domain = ".$domain"
+        }
         
         // 로컬호스트 체크
         val isLocalhost = origin.contains("localhost")
@@ -144,7 +159,10 @@ class AuthHandler(
         // 응답 생성
         return ServerResponse.ok()
             .contentType(MediaType.APPLICATION_JSON)
+            .header("Access-Control-Allow-Origin", origin)  // 클라이언트 오리진에 맞춤
             .header("Access-Control-Allow-Credentials", "true")
+            .header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+            .header("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization")
             .cookie(refreshTokenCookie)
             .cookie(accessTokenCookie)
             .bodyValueAndAwait(CommonResponse.success(response))
@@ -190,7 +208,12 @@ class AuthHandler(
         val isLocalhost = origin.contains("localhost")
         
         // 오리진에서 도메인 추출
-        val domain = extractDomainFromOrigin(origin)
+        var domain = extractDomainFromOrigin(origin)
+        
+        // 일부 도메인에서는 앞에 점을 추가해 모든 서브도메인에서 사용 가능하게 함
+        if (domain != null && shouldPrefixWithDot(domain) && !domain.startsWith(".")) {
+            domain = ".$domain"
+        }
         
         // 새 액세스 토큰 쿠키 생성
         val newAccessTokenCookieBuilder = ResponseCookie.from(ACCESS_TOKEN_COOKIE_NAME, tokenInfo.accessToken)
@@ -228,7 +251,10 @@ class AuthHandler(
         
         return ServerResponse.ok()
             .contentType(MediaType.APPLICATION_JSON)
+            .header("Access-Control-Allow-Origin", origin)  // 클라이언트 오리진에 맞춤
             .header("Access-Control-Allow-Credentials", "true")
+            .header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+            .header("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization")
             .cookie(newRefreshTokenCookie)
             .cookie(newAccessTokenCookie)
             .bodyValueAndAwait(CommonResponse.success(response))
@@ -244,7 +270,12 @@ class AuthHandler(
         val isLocalhost = origin.contains("localhost")
         
         // 오리진에서 도메인 추출
-        val domain = extractDomainFromOrigin(origin)
+        var domain = extractDomainFromOrigin(origin)
+        
+        // 일부 도메인에서는 앞에 점을 추가해 모든 서브도메인에서 사용 가능하게 함
+        if (domain != null && shouldPrefixWithDot(domain) && !domain.startsWith(".")) {
+            domain = ".$domain"
+        }
         
         // 리프레시 토큰 쿠키 만료
         val expiredRefreshCookieBuilder = ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, "")
@@ -278,7 +309,10 @@ class AuthHandler(
         
         return ServerResponse.ok()
             .contentType(MediaType.APPLICATION_JSON)
+            .header("Access-Control-Allow-Origin", origin)  // 클라이언트 오리진에 맞춤
             .header("Access-Control-Allow-Credentials", "true")
+            .header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+            .header("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization")
             .cookie(expiredRefreshCookie)
             .cookie(expiredAccessCookie)
             .bodyValueAndAwait(CommonResponse.success("로그아웃 되었습니다."))

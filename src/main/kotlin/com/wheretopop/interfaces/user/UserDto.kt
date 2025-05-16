@@ -13,7 +13,7 @@ class UserDto {
     )
 
     data class UserResponse(
-        val id: Long,
+        val id: String,
         val username: String,
         val email: String,
         val profileImageUrl: String?,
@@ -23,7 +23,7 @@ class UserDto {
         companion object {
             fun from(userInfo: UserInfo.Main): UserResponse {
                 return UserResponse(
-                    id = userInfo.id.toLong(),
+                    id = userInfo.id.toString(),
                     username = userInfo.username,
                     email = userInfo.email,
                     profileImageUrl = userInfo.profileImageUrl,

@@ -51,7 +51,7 @@ class AreaDtoMapper {
      */
     fun toAreaResponse(info: AreaInfo.Main): AreaDto.AreaResponse {
         return AreaDto.AreaResponse(
-            id = info.id,
+            id = info.id.toString(),
             name = info.name,
             description = info.description,
             location = toLocationResponse(info.location),

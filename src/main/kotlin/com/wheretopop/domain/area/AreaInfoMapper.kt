@@ -10,7 +10,7 @@ class AreaInfoMapper {
      */
     fun of(domain: Area): AreaInfo.Main {
         return AreaInfo.Main(
-            id = domain.id.value,
+            id = domain.id,
             name = domain.name,
             description = domain.description,
             location = AreaInfo.LocationInfo(
