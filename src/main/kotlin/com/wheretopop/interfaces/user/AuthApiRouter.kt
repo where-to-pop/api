@@ -54,23 +54,7 @@ class AuthHandler(
     
     private val ACCESS_TOKEN_COOKIE_NAME = "access_token"
     private val REFRESH_TOKEN_COOKIE_NAME = "refresh_token"
-    private val SECURE_COOKIE = true  // HTTPS 환경에서는 true로 설정
     private val HTTP_ONLY = true
-    private val SAME_SITE = "None"  // 크로스 도메인 쿠키 전송을 위해 None으로 설정
-    
-    /**
-     * 쿠키 도메인을 요청 오리진에 따라 결정합니다.
-     * 로컬호스트인 경우 도메인을 지정하지 않습니다.
-     */
-    private fun determineCookieDomain(request: ServerRequest): String? {
-        val origin = request.headers().firstHeader("Origin") ?: ""
-        return when {
-            origin.contains("localhost") -> null // 로컬호스트인 경우 도메인 설정 안함
-            origin.contains("where-to-pop.devkor.club") -> "where-to-pop.devkor.club"
-            else -> null
-        }
-    }
-    
     
     /**
      * 로그인 요청을 처리합니다.
@@ -90,29 +74,38 @@ class AuthHandler(
         // 응답 데이터 생성
         val response = AuthDto.TokenResponse.from(tokenInfo)
         
-        // 도메인 결정
-        val domain = determineCookieDomain(request)
+        // 원본 요청의 오리진 추출
+        val origin = request.headers().firstHeader("Origin") ?: ""
+        println("Origin: $origin")
+        
+        // 로컬호스트 체크
+        val isLocalhost = origin.contains("localhost")
         
         // 리프레시 토큰 쿠키 생성
-        val refreshTokenCookie = createTokenCookie(
-            REFRESH_TOKEN_COOKIE_NAME, 
-            tokenInfo.refreshToken,
-            tokenInfo.refreshTokenExpiresAt,
-            domain
-        )
-
+        val refreshTokenCookie = ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, tokenInfo.refreshToken)
+            .maxAge(Duration.between(Instant.now(), tokenInfo.refreshTokenExpiresAt))
+            .path("/")
+            .secure(!isLocalhost) // 로컬호스트는 false, 그 외는 true
+            .httpOnly(HTTP_ONLY)
+            .sameSite(if (isLocalhost) "Lax" else "None")
+            
         // 액세스 토큰 쿠키 생성
-        val accessTokenCookie = createTokenCookie(
-            ACCESS_TOKEN_COOKIE_NAME,
-            tokenInfo.accessToken,
-            tokenInfo.accessTokenExpiresAt,
-            domain
-        )
-        
+        val accessTokenCookie = ResponseCookie.from(ACCESS_TOKEN_COOKIE_NAME, tokenInfo.accessToken)
+            .maxAge(Duration.between(Instant.now(), tokenInfo.accessTokenExpiresAt))
+            .path("/")
+            .secure(!isLocalhost) // 로컬호스트는 false, 그 외는 true
+            .httpOnly(HTTP_ONLY)
+            .sameSite(if (isLocalhost) "Lax" else "None")
+            
+        // 로깅
+        println("쿠키 설정: accessToken=${accessTokenCookie.build().toString()}, refreshToken=${refreshTokenCookie.build().toString()}")
+            
+        // 응답 생성
         return ServerResponse.ok()
             .contentType(MediaType.APPLICATION_JSON)
-            .cookie(refreshTokenCookie)
-            .cookie(accessTokenCookie)
+            .header("Access-Control-Allow-Credentials", "true")
+            .cookie(refreshTokenCookie.build())
+            .cookie(accessTokenCookie.build())
             .bodyValueAndAwait(CommonResponse.success(response))
     }
     
@@ -125,6 +118,9 @@ class AuthHandler(
         val refreshTokenCookie = request.cookies()[REFRESH_TOKEN_COOKIE_NAME]?.firstOrNull()
             ?: return ServerResponse.badRequest()
                 .bodyValueAndAwait(CommonResponse.fail(ErrorCode.AUTH_INVALID_TOKEN))
+                
+        // 쿠키 디버깅
+        println("받은 쿠키: ${request.cookies().toString()}")
         
         // 리프레시 토큰 유효성 검증
         val refreshToken = refreshTokenCookie.value
@@ -148,29 +144,31 @@ class AuthHandler(
         val tokenInfo = userFacade.refresh(input)
         val response = AuthDto.TokenResponse.from(tokenInfo)
         
-        // 도메인 결정
-        val domain = determineCookieDomain(request)
+        // 원본 요청의 오리진 추출
+        val origin = request.headers().firstHeader("Origin") ?: ""
+        val isLocalhost = origin.contains("localhost")
         
         // 새 액세스 토큰 쿠키 생성
-        val newAccessTokenCookie = createTokenCookie(
-            ACCESS_TOKEN_COOKIE_NAME,
-            tokenInfo.accessToken,
-            tokenInfo.accessTokenExpiresAt,
-            domain
-        )
+        val newAccessTokenCookie = ResponseCookie.from(ACCESS_TOKEN_COOKIE_NAME, tokenInfo.accessToken)
+            .maxAge(Duration.between(Instant.now(), tokenInfo.accessTokenExpiresAt))
+            .path("/")
+            .secure(!isLocalhost) // 로컬호스트는 false, 그 외는 true
+            .httpOnly(HTTP_ONLY)
+            .sameSite(if (isLocalhost) "Lax" else "None")
 
         // 새 리프레시 토큰 쿠키 생성
-        val newRefreshTokenCookie = createTokenCookie(
-            REFRESH_TOKEN_COOKIE_NAME,
-            tokenInfo.refreshToken,
-            tokenInfo.refreshTokenExpiresAt,
-            domain
-        )
+        val newRefreshTokenCookie = ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, tokenInfo.refreshToken)
+            .maxAge(Duration.between(Instant.now(), tokenInfo.refreshTokenExpiresAt))
+            .path("/")
+            .secure(!isLocalhost) // 로컬호스트는 false, 그 외는 true
+            .httpOnly(HTTP_ONLY)
+            .sameSite(if (isLocalhost) "Lax" else "None")
         
         return ServerResponse.ok()
             .contentType(MediaType.APPLICATION_JSON)
-            .cookie(newRefreshTokenCookie)
-            .cookie(newAccessTokenCookie)
+            .header("Access-Control-Allow-Credentials", "true")
+            .cookie(newRefreshTokenCookie.build())
+            .cookie(newAccessTokenCookie.build())
             .bodyValueAndAwait(CommonResponse.success(response))
     }
     
@@ -179,59 +177,31 @@ class AuthHandler(
      * 액세스 토큰과 리프레시 토큰 쿠키를 만료시킵니다.
      */
     suspend fun logout(request: ServerRequest, userId: UserId): ServerResponse {
-        // 도메인 결정
-        val domain = determineCookieDomain(request)
+        // 원본 요청의 오리진 추출
+        val origin = request.headers().firstHeader("Origin") ?: ""
+        val isLocalhost = origin.contains("localhost")
         
-        // 만료된 쿠키 생성
-        val expiredRefreshCookie = createExpiredCookie(REFRESH_TOKEN_COOKIE_NAME, domain)
-        val expiredAccessCookie = createExpiredCookie(ACCESS_TOKEN_COOKIE_NAME, domain)
+        // 리프레시 토큰 쿠키 만료
+        val expiredRefreshCookie = ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, "")
+            .maxAge(0)
+            .path("/")
+            .secure(!isLocalhost)
+            .httpOnly(HTTP_ONLY)
+            .sameSite(if (isLocalhost) "Lax" else "None")
+
+        // 액세스 토큰 쿠키 만료
+        val expiredAccessCookie = ResponseCookie.from(ACCESS_TOKEN_COOKIE_NAME, "")
+            .maxAge(0)
+            .path("/")
+            .secure(!isLocalhost)
+            .httpOnly(HTTP_ONLY)
+            .sameSite(if (isLocalhost) "Lax" else "None")
         
         return ServerResponse.ok()
             .contentType(MediaType.APPLICATION_JSON)
-            .cookie(expiredRefreshCookie)
-            .cookie(expiredAccessCookie)
+            .header("Access-Control-Allow-Credentials", "true")
+            .cookie(expiredRefreshCookie.build())
+            .cookie(expiredAccessCookie.build())
             .bodyValueAndAwait(CommonResponse.success("로그아웃 되었습니다."))
     }
-
-
-    /**
-     * 토큰 쿠키를 생성하는 메서드
-     */
-    private fun createTokenCookie(
-        name: String, 
-        value: String, 
-        expiresAt: Instant, 
-        domain: String?
-    ): ResponseCookie {
-        val cookieBuilder = ResponseCookie.from(name, value)
-            .maxAge(Duration.between(Instant.now(), expiresAt))
-            .path("/")
-            .secure(SECURE_COOKIE)
-            .httpOnly(HTTP_ONLY)
-            .sameSite(SAME_SITE)
-        
-        return if (domain != null) {
-            cookieBuilder.domain(domain).build()
-        } else {
-            cookieBuilder.build()
-        }
-    }
-    
-    /**
-     * 만료된 쿠키를 생성하는 메서드
-     */
-    private fun createExpiredCookie(name: String, domain: String?): ResponseCookie {
-        val cookieBuilder = ResponseCookie.from(name, "")
-            .maxAge(0)
-            .path("/")
-            .secure(SECURE_COOKIE)
-            .httpOnly(HTTP_ONLY)
-            .sameSite(SAME_SITE)
-            
-        return if (domain != null) {
-            cookieBuilder.domain(domain).build()
-        } else {
-            cookieBuilder.build()
-        }
-    }
-}
+}   
