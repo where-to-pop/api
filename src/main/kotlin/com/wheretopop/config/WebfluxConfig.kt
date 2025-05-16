@@ -9,7 +9,6 @@ import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.reactive.CorsWebFilter
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource
 import org.springframework.web.reactive.accept.RequestedContentTypeResolver
-import org.springframework.web.reactive.config.CorsRegistry
 import org.springframework.web.reactive.config.EnableWebFlux
 import org.springframework.web.reactive.config.ResourceHandlerRegistry
 import org.springframework.web.reactive.config.WebFluxConfigurer
@@ -51,40 +50,23 @@ class WebfluxConfig(
     }
 
     /**
-     * WebFlux CORS 설정 추가 
-     */
-    override fun addCorsMappings(registry: CorsRegistry) {
-        registry.addMapping("/**")
-            .allowedOrigins(
-                "https://wheretopop.devkor.club", 
-                "https://www.wheretopop.devkor.club", 
-                "http://localhost:3000",
-                "https://where-to-pop.devkor.club",
-                "https://www.where-to-pop.devkor.club",
-                "https://api.where-to-pop.devkor.club"
-            )
-            .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD")
-            .allowedHeaders("*")
-            .exposedHeaders("Authorization", "Content-Type", "Set-Cookie", "X-Requested-With", "Access-Control-Allow-Origin")
-            .allowCredentials(true)
-            .maxAge(3600)
-    }
-
-    /**
      * 공통 CORS 설정을 정의하는 빈
      */
     @Bean
     fun corsConfiguration(): CorsConfiguration {
         val corsConfig = CorsConfiguration()
         
-        // 모든 오리진 허용 (credentials가 false이므로 가능)
-        corsConfig.addAllowedOrigin("*") 
-        
+        corsConfig.allowedOrigins = listOf(
+            "https://wheretopop.devkor.club", 
+            "https://www.wheretopop.devkor.club", 
+            "http://localhost:3000",
+            "https://where-to-pop.devkor.club",
+            "https://www.where-to-pop.devkor.club"
+        )
         corsConfig.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD")
         corsConfig.allowedHeaders = listOf("*")
         corsConfig.exposedHeaders = listOf("Authorization", "Content-Type", "Set-Cookie", "X-Requested-With", "Access-Control-Allow-Origin")
-        // allowCredentials를 false로 설정하여 와일드카드 오리진 허용
-        corsConfig.allowCredentials = false
+        corsConfig.allowCredentials = true
         corsConfig.maxAge = 3600L
         return corsConfig
     }
