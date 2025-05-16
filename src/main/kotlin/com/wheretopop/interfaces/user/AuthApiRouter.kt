@@ -13,6 +13,7 @@ import org.springframework.http.ResponseCookie
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.server.*
 import reactor.core.publisher.Mono
+import java.net.URI
 import java.time.Duration
 import java.time.Instant
 
@@ -57,6 +58,28 @@ class AuthHandler(
     private val HTTP_ONLY = true
     
     /**
+     * 오리진 URL에서 도메인을 추출합니다.
+     * 로컬호스트인 경우 null을 반환하고, 그 외는 호스트명을 반환합니다.
+     */
+    private fun extractDomainFromOrigin(origin: String): String? {
+        if (origin.isBlank()) return null
+        
+        return try {
+            val uri = URI(origin)
+            val host = uri.host
+            
+            when {
+                host.contains("localhost") -> null
+                host.isNotBlank() -> host
+                else -> null
+            }
+        } catch (e: Exception) {
+            println("도메인 추출 오류: ${e.message}")
+            null
+        }
+    }
+    
+    /**
      * 로그인 요청을 처리합니다.
      * 응답으로 액세스 토큰과 리프레시 토큰을 쿠키에 설정합니다.
      */
@@ -78,34 +101,52 @@ class AuthHandler(
         val origin = request.headers().firstHeader("Origin") ?: ""
         println("Origin: $origin")
         
+        // 오리진에서 도메인 추출
+        val domain = extractDomainFromOrigin(origin)
+        
         // 로컬호스트 체크
         val isLocalhost = origin.contains("localhost")
         
         // 리프레시 토큰 쿠키 생성
-        val refreshTokenCookie = ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, tokenInfo.refreshToken)
+        val refreshTokenCookieBuilder = ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, tokenInfo.refreshToken)
             .maxAge(Duration.between(Instant.now(), tokenInfo.refreshTokenExpiresAt))
             .path("/")
             .secure(!isLocalhost) // 로컬호스트는 false, 그 외는 true
             .httpOnly(HTTP_ONLY)
             .sameSite(if (isLocalhost) "Lax" else "None")
+        
+        // 도메인이 null이 아닌 경우에만 도메인 설정
+        val refreshTokenCookie = if (domain != null) {
+            refreshTokenCookieBuilder.domain(domain).build()
+        } else {
+            refreshTokenCookieBuilder.build()
+        }
             
         // 액세스 토큰 쿠키 생성
-        val accessTokenCookie = ResponseCookie.from(ACCESS_TOKEN_COOKIE_NAME, tokenInfo.accessToken)
+        val accessTokenCookieBuilder = ResponseCookie.from(ACCESS_TOKEN_COOKIE_NAME, tokenInfo.accessToken)
             .maxAge(Duration.between(Instant.now(), tokenInfo.accessTokenExpiresAt))
             .path("/")
             .secure(!isLocalhost) // 로컬호스트는 false, 그 외는 true
             .httpOnly(HTTP_ONLY)
             .sameSite(if (isLocalhost) "Lax" else "None")
             
+        // 도메인이 null이 아닌 경우에만 도메인 설정
+        val accessTokenCookie = if (domain != null) {
+            accessTokenCookieBuilder.domain(domain).build()
+        } else {
+            accessTokenCookieBuilder.build()
+        }
+        
         // 로깅
-        println("쿠키 설정: accessToken=${accessTokenCookie.build().toString()}, refreshToken=${refreshTokenCookie.build().toString()}")
+        println("쿠키 설정: accessToken=${accessTokenCookie}, refreshToken=${refreshTokenCookie}")
+        println("Domain: $domain, Secure: ${!isLocalhost}, SameSite: ${if (isLocalhost) "Lax" else "None"}")
             
         // 응답 생성
         return ServerResponse.ok()
             .contentType(MediaType.APPLICATION_JSON)
             .header("Access-Control-Allow-Credentials", "true")
-            .cookie(refreshTokenCookie.build())
-            .cookie(accessTokenCookie.build())
+            .cookie(refreshTokenCookie)
+            .cookie(accessTokenCookie)
             .bodyValueAndAwait(CommonResponse.success(response))
     }
     
@@ -148,27 +189,48 @@ class AuthHandler(
         val origin = request.headers().firstHeader("Origin") ?: ""
         val isLocalhost = origin.contains("localhost")
         
+        // 오리진에서 도메인 추출
+        val domain = extractDomainFromOrigin(origin)
+        
         // 새 액세스 토큰 쿠키 생성
-        val newAccessTokenCookie = ResponseCookie.from(ACCESS_TOKEN_COOKIE_NAME, tokenInfo.accessToken)
+        val newAccessTokenCookieBuilder = ResponseCookie.from(ACCESS_TOKEN_COOKIE_NAME, tokenInfo.accessToken)
             .maxAge(Duration.between(Instant.now(), tokenInfo.accessTokenExpiresAt))
             .path("/")
             .secure(!isLocalhost) // 로컬호스트는 false, 그 외는 true
             .httpOnly(HTTP_ONLY)
             .sameSite(if (isLocalhost) "Lax" else "None")
+            
+        // 도메인이 null이 아닌 경우에만 도메인 설정
+        val newAccessTokenCookie = if (domain != null) {
+            newAccessTokenCookieBuilder.domain(domain).build()
+        } else {
+            newAccessTokenCookieBuilder.build()
+        }
 
         // 새 리프레시 토큰 쿠키 생성
-        val newRefreshTokenCookie = ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, tokenInfo.refreshToken)
+        val newRefreshTokenCookieBuilder = ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, tokenInfo.refreshToken)
             .maxAge(Duration.between(Instant.now(), tokenInfo.refreshTokenExpiresAt))
             .path("/")
             .secure(!isLocalhost) // 로컬호스트는 false, 그 외는 true
             .httpOnly(HTTP_ONLY)
             .sameSite(if (isLocalhost) "Lax" else "None")
+            
+        // 도메인이 null이 아닌 경우에만 도메인 설정
+        val newRefreshTokenCookie = if (domain != null) {
+            newRefreshTokenCookieBuilder.domain(domain).build()
+        } else {
+            newRefreshTokenCookieBuilder.build()
+        }
+        
+        // 로깅
+        println("쿠키 설정: accessToken=${newAccessTokenCookie}, refreshToken=${newRefreshTokenCookie}")
+        println("Domain: $domain, Secure: ${!isLocalhost}, SameSite: ${if (isLocalhost) "Lax" else "None"}")
         
         return ServerResponse.ok()
             .contentType(MediaType.APPLICATION_JSON)
             .header("Access-Control-Allow-Credentials", "true")
-            .cookie(newRefreshTokenCookie.build())
-            .cookie(newAccessTokenCookie.build())
+            .cookie(newRefreshTokenCookie)
+            .cookie(newAccessTokenCookie)
             .bodyValueAndAwait(CommonResponse.success(response))
     }
     
@@ -181,27 +243,44 @@ class AuthHandler(
         val origin = request.headers().firstHeader("Origin") ?: ""
         val isLocalhost = origin.contains("localhost")
         
+        // 오리진에서 도메인 추출
+        val domain = extractDomainFromOrigin(origin)
+        
         // 리프레시 토큰 쿠키 만료
-        val expiredRefreshCookie = ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, "")
+        val expiredRefreshCookieBuilder = ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, "")
             .maxAge(0)
             .path("/")
             .secure(!isLocalhost)
             .httpOnly(HTTP_ONLY)
             .sameSite(if (isLocalhost) "Lax" else "None")
+            
+        // 도메인이 null이 아닌 경우에만 도메인 설정
+        val expiredRefreshCookie = if (domain != null) {
+            expiredRefreshCookieBuilder.domain(domain).build()
+        } else {
+            expiredRefreshCookieBuilder.build()
+        }
 
         // 액세스 토큰 쿠키 만료
-        val expiredAccessCookie = ResponseCookie.from(ACCESS_TOKEN_COOKIE_NAME, "")
+        val expiredAccessCookieBuilder = ResponseCookie.from(ACCESS_TOKEN_COOKIE_NAME, "")
             .maxAge(0)
             .path("/")
             .secure(!isLocalhost)
             .httpOnly(HTTP_ONLY)
             .sameSite(if (isLocalhost) "Lax" else "None")
+            
+        // 도메인이 null이 아닌 경우에만 도메인 설정
+        val expiredAccessCookie = if (domain != null) {
+            expiredAccessCookieBuilder.domain(domain).build()
+        } else {
+            expiredAccessCookieBuilder.build()
+        }
         
         return ServerResponse.ok()
             .contentType(MediaType.APPLICATION_JSON)
             .header("Access-Control-Allow-Credentials", "true")
-            .cookie(expiredRefreshCookie.build())
-            .cookie(expiredAccessCookie.build())
+            .cookie(expiredRefreshCookie)
+            .cookie(expiredAccessCookie)
             .bodyValueAndAwait(CommonResponse.success("로그아웃 되었습니다."))
     }
 }   
