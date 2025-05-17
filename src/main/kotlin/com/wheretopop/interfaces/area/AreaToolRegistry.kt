@@ -2,151 +2,200 @@ package com.wheretopop.interfaces.area
 
 import com.wheretopop.application.area.AreaFacade
 import com.wheretopop.domain.area.AreaId
-import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import org.springframework.ai.tool.annotation.Tool
 import org.springframework.stereotype.Component
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+import javax.annotation.PreDestroy
 
 /**
- * 지역 정보 검색을 위한 AI 도구 레지스트리입니다.
- * Spring AI의 Tool Calling 기능을 활용하여 지역 데이터를 JSON 형태로 제공합니다.
+ * AI tool registry for searching area information.
+ * Uses Spring AI's Tool Calling feature to provide area data in natural language format.
  */
 @Component
 class AreaToolRegistry(
-    private val areaFacade: AreaFacade,
-    private val toolDispatcher: kotlinx.coroutines.CoroutineDispatcher
+    private val areaFacade: AreaFacade
 ) {
     private val logger = KotlinLogging.logger {}
-
-    /**
-     * 모든 지역 정보를 조회합니다.
-     * AI 모델이 사용자에게 전체 지역 목록이 필요할 때 이 도구를 호출합니다.
-     * 
-     * @return 모든 지역 정보가 포함된 JSON 문자열
-     */
-    @Tool(description = "모든 지역 정보를 조회합니다. 사용자가 전체 지역 목록이나 지역 데이터를 요청할 때 사용하세요.")
-    fun findAllArea(): String {
-        logger.info("findAllArea 도구가 호출되었습니다")
-        
-        // 별도의 쓰레드 풀에서 suspend 함수 호출
-        val areas = runBlocking(toolDispatcher) {
-            logger.info("별도 쓰레드에서 코루틴 실행 중 - findAllArea")
-            areaFacade.findAll()
+    
+    // 완전히 WebFlux와 분리된 자바 스레드풀 사용
+    private val executor = Executors.newFixedThreadPool(10)
+    private val dispatcher = executor.asCoroutineDispatcher()
+    
+    @PreDestroy
+    fun cleanup() {
+        executor.shutdown()
+        try {
+            if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
+                executor.shutdownNow()
+            }
+        } catch (e: InterruptedException) {
+            executor.shutdownNow()
         }
-        
-        logger.info("총 ${areas.size}개 지역 정보를 조회했습니다")
-        
-        return """
-        {
-            "status": "success",
-            "count": ${areas.size},
-            "areas": [
-                ${areas.joinToString(",\n") { area ->
-                    """
-                    {
-                        "id": "${area.id}",
-                        "name": "${area.name}",
-                        "description": "${area.description?.replace("\"", "\\\"") ?: ""}",
-                        "location": {
-                            "latitude": ${area.location.latitude},
-                            "longitude": ${area.location.longitude}
-                        }
-                    }
-                    """.trimIndent()
-                }}
-            ]
-        }
-        """.trimIndent()
     }
 
     /**
-     * 특정 ID에 해당하는 지역의 상세 정보를 조회합니다.
-     * AI 모델이 특정 지역에 대한 상세 정보가 필요할 때 이 도구를 호출합니다.
+     * Retrieves all area information.
+     * AI model calls this tool when the user needs a complete list of areas.
      * 
-     * @param id 조회할 지역의 ID
-     * @return 해당 지역의 상세 정보가 포함된 JSON 문자열
+     * @return A natural language string containing all area information
      */
-    @Tool(description = "ID로 특정 지역의 상세 정보를 조회합니다. 사용자가 특정 지역의 상세 정보, 인구 통계, 혼잡도 등을 요청할 때 사용하세요.")
-    fun findAreaById(id: String): String {
-        logger.info("findAreaById 도구가 호출되었습니다: id={}", id)
+    @Tool(description = "Retrieves all area information.\nUse this tool when a user requests a complete list or data of areas.\n If you need to know ID of area, use this tool.\nAppropriate for questions like 'What areas are available?', 'Show me all areas', 'List of possible areas', etc.\nThe response includes ID, name, description, and location information for all areas.\nIf there are many results, you can show just a few examples to the user.")
+    fun findAllArea(): String {
+        logger.info("findAllArea tool was called")
         
-        // 별도의 쓰레드 풀에서 suspend 함수 호출
-        val area = runBlocking(toolDispatcher) {
-            logger.info("별도 쓰레드에서 코루틴 실행 중 - findAreaById")
-            areaFacade.getAreaDetailById(AreaId.of(id))
+        // 자바 스레드에서 비동기 로직 실행 (WebFlux 이벤트 루프와 완전히 분리)
+        val future = CompletableFuture.supplyAsync(
+            {
+                runBlocking {
+                    areaFacade.findAll()
+                }
+            },
+            executor
+        )
+        
+        // 결과 기다리기 (이것은 블로킹이지만 별도 스레드에서 실행되므로 안전)
+        val areas = future.get()
+        
+        logger.info("Retrieved information for ${areas.size} areas")
+        
+        if (areas.isEmpty()) {
+            return "There are currently no registered areas."
         }
+        
+        // Build detailed information for all areas
+        val areaDetails = areas.map { area ->
+            """
+            |Area: ${area.name} (ID: ${area.id})
+            |Description: ${area.description ?: "No description available"}
+            |Location: Latitude ${area.location.latitude}, Longitude ${area.location.longitude}
+            """.trimMargin()
+        }.joinToString("\n\n")
+        
+        return """
+        |I found ${areas.size} areas in total:
+        |
+        |$areaDetails
+        """.trimMargin()
+    }
+
+    /**
+     * Retrieves detailed information about an area with the specified ID.
+     * AI model calls this tool when detailed information about a specific area is needed.
+     * 
+     * @param id The ID of the area to look up
+     * @return A natural language string containing detailed information about the area
+     */
+    @Tool(description = "Retrieves detailed information about an area by ID.\nUse this tool when a user requests specific information about an area (details, population statistics, congestion level, etc.).\nWhen a user mentions a specific area name or asks questions like 'Tell me more about this area', 'How crowded is Gangnam Station?', etc.,\nfirst find the area ID and then use this tool to provide detailed information.\nThe result includes basic area information along with population statistics, congestion level, resident/non-resident ratios, and other detailed data.\nReturns an appropriate error message if the ID doesn't exist.")
+    fun findAreaById(id: String): String {
+        logger.info("findAreaById tool was called: id={}", id)
+        
+        // 자바 스레드에서 비동기 로직 실행 (WebFlux 이벤트 루프와 완전히 분리)
+        val future = CompletableFuture.supplyAsync(
+            {
+                runBlocking {
+                    areaFacade.getAreaDetailById(AreaId.of(id))
+                }
+            },
+            executor
+        )
+        
+        // 결과 기다리기
+        val area = future.get()
         
         if (area == null) {
-            logger.warn("ID가 {}인 지역을 찾을 수 없습니다", id)
-            return """
-            {
-                "status": "error",
-                "message": "해당 ID를 가진 지역을 찾을 수 없습니다: $id"
-            }
-            """.trimIndent()
+            logger.warn("Could not find area with ID {}", id)
+            return "No area found with ID '$id'."
         }
         
-        logger.info("ID {}에 해당하는 지역 정보를 성공적으로 조회했습니다: {}", id, area.name)
+        logger.info("Successfully retrieved information for area with ID {}: {}", id, area.name)
         
-        return """
-        {
-            "status": "success",
-            "area": {
-                "id": "${area.id}",
-                "name": "${area.name}",
-                "description": "${area.description?.replace("\"", "\\\"") ?: ""}",
-                "location": {
-                    "latitude": ${area.location.latitude},
-                    "longitude": ${area.location.longitude}
-                },
-                "populationInsight": {
-                    "areaId": "${area.populationInsight?.areaId ?: ""}",
-                    "areaName": "${area.populationInsight?.areaName ?: ""}",
-                    "congestionLevel": "${area.populationInsight?.congestionLevel ?: ""}",
-                    "congestionMessage": "${area.populationInsight?.congestionMessage?.replace("\"", "\\\"") ?: ""}",
-                    "currentPopulation": ${area.populationInsight?.currentPopulation ?: 0},
-                    "populationDensity": {
-                        "level": "${area.populationInsight?.populationDensity?.level ?: ""}",
-                        "residentRate": ${area.populationInsight?.populationDensity?.residentRate ?: 0.0},
-                        "nonResidentRate": ${area.populationInsight?.populationDensity?.nonResidentRate ?: 0.0}
-                    },
-                    "lastUpdatedAt": "${area.populationInsight?.lastUpdatedAt ?: ""}"
-                }
+        // Basic area information
+        val basicInfo = """
+        |Area: ${area.name} (ID: ${area.id})
+        |Description: ${area.description ?: "No description available"}
+        |Location: Latitude ${area.location.latitude}, Longitude ${area.location.longitude}
+        """.trimMargin()
+        
+        // Population insight information if available
+        val populationInfo = area.populationInsight?.let { insight ->
+            val peakTimes = insight.peakTimes.joinToString("\n|• ") { peak ->
+                "Hour ${peak.hour}: ${peak.expectedCongestion} (Est. ${peak.populationEstimate} people)"
             }
-        }
-        """.trimIndent()
+            
+            val ageDistribution = with(insight.demographicInsight.ageDistribution) {
+                """
+                |• Under 10: ${under10Rate * 100}%
+                |• 10s: ${age10sRate * 100}%
+                |• 20s: ${age20sRate * 100}%
+                |• 30s: ${age30sRate * 100}%
+                |• 40s: ${age40sRate * 100}%
+                |• 50s: ${age50sRate * 100}%
+                |• 60s: ${age60sRate * 100}%
+                |• Over 70: ${over70sRate * 100}%
+                |• Dominant age group: ${dominantAgeGroup}
+                """.trimMargin()
+            }
+            
+            val genderRatio = with(insight.demographicInsight.genderRatio) {
+                "Male: ${maleRate * 100}%, Female: ${femaleRate * 100}%"
+            }
+            
+            """
+            |
+            |Population Information:
+            |• Current congestion level: ${insight.congestionLevel}
+            |• Congestion message: ${insight.congestionMessage}
+            |• Current population: ${insight.currentPopulation} people
+            |• Population density level: ${insight.populationDensity.level}
+            |• Residents: ${insight.populationDensity.residentRate * 100}%
+            |• Non-residents: ${insight.populationDensity.nonResidentRate * 100}%
+            |
+            |Demographic Insights:
+            |• Gender ratio: $genderRatio
+            |• Main visitor group: ${insight.demographicInsight.mainVisitorGroup}
+            |
+            |Age Distribution:
+            $ageDistribution
+            |
+            |Peak Hours:
+            |• $peakTimes
+            |
+            |Last updated: ${insight.lastUpdatedAt}
+            """.trimMargin()
+        } ?: "\n\nNo population data available for this area."
+        
+        return basicInfo + populationInfo
     }
 
     /**
-     * 위치(좌표) 기반으로 가장 가까운 지역을 찾습니다.
-     * AI 모델이 사용자의 현재 위치에 가까운 지역을 찾을 때 사용합니다.
+     * Finds the nearest area based on coordinates.
+     * AI model uses this to find areas close to the user's current location.
      * 
-     * @param latitude 위도
-     * @param longitude 경도
-     * @return 가장 가까운 지역 정보가 포함된 JSON 문자열
+     * @param latitude Latitude coordinate
+     * @param longitude Longitude coordinate
+     * @return A natural language string containing information about the nearest area
      */
-    @Tool(description = "위도와 경도를 기반으로 가장 가까운 지역을 찾습니다. 사용자가 현재 위치 주변 지역이나 특정 좌표 근처의 지역을 알고 싶을 때 사용하세요.")
+    @Tool(description = "Finds the nearest area based on latitude and longitude coordinates.\nUse this tool when a user requests information about areas near their current location or near specific coordinates.\nAppropriate for questions like 'What areas are near me?', 'Show areas near these coordinates', 'What's the closest hotspot?', etc.\nLatitude and longitude values are required; if coordinates are not provided, ask the user for location information.\nThe response includes the ID, name, description, and distance from the user's location for the nearest area.")
     fun findNearestArea(latitude: Double, longitude: Double): String {
-        logger.info("findNearestArea 도구가 호출되었습니다: latitude={}, longitude={}", latitude, longitude)
+        logger.info("findNearestArea tool was called: latitude={}, longitude={}", latitude, longitude)
         
-        // 실제 구현은 areaFacade에 추가 기능이 필요합니다.
-        // 아래는 예시 응답 형식입니다.
+        // Actual implementation requires additional functionality in areaFacade.
+        // Below is an example response format.
         return """
-        {
-            "status": "success",
-            "message": "가장 가까운 지역을 찾았습니다",
-            "area": {
-                "id": "sample-id",
-                "name": "샘플 지역",
-                "description": "이 기능은 아직 구현되지 않았습니다",
-                "distance": "0.5km",
-                "location": {
-                    "latitude": $latitude,
-                    "longitude": $longitude
-                }
-            }
-        }
-        """.trimIndent()
+        |The nearest area to your location (latitude: $latitude, longitude: $longitude) is Sample Area (ID: sample-id).
+        |
+        |Description: This is a sample area.
+        |Distance: Approximately 0.5km away
+        |Location: Latitude 37.123, Longitude 127.456
+        |
+        |Note: For complete detailed information about this area, you can use the findAreaById tool with ID 'sample-id'.
+        """.trimMargin()
     }
 }
+
+// ToolDispatcherConfig는 남겨두되 AreaToolRegistry에서는 더이상 사용하지 않음

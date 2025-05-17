@@ -1,9 +1,11 @@
 package com.wheretopop.domain.chat
 
 import com.wheretopop.domain.user.UserId
+import com.wheretopop.shared.enums.ChatMessageRole
 import com.wheretopop.shared.exception.toException
 import com.wheretopop.shared.response.ErrorCode
 import org.springframework.stereotype.Service
+import java.time.Instant
 
 /**
  * ChatService 인터페이스 구현체
@@ -13,7 +15,8 @@ import org.springframework.stereotype.Service
 class ChatServiceImpl(
     private val chatReader: ChatReader,
     private val chatStore: ChatStore,
-    private val chatCoordinator: ChatCoordinator
+    private val generateChatTitle: GenerateChatTitle,
+    private val processUserMessage: ProcessUserMessage,
 ): ChatService {
 
     /**
@@ -21,9 +24,19 @@ class ChatServiceImpl(
      */
     override suspend fun initializeChat(command: ChatCommand.InitializeChat): ChatInfo.Detail {
         val chat = command.toDomain()
-        val chatWithResponse = chatCoordinator.processUserMessage(chat, command.initialMessage)
-        val title = chatCoordinator.summarizeTitle(chatWithResponse)
-        val updatedChat = chatWithResponse.update(title = title)
+        val messageAddedChat = chat.addMessage(ChatMessage.create(
+            chatId = chat.id,
+            role = ChatMessageRole.USER,
+            content = command.initialMessage,
+            finishReason = null,
+            latencyMs = 0L,
+            createdAt = Instant.now(),
+            updatedAt = Instant.now(),
+            deletedAt = null
+        ))
+        val chatWithAssistantResponse = processUserMessage.execute(messageAddedChat)
+        val title = generateChatTitle.execute(command.initialMessage)
+        val updatedChat = chatWithAssistantResponse.update(title = title)
         val savedChat = chatStore.save(updatedChat)
         return ChatInfoMapper.toDetailInfo(savedChat)
     }
@@ -57,9 +70,18 @@ class ChatServiceImpl(
      */
     override suspend fun sendMessage(chatId: ChatId, message: String): ChatInfo.Simple {
         val chat = chatReader.findById(chatId) ?: throw ErrorCode.COMMON_ENTITY_NOT_FOUND.toException()
-        
-        val updatedChat = chatCoordinator.processUserMessage(chat, message)
-        val savedChat = chatStore.save(updatedChat)
+        val messageAddedChat = chat.addMessage(ChatMessage.create(
+            chatId = chat.id,
+            role = ChatMessageRole.USER,
+            content = message,
+            finishReason = null,
+            latencyMs = 0L,
+            createdAt = Instant.now(),
+            updatedAt = Instant.now(),
+            deletedAt = null
+        ))
+        val chatWithAssistantResponse = processUserMessage.execute(messageAddedChat)
+        val savedChat = chatStore.save(chatWithAssistantResponse)
         
         return ChatInfoMapper.toSimpleInfo(savedChat)
     }
