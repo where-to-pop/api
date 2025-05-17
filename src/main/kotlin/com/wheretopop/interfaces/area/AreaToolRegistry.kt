@@ -3,16 +3,10 @@ package com.wheretopop.interfaces.area
 import com.wheretopop.application.area.AreaFacade
 import com.wheretopop.domain.area.AreaId
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.reactor.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import org.springframework.ai.tool.annotation.Tool
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
 import org.springframework.stereotype.Component
-import reactor.core.scheduler.Scheduler
-import reactor.core.scheduler.Schedulers
-import javax.annotation.PreDestroy
 
 /**
  * 지역 정보 검색을 위한 AI 도구 레지스트리입니다.
@@ -154,28 +148,5 @@ class AreaToolRegistry(
             }
         }
         """.trimIndent()
-    }
-}
-
-/**
- * Spring AI Tool 호출을 위한 코루틴 디스패처 설정
- * WebFlux 환경에서 안전하게 suspend 함수를 호출하기 위한 별도의 쓰레드 풀을 제공합니다.
- */
-@Configuration
-class ToolDispatcherConfig {
-    private lateinit var scheduler: Scheduler
-    private lateinit var dispatcher: CoroutineDispatcher
-
-    @Bean
-    fun toolDispatcher(): CoroutineDispatcher {
-        scheduler = Schedulers.boundedElastic()
-        dispatcher = scheduler.asCoroutineDispatcher()
-        return dispatcher
-    }
-
-    @PreDestroy
-    fun cleanup() {
-        scheduler.dispose() // 🔥 중요: Reactor Scheduler는 close가 아니라 dispose()!
-        // dispatcher는 따로 close 불필요
     }
 }
