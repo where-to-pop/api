@@ -47,8 +47,7 @@ dependencies {
 	implementation("org.springframework.ai:spring-ai-openai")
 	implementation("org.springframework.ai:spring-ai-starter-model-openai")
 	implementation("org.springframework.ai:spring-ai-starter-mcp-client")
-	implementation("org.springframework.ai:spring-ai-starter-vector-store-pinecone")
-	implementation("org.springframework.ai:spring-ai-vertex-ai-embedding")
+	implementation("org.springframework.ai:spring-ai-starter-vector-store-weaviate")
 
 	// Spring WebFlux + R2DBC
 	implementation("org.springframework.boot:spring-boot-starter-webflux")
@@ -98,10 +97,6 @@ dependencies {
 	implementation("org.seleniumhq.selenium:selenium-java:4.31.0")
 //	implementation("io.github.bonigarcia:webdrivermanager:5.8.0")
 	implementation("org.apache.httpcomponents.client5:httpclient5:5.3.1")
-
-	// for VectorStore
-//	implementation("org.springframework.ai:spring-ai-chroma-store")
-		implementation("org.springframework.ai:spring-ai-starter-vector-store-pinecone")
 
 	// REST Docs
 	testImplementation("org.springframework.restdocs:spring-restdocs-webtestclient")
