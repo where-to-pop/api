@@ -3,6 +3,7 @@ package com.wheretopop.infrastructure.user.auth
 import com.wheretopop.domain.user.auth.AuthUserId
 import com.wheretopop.domain.user.auth.RefreshToken
 import com.wheretopop.domain.user.auth.RefreshTokenId
+import com.wheretopop.shared.infrastructure.entity.RefreshTokenEntity
 import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate

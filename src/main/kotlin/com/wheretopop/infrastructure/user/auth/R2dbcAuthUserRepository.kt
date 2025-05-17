@@ -3,6 +3,7 @@ package com.wheretopop.infrastructure.user.auth
 import com.wheretopop.domain.user.UserId
 import com.wheretopop.domain.user.auth.AuthUser
 import com.wheretopop.domain.user.auth.AuthUserId
+import com.wheretopop.shared.infrastructure.entity.AuthUserEntity
 import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.reactor.awaitSingleOrNull
 import mu.KotlinLogging

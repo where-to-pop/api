@@ -1,40 +1,55 @@
-package com.wheretopop.infrastructure.chat.message
+package com.wheretopop.shared.infrastructure.entity
 
+import com.wheretopop.config.JpaConverterConfig
 import com.wheretopop.domain.chat.ChatId
 import com.wheretopop.domain.chat.ChatMessage
 import com.wheretopop.domain.chat.ChatMessageId
 import com.wheretopop.shared.enums.ChatMessageFinishReason
 import com.wheretopop.shared.enums.ChatMessageRole
-import org.springframework.core.convert.converter.Converter
-import org.springframework.data.annotation.Id
-import org.springframework.data.annotation.PersistenceCreator
-import org.springframework.data.convert.ReadingConverter
-import org.springframework.data.convert.WritingConverter
-import org.springframework.data.relational.core.mapping.Column
-import org.springframework.data.relational.core.mapping.Table
+import jakarta.persistence.*
+import org.springframework.data.annotation.CreatedDate
+import org.springframework.data.annotation.LastModifiedDate
+import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.time.Instant
 
-@Table("chat_messages")
-internal class ChatMessageEntity @PersistenceCreator private constructor(
+/**
+ * 채팅 메시지(ChatMessage) 테이블 엔티티
+ * JPA 기반으로 구현
+ */
+@Entity
+@Table(name = "chat_messages")
+@EntityListeners(AuditingEntityListener::class)
+class ChatMessageEntity(
     @Id
-    @Column("id")
+    @Convert(converter = JpaConverterConfig.ChatMessageIdConverter::class)
     val id: ChatMessageId,
-    @Column("chat_id")
+    
+    @Column(name = "chat_id", nullable = false)
+    @Convert(converter = JpaConverterConfig.ChatIdConverter::class)
     val chatId: ChatId,
-    @Column("role")
+    
+    @Column(nullable = false)
     val role: ChatMessageRole,
-    @Column("content")
+    
+    @Column(nullable = false)
     val content: String,
-    @Column("finish_reason")
+    
+    @Column(name = "finish_reason")
     val finishReason: ChatMessageFinishReason?,
-    @Column("latency_ms")
+    
+    @Column(name = "latency_ms", nullable = false)
     val latencyMs: Long,
-    @Column("created_at")
-    val createdAt: Instant,
-    @Column("updated_at")
-    val updatedAt: Instant,
-    @Column("deleted_at")
-    val deletedAt: Instant?
+    
+    @CreatedDate
+    @Column(name = "created_at", nullable = false, updatable = false)
+    val createdAt: Instant = Instant.now(),
+    
+    @LastModifiedDate
+    @Column(name = "updated_at", nullable = false)
+    val updatedAt: Instant = Instant.now(),
+    
+    @Column(name = "deleted_at")
+    val deletedAt: Instant? = null
 ) {
     companion object {
         fun of(chatMessage: ChatMessage): ChatMessageEntity {
@@ -79,15 +94,4 @@ internal class ChatMessageEntity @PersistenceCreator private constructor(
             deletedAt = chatMessage.deletedAt
         )
     }
-}
-
-
-@WritingConverter
-class ChatMessageIdToLongConverter : Converter<ChatMessageId, Long> {
-    override fun convert(source: ChatMessageId) = source.toLong()
-}
-
-@ReadingConverter
-class LongToChatMessageIdConverter : Converter<Long, ChatMessageId> {
-    override fun convert(source: Long) = ChatMessageId.of(source)
 }

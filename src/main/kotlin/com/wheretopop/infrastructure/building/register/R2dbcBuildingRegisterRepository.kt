@@ -2,6 +2,7 @@ package com.wheretopop.infrastructure.building.register
 
 import com.wheretopop.domain.building.register.BuildingRegister
 import com.wheretopop.domain.building.register.BuildingRegisterId
+import com.wheretopop.shared.infrastructure.entity.BuildingRegisterEntity
 import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate

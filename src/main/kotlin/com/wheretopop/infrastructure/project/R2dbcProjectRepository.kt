@@ -3,6 +3,7 @@ package com.wheretopop.infrastructure.project
 import com.wheretopop.domain.project.Project
 import com.wheretopop.domain.project.ProjectId
 import com.wheretopop.domain.user.UserId
+import com.wheretopop.shared.infrastructure.entity.ProjectEntity
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow

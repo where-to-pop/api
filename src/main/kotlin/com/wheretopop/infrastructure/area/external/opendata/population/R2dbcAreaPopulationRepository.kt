@@ -2,6 +2,8 @@ package com.wheretopop.infrastructure.area.external.opendata.population
 
 import com.wheretopop.domain.area.AreaId
 import com.wheretopop.domain.area.AreaInfo
+import com.wheretopop.shared.infrastructure.entity.AreaPopulationEntity
+import com.wheretopop.shared.infrastructure.entity.AreaPopulationId
 import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.springframework.data.domain.Sort

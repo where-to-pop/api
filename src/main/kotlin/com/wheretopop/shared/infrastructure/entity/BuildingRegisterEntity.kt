@@ -1,61 +1,87 @@
-package com.wheretopop.infrastructure.building.register
+package com.wheretopop.shared.infrastructure.entity
 
+import com.wheretopop.config.JpaConverterConfig
 import com.wheretopop.domain.building.BuildingId
 import com.wheretopop.domain.building.register.BuildingRegister
 import com.wheretopop.domain.building.register.BuildingRegisterId
 import com.wheretopop.shared.model.Location
-import org.springframework.core.convert.converter.Converter
-import org.springframework.data.annotation.Id
-import org.springframework.data.annotation.PersistenceCreator
-import org.springframework.data.convert.ReadingConverter
-import org.springframework.data.convert.WritingConverter
-import org.springframework.data.relational.core.mapping.Column
-import org.springframework.data.relational.core.mapping.Table
+import jakarta.persistence.*
+import org.springframework.data.annotation.CreatedDate
+import org.springframework.data.annotation.LastModifiedDate
+import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.time.Instant
 
-@Table("building_registers")
-internal class BuildingRegisterEntity @PersistenceCreator private constructor(
+/**
+ * 빌딩 등록정보(BuildingRegister) 테이블 엔티티
+ * JPA 기반으로 구현
+ */
+@Entity
+@Table(name = "building_registers")
+@EntityListeners(AuditingEntityListener::class)
+class BuildingRegisterEntity(
     @Id
-    @Column("id")
+    @Convert(converter = JpaConverterConfig.BuildingRegisterIdConverter::class)
     val id: BuildingRegisterId,
-    @Column("building_id")
+    
+    @Column(name = "building_id", nullable = false)
+    @Convert(converter = JpaConverterConfig.BuildingIdConverter::class)
     val buildingId: BuildingId,
-    @Column("address")
+    
+    @Column(nullable = false)
     val address: String,
-    @Column("heit")
+    
+    @Column
     val heit: Double? = null,
-    @Column("grnd_flr_cnt")
+    
+    @Column(name = "grnd_flr_cnt")
     val grndFlrCnt: Int? = null,
-    @Column("ugrnd_flr_cnt")
+    
+    @Column(name = "ugrnd_flr_cnt")
     val ugrndFlrCnt: Int? = null,
-    @Column("ride_use_elvt_cnt")
+    
+    @Column(name = "ride_use_elvt_cnt")
     val rideUseElvtCnt: Int? = null,
-    @Column("emgen_use_elvt_cnt")
+    
+    @Column(name = "emgen_use_elvt_cnt")
     val emgenUseElvtCnt: Int? = null,
-    @Column("use_apr_day")
+    
+    @Column(name = "use_apr_day")
     val useAprDay: Instant? = null,
-    @Column("bld_nm")
+    
+    @Column(name = "bld_nm")
     val bldNm: String? = null,
-    @Column("plat_area")
+    
+    @Column(name = "plat_area")
     val platArea: Double? = null,
-    @Column("arch_area")
+    
+    @Column(name = "arch_area")
     val archArea: Double? = null,
-    @Column("bc_rat")
+    
+    @Column(name = "bc_rat")
     val bcRat: Double? = null,
-    @Column("val_rat")
+    
+    @Column(name = "val_rat")
     val valRat: Double? = null,
-    @Column("tot_area")
+    
+    @Column(name = "tot_area")
     val totArea: Double? = null,
-    @Column("latitude")
+    
+    @Column(nullable = false)
     val latitude: Double,
-    @Column("longitude")
+    
+    @Column(nullable = false)
     val longitude: Double,
-    @Column("created_at")
-    val createdAt: Instant,
-    @Column("updated_at")
-    val updatedAt: Instant,
-    @Column("deleted_at")
-    val deletedAt: Instant?
+    
+    @CreatedDate
+    @Column(name = "created_at", nullable = false, updatable = false)
+    val createdAt: Instant = Instant.now(),
+    
+    @LastModifiedDate
+    @Column(name = "updated_at", nullable = false)
+    val updatedAt: Instant = Instant.now(),
+    
+    @Column(name = "deleted_at")
+    val deletedAt: Instant? = null
 ) {
     companion object {
         fun of(buildingRegister: BuildingRegister): BuildingRegisterEntity {
@@ -104,44 +130,8 @@ internal class BuildingRegisterEntity @PersistenceCreator private constructor(
             totArea = totArea,
             createdAt = createdAt,
             updatedAt = updatedAt,
-            deletedAt = deletedAt,
-        )
-    }
-
-    fun update(buildingRegister: BuildingRegister): BuildingRegisterEntity {
-        return BuildingRegisterEntity(
-            id = id,
-            buildingId = buildingId,
-            address = buildingRegister.address,
-            latitude = buildingRegister.location.latitude,
-            longitude = buildingRegister.location.longitude,
-            heit = buildingRegister.heit,
-            grndFlrCnt = buildingRegister.grndFlrCnt,
-            ugrndFlrCnt = buildingRegister.ugrndFlrCnt,
-            rideUseElvtCnt = buildingRegister.rideUseElvtCnt,
-            emgenUseElvtCnt = buildingRegister.emgenUseElvtCnt,
-            useAprDay = buildingRegister.useAprDay,
-            bldNm = buildingRegister.bldNm,
-            platArea = buildingRegister.platArea,
-            archArea = buildingRegister.archArea,
-            bcRat = buildingRegister.bcRat,
-            valRat = buildingRegister.valRat,
-            totArea = buildingRegister.totArea,
-            createdAt = createdAt,
-            updatedAt = Instant.now(),
             deletedAt = deletedAt
         )
     }
-}
-
-@WritingConverter
-class BuildingRegisterIdToLongConverter : Converter<BuildingRegisterId, Long> {
-    override fun convert(source: BuildingRegisterId) = source.toLong()
-}
-
-
-@ReadingConverter
-class LongToBuildingRegisterIdConverter : Converter<Long, BuildingRegisterId> {
-    override fun convert(source: Long) = BuildingRegisterId.of(source)
 }
 

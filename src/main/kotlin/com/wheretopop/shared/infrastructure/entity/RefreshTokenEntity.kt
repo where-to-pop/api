@@ -1,34 +1,47 @@
-package com.wheretopop.infrastructure.user.auth
+package com.wheretopop.shared.infrastructure.entity
 
+import com.wheretopop.config.JpaConverterConfig
 import com.wheretopop.domain.user.auth.AuthUserId
 import com.wheretopop.domain.user.auth.RefreshToken
 import com.wheretopop.domain.user.auth.RefreshTokenId
-import org.springframework.core.convert.converter.Converter
-import org.springframework.data.annotation.Id
-import org.springframework.data.annotation.PersistenceCreator
-import org.springframework.data.convert.ReadingConverter
-import org.springframework.data.convert.WritingConverter
-import org.springframework.data.relational.core.mapping.Column
-import org.springframework.data.relational.core.mapping.Table
+import jakarta.persistence.*
+import org.springframework.data.annotation.CreatedDate
+import org.springframework.data.annotation.LastModifiedDate
+import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.time.Instant
 
-@Table("refresh_tokens")
-internal class RefreshTokenEntity @PersistenceCreator private constructor(
+/**
+ * 리프레시 토큰(RefreshToken) 테이블 엔티티
+ * JPA 기반으로 구현
+ */
+@Entity
+@Table(name = "refresh_tokens")
+@EntityListeners(AuditingEntityListener::class)
+class RefreshTokenEntity(
     @Id
-    @Column("id")
+    @Convert(converter = JpaConverterConfig.RefreshTokenIdConverter::class)
     val id: RefreshTokenId,
-    @Column("auth_user_id")
+    
+    @Column(name = "auth_user_id", nullable = false)
+    @Convert(converter = JpaConverterConfig.AuthUserIdConverter::class)
     val authUserId: AuthUserId,
-    @Column("token")
+    
+    @Column(nullable = false)
     val token: String,
-    @Column("expires_at")
+    
+    @Column(name = "expires_at", nullable = false)
     val expiresAt: Instant,
-    @Column("created_at")
-    val createdAt: Instant,
-    @Column("updated_at")
-    val updatedAt: Instant,
-    @Column("deleted_at")
-    val deletedAt: Instant? = null,
+    
+    @CreatedDate
+    @Column(name = "created_at", nullable = false, updatable = false)
+    val createdAt: Instant = Instant.now(),
+    
+    @LastModifiedDate
+    @Column(name = "updated_at", nullable = false)
+    val updatedAt: Instant = Instant.now(),
+    
+    @Column(name = "deleted_at")
+    val deletedAt: Instant? = null
 ) {
     companion object {
         fun of(refreshToken: RefreshToken): RefreshTokenEntity {
@@ -39,8 +52,7 @@ internal class RefreshTokenEntity @PersistenceCreator private constructor(
                 expiresAt = refreshToken.expiresAt,
                 createdAt = refreshToken.createdAt,
                 updatedAt = refreshToken.updatedAt,
-                deletedAt = refreshToken.deletedAt,
-
+                deletedAt = refreshToken.deletedAt
             )
         }
     }
@@ -68,14 +80,4 @@ internal class RefreshTokenEntity @PersistenceCreator private constructor(
             deletedAt = deletedAt
         )
     }
-}
-
-@WritingConverter
-class RefreshTokenIdToLongConverter : Converter<RefreshTokenId, Long> {
-    override fun convert(source: RefreshTokenId) = source.toLong()
-}
-
-@ReadingConverter
-class LongToRefreshTokenIdConverter : Converter<Long, RefreshTokenId> {
-    override fun convert(source: Long) = RefreshTokenId.of(source)
 }

@@ -2,6 +2,7 @@ package com.wheretopop.infrastructure.popup
 
 import com.wheretopop.domain.popup.Popup
 import com.wheretopop.domain.popup.PopupId
+import com.wheretopop.shared.infrastructure.entity.PopupEntity
 import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate

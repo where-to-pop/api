@@ -2,196 +2,130 @@ package com.wheretopop.config.security
 
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.core.Ordered
-import org.springframework.core.annotation.Order
 import org.springframework.http.HttpMethod
-import org.springframework.http.HttpStatus
-import org.springframework.security.authentication.ReactiveAuthenticationManager
-import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity
-import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
-import org.springframework.security.config.web.server.SecurityWebFiltersOrder
-import org.springframework.security.config.web.server.ServerHttpSecurity
-import org.springframework.security.config.web.server.invoke
-import org.springframework.security.web.server.SecurityWebFilterChain
-import org.springframework.security.web.server.authentication.AuthenticationWebFilter
-import org.springframework.security.web.server.authentication.ServerAuthenticationConverter
-import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository
-import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers
-import org.springframework.web.cors.CorsConfiguration
-import org.springframework.web.cors.reactive.CorsConfigurationSource
-import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource
-import reactor.core.publisher.Mono
+import org.springframework.security.config.annotation.web.builders.HttpSecurity
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
+import org.springframework.security.config.http.SessionCreationPolicy
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
+import org.springframework.security.web.SecurityFilterChain
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 
 /**
- * Spring Security 설정
- * WebFlux 환경에서 JWT 인증을 처리하기 위한 설정
+ * Spring Security 설정 클래스
+ * Spring MVC 환경에서의 보안 설정을 담당합니다.
  */
 @Configuration
-@EnableWebFluxSecurity
-@EnableReactiveMethodSecurity
+@EnableWebSecurity
 class SecurityConfig(
-    private val corsConfiguration: CorsConfiguration
+    private val jwtProvider: JwtProvider
 ) {
-
     /**
-     * favicon 처리를 위한 보안 필터 체인 설정
+     * 비밀번호 암호화를 위한 인코더를 설정합니다.
      */
     @Bean
-    @Order(Ordered.HIGHEST_PRECEDENCE)
-    fun faviconSecurityFilterChain(http: ServerHttpSecurity): SecurityWebFilterChain {
-        return http {
-            securityMatcher(ServerWebExchangeMatchers.pathMatchers("/favicon.ico"))
+    fun passwordEncoder() = BCryptPasswordEncoder()
+
+    /**
+     * JWT 기반 인증 필터를 설정합니다.
+     */
+    @Bean
+    fun jwtAuthenticationFilter() = JwtAuthenticationFilter(jwtProvider)
+
+    /**
+     * Spring Security 필터 체인 설정
+     * REST API 보안 규칙 및 JWT 인증 설정
+     */
+    @Bean
+    fun filterChain(http: HttpSecurity): SecurityFilterChain {
+        // CSRF 비활성화 (REST API는 CSRF가 필요 없음)
+        http.csrf { it.disable() }
             
-            csrf {
-                disable()
-            }
+        // 세션 관리 정책 설정 (STATELESS = 세션 사용 안함)
+        http.sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             
-            authorizeExchange {
-                authorize(anyExchange, permitAll)
-            }
+        // 요청 경로별 인증 규칙 설정
+        http.authorizeHttpRequests { auth ->
+            // 인증 불필요 경로
+            auth.requestMatchers(
+                "/v1/auth/login",
+                "/v1/auth/refresh",
+                "/v1/users",  // 회원가입
+                "/v1/swagger-ui/**",
+                "/v1/api-docs/**",
+                "/error",
+                "/mcp/**",    // Spring AI MCP 엔드포인트
+                "/actuator/**"
+            ).permitAll()
+                
+            // OPTIONS 요청은 인증 불필요 (CORS preflight 요청)
+            auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                
+            // 그 외 모든 요청은 인증 필요
+            auth.anyRequest().authenticated()
         }
+        
+        // JWT 인증 필터 추가
+        http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter::class.java)
+            
+        return http.build()
+    }
+}
+
+/**
+ * JWT 인증 필터
+ * 요청에서 JWT를 검증하고 Spring Security 인증 객체를 설정합니다.
+ */
+class JwtAuthenticationFilter(private val jwtProvider: JwtProvider) : org.springframework.web.filter.OncePerRequestFilter() {
+    
+    override fun doFilterInternal(
+        request: jakarta.servlet.http.HttpServletRequest,
+        response: jakarta.servlet.http.HttpServletResponse,
+        filterChain: jakarta.servlet.FilterChain
+    ) {
+        try {
+            // 헤더에서 JWT 토큰 추출
+            val jwt = getJwtFromRequest(request)
+            
+            // 토큰이 유효하면 Authentication 객체 생성 및 SecurityContext에 설정
+            if (jwt != null && jwtProvider.validateAccessToken(jwt)) {
+                val userId = jwtProvider.getUserIdFromToken(jwt)
+                if (userId != null) {
+                    val auth = jwtProvider.getAuthentication(userId)
+                    org.springframework.security.core.context.SecurityContextHolder.getContext().authentication = auth
+                    
+                    // 사용자 ID를 요청 속성으로 저장 (컨트롤러에서 @RequestAttribute로 접근 가능)
+                    request.setAttribute("userId", userId)
+                }
+            }
+        } catch (ex: Exception) {
+            // 로깅 추가
+            println("JWT 인증 중 오류 발생: ${ex.message}")
+        }
+        
+        filterChain.doFilter(request, response)
     }
     
     /**
-     * CORS preflight 요청을 위한 보안 필터 체인 설정
+     * 요청에서 JWT 토큰을 추출합니다.
+     * Authorization 헤더 또는 쿠키에서 토큰을 찾습니다.
      */
-    @Bean
-    @Order(Ordered.HIGHEST_PRECEDENCE + 1)
-    fun corsSecurityFilterChain(http: ServerHttpSecurity): SecurityWebFilterChain {
-        return http {
-            // OPTIONS 메서드와 일치하는 모든 요청에 대해 적용
-            securityMatcher(ServerWebExchangeMatchers.pathMatchers(HttpMethod.OPTIONS, "/**"))
-            
-            cors {
-                configurationSource = corsConfigurationSource()
-            }
-            
-            csrf {
-                disable()
-            }
-
-            // 명시적으로 OPTIONS 요청에 대한 인증 비활성화
-            httpBasic {
-                disable()
-            }
-            formLogin {
-                disable()
-            }
-            
-            // 명시적으로 모든 프리플라이트 요청 허용
-            authorizeExchange {
-                authorize(anyExchange, permitAll)
-            }
+    private fun getJwtFromRequest(request: jakarta.servlet.http.HttpServletRequest): String? {
+        // Authorization 헤더에서 토큰 추출 시도
+        val bearerToken = request.getHeader("Authorization")
+        if (!bearerToken.isNullOrBlank() && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7)
         }
-    }
-
-    /**
-     * API 엔드포인트를 위한 보안 필터 체인 설정
-     */
-    @Bean
-    @Order(Ordered.HIGHEST_PRECEDENCE + 2)
-    fun apiSecurityFilterChain(
-        http: ServerHttpSecurity,
-        jwtAuthenticationFilter: AuthenticationWebFilter
-    ): SecurityWebFilterChain {
-        return http {
-
-            cors {
-                configurationSource = corsConfigurationSource()
-            }
-
-            csrf {
-                disable()
-            }
-
-            httpBasic {
-                disable()
-            }
-            formLogin {
-                disable()
-            }
-            logout {
-                disable()
-            }
-
-            securityContextRepository = NoOpServerSecurityContextRepository.getInstance()
-
-            // 단순화된 예외 처리 방식
-            exceptionHandling {
-                authenticationEntryPoint = org.springframework.security.web.server.ServerAuthenticationEntryPoint { exchange, _ ->
-                    Mono.fromRunnable<Void> {
-                        exchange.response.statusCode = HttpStatus.UNAUTHORIZED
-                    }
-                }
-                accessDeniedHandler = org.springframework.security.web.server.authorization.ServerAccessDeniedHandler { exchange, _ ->
-                    Mono.fromRunnable<Void> {
-                        exchange.response.statusCode = HttpStatus.FORBIDDEN
-                    }
+        
+        // 쿠키에서 토큰 추출 시도
+        val cookies = request.cookies
+        if (cookies != null) {
+            for (cookie in cookies) {
+                if (cookie.name == "access_token") {
+                    return cookie.value
                 }
             }
-
-            // 필터 추가
-            http.addFilterAt(jwtAuthenticationFilter, SecurityWebFiltersOrder.AUTHENTICATION)
-
-            // OPTIONS 메서드는 항상 허용
-            authorizeExchange {
-                authorize(ServerWebExchangeMatchers.pathMatchers(HttpMethod.OPTIONS, "/**"), permitAll)
-                authorize(anyExchange, authenticated)
-            }
         }
-    }
-
-    /**
-     * 인증 관련 엔드포인트를 위한 보안 필터 체인 설정
-     */
-    @Bean
-    fun authSecurityFilterChain(http: ServerHttpSecurity): SecurityWebFilterChain {
-        return http {
-
-            cors {
-                configurationSource = corsConfigurationSource()
-            }
-
-            csrf {
-                disable()
-            }
-
-            // 단순화된 예외 처리
-            exceptionHandling {
-                authenticationEntryPoint = org.springframework.security.web.server.ServerAuthenticationEntryPoint { exchange, _ ->
-                    Mono.fromRunnable<Void> {
-                        exchange.response.statusCode = HttpStatus.UNAUTHORIZED
-                    }
-                }
-            }
-
-            authorizeExchange {
-                authorize(anyExchange, permitAll)
-            }
-        }
-    }
-
-    /**
-     * JWT 인증 필터 설정
-     */
-    @Bean
-    fun jwtAuthenticationFilter(jwtAuthenticationConverter: ServerAuthenticationConverter): AuthenticationWebFilter {
-        // ReactiveAuthenticationManager 구현
-        val authManager = ReactiveAuthenticationManager { authentication -> Mono.just(authentication) }
-
-        val filter = AuthenticationWebFilter(authManager)
-        filter.setServerAuthenticationConverter(jwtAuthenticationConverter)
-        filter.setRequiresAuthenticationMatcher(ServerWebExchangeMatchers.anyExchange())
-        return filter
-    }
-
-    /**
-     * CORS 설정 - WebfluxConfig에서 정의한 corsConfiguration 빈을 사용
-     */
-    @Bean
-    fun corsConfigurationSource(): CorsConfigurationSource {
-        val source = UrlBasedCorsConfigurationSource()
-        source.registerCorsConfiguration("/**", corsConfiguration)
-        return source
+        
+        return null
     }
 }

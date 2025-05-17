@@ -2,6 +2,7 @@ package com.wheretopop.infrastructure.area.external.opendata.population
 
 import com.wheretopop.domain.area.AreaId
 import com.wheretopop.domain.area.AreaInfo
+import com.wheretopop.shared.infrastructure.entity.AreaPopulationEntity
 
 interface AreaPopulationRepository {
     suspend fun save(entity: AreaPopulationEntity): AreaPopulationEntity

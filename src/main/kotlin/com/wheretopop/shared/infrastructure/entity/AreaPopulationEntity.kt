@@ -1,116 +1,109 @@
-package com.wheretopop.infrastructure.area.external.opendata.population
+package com.wheretopop.shared.infrastructure.entity
 
 import com.fasterxml.jackson.core.type.TypeReference
+import com.wheretopop.config.JpaConverterConfig
 import com.wheretopop.domain.area.AreaId
-import com.wheretopop.shared.model.UniqueId
+import com.wheretopop.infrastructure.area.external.opendata.population.CityDataPopulation
+import com.wheretopop.infrastructure.area.external.opendata.population.ForecastPopulation
+import com.wheretopop.shared.domain.identifier.AreaPopulationId
 import com.wheretopop.shared.util.JsonUtil
-import org.springframework.core.convert.converter.Converter
-import org.springframework.data.annotation.Id
-import org.springframework.data.convert.ReadingConverter
-import org.springframework.data.convert.WritingConverter
-import org.springframework.data.relational.core.mapping.Column
-import org.springframework.data.relational.core.mapping.Table
+import jakarta.persistence.*
+import org.springframework.data.annotation.CreatedDate
+import org.springframework.data.annotation.LastModifiedDate
+import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.time.Instant
 
-class AreaPopulationId private constructor(
-    value: Long
-) : UniqueId(value) {
-    companion object {
-        @JvmStatic
-        fun create(): AreaPopulationId {
-            return AreaPopulationId(UniqueId.create().value)
-        }
-
-        @JvmStatic
-        fun of(value: Long): AreaPopulationId {
-            return AreaPopulationId(UniqueId.of(value).value)
-        }
-    }
-}
-
-
-@Table("area_populations")
+/**
+ * 지역 인구 정보(AreaPopulation) 테이블 엔티티
+ * JPA 기반으로 구현
+ */
+@Entity
+@Table(name = "area_populations")
+@EntityListeners(AuditingEntityListener::class)
 data class AreaPopulationEntity(
     @Id
-    @Column("id")
+    @Convert(converter = JpaConverterConfig.AreaPopulationIdConverter::class)
     val id: AreaPopulationId = AreaPopulationId.create(),
 
-    @Column("area_id") // FK
+    @Column(name = "area_id", nullable = false) // FK
+    @Convert(converter = JpaConverterConfig.AreaIdConverter::class)
     val areaId: AreaId,
 
-    @Column("area_name")
+    @Column(name = "area_name", nullable = false)
     val areaName: String,
 
-    @Column("area_code")
+    @Column(name = "area_code", nullable = false)
     val areaCode: String,
 
-    @Column("congestion_level")
+    @Column(name = "congestion_level", nullable = false)
     val congestionLevel: String,
 
-    @Column("congestion_message")
+    @Column(name = "congestion_message", nullable = false)
     val congestionMessage: String,
 
-    @Column("population_min")
+    @Column(name = "population_min", nullable = false)
     val populationMin: Int,
 
-    @Column("population_max")
+    @Column(name = "population_max", nullable = false)
     val populationMax: Int,
 
-    @Column("male_population_rate")
+    @Column(name = "male_population_rate", nullable = false)
     val malePopulationRate: Double,
 
-    @Column("female_population_rate")
+    @Column(name = "female_population_rate", nullable = false)
     val femalePopulationRate: Double,
 
-    @Column("population_rate_0")
+    @Column(name = "population_rate_0", nullable = false)
     val populationRate0: Double,
 
-    @Column("population_rate_10")
+    @Column(name = "population_rate_10", nullable = false)
     val populationRate10: Double,
 
-    @Column("population_rate_20")
+    @Column(name = "population_rate_20", nullable = false)
     val populationRate20: Double,
 
-    @Column("population_rate_30")
+    @Column(name = "population_rate_30", nullable = false)
     val populationRate30: Double,
 
-    @Column("population_rate_40")
+    @Column(name = "population_rate_40", nullable = false)
     val populationRate40: Double,
 
-    @Column("population_rate_50")
+    @Column(name = "population_rate_50", nullable = false)
     val populationRate50: Double,
 
-    @Column("population_rate_60")
+    @Column(name = "population_rate_60", nullable = false)
     val populationRate60: Double,
 
-    @Column("population_rate_70")
+    @Column(name = "population_rate_70", nullable = false)
     val populationRate70: Double,
 
-    @Column("resident_population_rate")
+    @Column(name = "resident_population_rate", nullable = false)
     val residentPopulationRate: Double,
 
-    @Column("non_resident_population_rate")
+    @Column(name = "non_resident_population_rate", nullable = false)
     val nonResidentPopulationRate: Double,
 
-    @Column("replace_yn")
+    @Column(name = "replace_yn", nullable = false)
     val replaceYn: Boolean,
 
-    @Column("population_update_time")
+    @Column(name = "population_update_time", nullable = false)
     val populationUpdateTime: Instant,
 
-    @Column("forecast_yn")
+    @Column(name = "forecast_yn", nullable = false)
     val forecastYn: Boolean,
 
-    @Column("forecast_population_json")
+    @Column(name = "forecast_population_json")
     val forecastPopulationJson: String?,
 
-    @Column("created_at")
+    @CreatedDate
+    @Column(name = "created_at", nullable = false, updatable = false)
     val createdAt: Instant = Instant.now(),
 
-    @Column("updated_at")
+    @LastModifiedDate
+    @Column(name = "updated_at", nullable = false)
     val updatedAt: Instant = Instant.now(),
 
-    @Column("deleted_at")
+    @Column(name = "deleted_at")
     val deletedAt: Instant? = null
 ) {
     /**
@@ -167,14 +160,4 @@ data class AreaPopulationEntity(
             )
         }
     }
-}
-
-@WritingConverter
-class AreaPopulationIdToLongConverter : Converter<AreaPopulationId, Long> {
-    override fun convert(source: AreaPopulationId) = source.toLong()
-}
-
-@ReadingConverter
-class LongToAreaPopulationIdConverter : Converter<Long, AreaPopulationId> {
-    override fun convert(source: Long) = AreaPopulationId.of(source)
 }

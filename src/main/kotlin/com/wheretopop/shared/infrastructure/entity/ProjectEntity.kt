@@ -1,5 +1,6 @@
-package com.wheretopop.infrastructure.project
+package com.wheretopop.shared.infrastructure.entity
 
+import com.wheretopop.config.JpaConverterConfig
 import com.wheretopop.domain.project.Project
 import com.wheretopop.domain.project.ProjectId
 import com.wheretopop.domain.user.UserId
@@ -7,51 +8,76 @@ import com.wheretopop.shared.enums.AgeGroup
 import com.wheretopop.shared.enums.BrandScale
 import com.wheretopop.shared.enums.PopUpCategory
 import com.wheretopop.shared.enums.PopUpType
-import org.springframework.core.convert.converter.Converter
-import org.springframework.data.annotation.Id
-import org.springframework.data.annotation.PersistenceCreator
-import org.springframework.data.convert.ReadingConverter
-import org.springframework.data.convert.WritingConverter
-import org.springframework.data.relational.core.mapping.Column
-import org.springframework.data.relational.core.mapping.Table
+import jakarta.persistence.*
+import org.springframework.data.annotation.CreatedDate
+import org.springframework.data.annotation.LastModifiedDate
+import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.time.Instant
 
-
-@Table("projects")
-internal class ProjectEntity @PersistenceCreator private constructor(
+/**
+ * 프로젝트(Project) 테이블 엔티티
+ * JPA 기반으로 구현
+ */
+@Entity
+@Table(name = "projects")
+@EntityListeners(AuditingEntityListener::class)
+class ProjectEntity(
     @Id
-    @Column("id")
+    @Convert(converter = JpaConverterConfig.ProjectIdConverter::class)
     val id: ProjectId,
-    @Column("owner_id")
+    
+    @Column(name = "owner_id", nullable = false)
+    @Convert(converter = JpaConverterConfig.UserIdConverter::class)
     val ownerId: UserId,
-    @Column("name")
+    
+    @Column(nullable = false)
     val name: String,
-    @Column("brand_name")
+    
+    @Column(name = "brand_name", nullable = false)
     val brandName: String,
-    @Column("popup_category")
+    
+    @Column(name = "popup_category", nullable = false)
+    @Enumerated(EnumType.STRING)
     val popupCategory: PopUpCategory,
-    @Column("popup_type")
+    
+    @Column(name = "popup_type", nullable = false)
+    @Enumerated(EnumType.STRING)
     val popupType: PopUpType,
-    @Column("duration")
+    
+    @Column(nullable = false)
     val duration: String,
-    @Column("primary_target_age_group")
+    
+    @Column(name = "primary_target_age_group", nullable = false)
+    @Enumerated(EnumType.STRING)
     val primaryTargetAgeGroup: AgeGroup,
-    @Column("secondary_target_age_group")
+    
+    @Column(name = "secondary_target_age_group")
+    @Enumerated(EnumType.STRING)
     val secondaryTargetAgeGroup: AgeGroup?,
-    @Column("brand_scale")
+    
+    @Column(name = "brand_scale", nullable = false)
+    @Enumerated(EnumType.STRING)
     val brandScale: BrandScale,
-    @Column("project_goal")
+    
+    @Column(name = "project_goal", nullable = false)
     val projectGoal: String,
-    @Column("additional_brand_info")
+    
+    @Column(name = "additional_brand_info")
     val additionalBrandInfo: String?,
-    @Column("additional_project_info")
+    
+    @Column(name = "additional_project_info")
     val additionalProjectInfo: String?,
-    @Column("created_at")
-    val createdAt: Instant,
-    @Column("updated_at")
-    val updatedAt: Instant,
-    @Column("deleted_at")
-    val deletedAt: Instant?
+    
+    @CreatedDate
+    @Column(name = "created_at", nullable = false, updatable = false)
+    val createdAt: Instant = Instant.now(),
+    
+    @LastModifiedDate
+    @Column(name = "updated_at", nullable = false)
+    val updatedAt: Instant = Instant.now(),
+    
+    @Column(name = "deleted_at")
+    val deletedAt: Instant? = null
 ) {
     companion object {
         fun of(project: Project): ProjectEntity {
@@ -117,14 +143,4 @@ internal class ProjectEntity @PersistenceCreator private constructor(
             deletedAt = deletedAt
         )
     }
-}
-
-@WritingConverter
-class ProjectIdToLongConverter : Converter<ProjectId, Long> {
-    override fun convert(source: ProjectId) = source.toLong()
-}
-
-@ReadingConverter
-class LongToProjectIdConverter : Converter<Long, ProjectId> {
-    override fun convert(source: Long) = ProjectId.of(source)
 }

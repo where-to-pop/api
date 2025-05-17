@@ -2,6 +2,7 @@ package com.wheretopop.infrastructure.user
 
 import com.wheretopop.domain.user.User
 import com.wheretopop.domain.user.UserId
+import com.wheretopop.shared.infrastructure.entity.UserEntity
 import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate

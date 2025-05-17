@@ -2,57 +2,29 @@ package com.wheretopop.interfaces.user
 
 import com.wheretopop.application.user.UserFacade
 import com.wheretopop.application.user.UserInput
-import com.wheretopop.config.security.AUTH_DELETE
 import com.wheretopop.config.security.JwtProvider
 import com.wheretopop.domain.user.UserId
 import com.wheretopop.shared.response.CommonResponse
 import com.wheretopop.shared.response.ErrorCode
-import org.springframework.context.annotation.Configuration
+import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseCookie
-import org.springframework.stereotype.Component
-import org.springframework.web.reactive.function.server.*
-import reactor.core.publisher.Mono
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.*
 import java.net.URI
 import java.time.Duration
 import java.time.Instant
 
 /**
- * 인증(Auth) 관련 라우터 정의
- * Spring WebFlux 함수형 엔드포인트 사용
+ * 인증(Auth) 관련 컨트롤러
+ * Spring MVC 기반으로 구현
  */
-@Configuration
-class AuthApiRouter(private val authHandler: AuthHandler): RouterFunction<ServerResponse> {
-
-    private val delegate = coRouter {
-        "/v1/auth".nest {
-            accept(MediaType.APPLICATION_JSON).nest {
-                // 로그인 (인증 불필요)
-                POST("/login", authHandler::login)
-                
-                // 토큰 갱신 (인증 불필요)
-                POST("/refresh", authHandler::refresh)
-                
-                // 로그아웃 (인증 필요)
-                AUTH_DELETE("/logout") { request, userId ->
-                    authHandler.logout(request, userId)
-                }
-            }
-        }
-    }
-    
-    override fun route(request: ServerRequest): Mono<HandlerFunction<ServerResponse>> = delegate.route(request)
-}
-
-/**
- * 인증(Auth) 관련 요청 처리 핸들러
- */
-@Component
-class AuthHandler(
+@RestController
+@RequestMapping("/v1/auth")
+class AuthController(
     private val userFacade: UserFacade,
     private val jwtProvider: JwtProvider
 ) {
-    
     private val ACCESS_TOKEN_COOKIE_NAME = "access_token"
     private val REFRESH_TOKEN_COOKIE_NAME = "refresh_token"
     private val HTTP_ONLY = true
@@ -92,9 +64,8 @@ class AuthHandler(
      * 로그인 요청을 처리합니다.
      * 응답으로 액세스 토큰과 리프레시 토큰을 쿠키에 설정합니다.
      */
-    suspend fun login(request: ServerRequest): ServerResponse {
-        val loginRequest = request.awaitBody<AuthDto.LoginRequest>()
-        
+    @PostMapping("/login")
+    fun login(@RequestBody loginRequest: AuthDto.LoginRequest, @RequestHeader(value = "Origin", required = false) origin: String?): ResponseEntity<CommonResponse<AuthDto.TokenResponse>> {
         val input = UserInput.Authenticate(
             identifier = loginRequest.email,
             rawPassword = loginRequest.password
@@ -107,11 +78,11 @@ class AuthHandler(
         val response = AuthDto.TokenResponse.from(tokenInfo)
         
         // 원본 요청의 오리진 추출
-        val origin = request.headers().firstHeader("Origin") ?: ""
-        println("Origin: $origin")
+        val originUrl = origin ?: ""
+        println("Origin: $originUrl")
         
         // 오리진에서 도메인 추출
-        var domain = extractDomainFromOrigin(origin)
+        var domain = extractDomainFromOrigin(originUrl)
         
         // 일부 도메인에서는 앞에 점을 추가해 모든 서브도메인에서 사용 가능하게 함
         if (domain != null && shouldPrefixWithDot(domain) && !domain.startsWith(".")) {
@@ -120,7 +91,7 @@ class AuthHandler(
         }
         
         // 로컬호스트 체크
-        val isLocalhost = origin.contains("localhost")
+        val isLocalhost = originUrl.contains("localhost")
         
         // 리프레시 토큰 쿠키 생성
         val refreshTokenCookieBuilder = ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, tokenInfo.refreshToken)
@@ -157,41 +128,40 @@ class AuthHandler(
         println("Domain: $domain, Secure: ${!isLocalhost}, SameSite: ${if (isLocalhost) "Lax" else "None"}")
             
         // 응답 생성
-        return ServerResponse.ok()
+        return ResponseEntity.ok()
             .contentType(MediaType.APPLICATION_JSON)
-            .header("Access-Control-Allow-Origin", origin)  // 클라이언트 오리진에 맞춤
+            .header("Access-Control-Allow-Origin", originUrl)  // 클라이언트 오리진에 맞춤
             .header("Access-Control-Allow-Credentials", "true")
             .header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
             .header("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization")
-            .cookie(refreshTokenCookie)
-            .cookie(accessTokenCookie)
-            .bodyValueAndAwait(CommonResponse.success(response))
+            .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
+            .header(HttpHeaders.SET_COOKIE, accessTokenCookie.toString())
+            .body(CommonResponse.success(response))
     }
     
     /**
      * 토큰 갱신 요청을 처리합니다.
      * 쿠키에서 리프레시 토큰을 읽어 새로운 액세스 토큰과 리프레시 토큰을 발급합니다.
      */
-    suspend fun refresh(request: ServerRequest): ServerResponse {
+    @PostMapping("/refresh")
+    fun refresh(@CookieValue(name = REFRESH_TOKEN_COOKIE_NAME, required = false) refreshToken: String?, 
+                @RequestHeader(value = "Origin", required = false) origin: String?): ResponseEntity<CommonResponse<*>> {
         // 쿠키에서 리프레시 토큰 추출
-        val refreshTokenCookie = request.cookies()[REFRESH_TOKEN_COOKIE_NAME]?.firstOrNull()
-            ?: return ServerResponse.badRequest()
-                .bodyValueAndAwait(CommonResponse.fail(ErrorCode.AUTH_INVALID_TOKEN))
+        if (refreshToken == null) {
+            return ResponseEntity.badRequest()
+                .body(CommonResponse.fail(ErrorCode.AUTH_INVALID_TOKEN))
+        }
                 
-        // 쿠키 디버깅
-        println("받은 쿠키: ${request.cookies().toString()}")
-        
         // 리프레시 토큰 유효성 검증
-        val refreshToken = refreshTokenCookie.value
         if (!jwtProvider.validateRefreshToken(refreshToken)) {
-            return ServerResponse.badRequest()
-                .bodyValueAndAwait(CommonResponse.fail(ErrorCode.AUTH_INVALID_TOKEN))
+            return ResponseEntity.badRequest()
+                .body(CommonResponse.fail(ErrorCode.AUTH_INVALID_TOKEN))
         }
         
         // 토큰에서 사용자 ID 추출
         val userId = jwtProvider.getUserIdFromToken(refreshToken)
-            ?: return ServerResponse.badRequest()
-                .bodyValueAndAwait(CommonResponse.fail(ErrorCode.AUTH_INVALID_TOKEN))
+            ?: return ResponseEntity.badRequest()
+                .body(CommonResponse.fail(ErrorCode.AUTH_INVALID_TOKEN))
         
         // 리프레시 토큰 갱신 요청
         val input = UserInput.Refresh(
@@ -204,11 +174,11 @@ class AuthHandler(
         val response = AuthDto.TokenResponse.from(tokenInfo)
         
         // 원본 요청의 오리진 추출
-        val origin = request.headers().firstHeader("Origin") ?: ""
-        val isLocalhost = origin.contains("localhost")
+        val originUrl = origin ?: ""
+        val isLocalhost = originUrl.contains("localhost")
         
         // 오리진에서 도메인 추출
-        var domain = extractDomainFromOrigin(origin)
+        var domain = extractDomainFromOrigin(originUrl)
         
         // 일부 도메인에서는 앞에 점을 추가해 모든 서브도메인에서 사용 가능하게 함
         if (domain != null && shouldPrefixWithDot(domain) && !domain.startsWith(".")) {
@@ -249,28 +219,30 @@ class AuthHandler(
         println("쿠키 설정: accessToken=${newAccessTokenCookie}, refreshToken=${newRefreshTokenCookie}")
         println("Domain: $domain, Secure: ${!isLocalhost}, SameSite: ${if (isLocalhost) "Lax" else "None"}")
         
-        return ServerResponse.ok()
+        return ResponseEntity.ok()
             .contentType(MediaType.APPLICATION_JSON)
-            .header("Access-Control-Allow-Origin", origin)  // 클라이언트 오리진에 맞춤
+            .header("Access-Control-Allow-Origin", originUrl)  // 클라이언트 오리진에 맞춤
             .header("Access-Control-Allow-Credentials", "true")
             .header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
             .header("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization")
-            .cookie(newRefreshTokenCookie)
-            .cookie(newAccessTokenCookie)
-            .bodyValueAndAwait(CommonResponse.success(response))
+            .header(HttpHeaders.SET_COOKIE, newRefreshTokenCookie.toString())
+            .header(HttpHeaders.SET_COOKIE, newAccessTokenCookie.toString())
+            .body(CommonResponse.success(response))
     }
     
     /**
      * 로그아웃 요청을 처리합니다.
      * 액세스 토큰과 리프레시 토큰 쿠키를 만료시킵니다.
      */
-    suspend fun logout(request: ServerRequest, userId: UserId): ServerResponse {
+    @DeleteMapping("/logout")
+    fun logout(@RequestAttribute("userId") userId: UserId,
+               @RequestHeader(value = "Origin", required = false) origin: String?): ResponseEntity<CommonResponse<String>> {
         // 원본 요청의 오리진 추출
-        val origin = request.headers().firstHeader("Origin") ?: ""
-        val isLocalhost = origin.contains("localhost")
+        val originUrl = origin ?: ""
+        val isLocalhost = originUrl.contains("localhost")
         
         // 오리진에서 도메인 추출
-        var domain = extractDomainFromOrigin(origin)
+        var domain = extractDomainFromOrigin(originUrl)
         
         // 일부 도메인에서는 앞에 점을 추가해 모든 서브도메인에서 사용 가능하게 함
         if (domain != null && shouldPrefixWithDot(domain) && !domain.startsWith(".")) {
@@ -307,14 +279,14 @@ class AuthHandler(
             expiredAccessCookieBuilder.build()
         }
         
-        return ServerResponse.ok()
+        return ResponseEntity.ok()
             .contentType(MediaType.APPLICATION_JSON)
-            .header("Access-Control-Allow-Origin", origin)  // 클라이언트 오리진에 맞춤
+            .header("Access-Control-Allow-Origin", originUrl)  // 클라이언트 오리진에 맞춤
             .header("Access-Control-Allow-Credentials", "true")
             .header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
             .header("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization")
-            .cookie(expiredRefreshCookie)
-            .cookie(expiredAccessCookie)
-            .bodyValueAndAwait(CommonResponse.success("로그아웃 되었습니다."))
+            .header(HttpHeaders.SET_COOKIE, expiredRefreshCookie.toString())
+            .header(HttpHeaders.SET_COOKIE, expiredAccessCookie.toString())
+            .body(CommonResponse.success("로그아웃 되었습니다."))
     }
 }   

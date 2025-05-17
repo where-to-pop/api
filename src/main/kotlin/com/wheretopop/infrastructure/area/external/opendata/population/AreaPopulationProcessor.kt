@@ -3,6 +3,7 @@ package com.wheretopop.infrastructure.area.external.opendata.population
 import com.wheretopop.infrastructure.area.AreaRepository
 import com.wheretopop.infrastructure.area.external.opendata.OpenDataProcessor
 import com.wheretopop.infrastructure.area.external.opendata.OpenDataType
+import com.wheretopop.shared.infrastructure.entity.AreaPopulationEntity
 import mu.KotlinLogging
 import org.springframework.stereotype.Service
 

@@ -4,7 +4,8 @@ import com.wheretopop.domain.chat.Chat
 import com.wheretopop.domain.chat.ChatId
 import com.wheretopop.domain.project.ProjectId
 import com.wheretopop.domain.user.UserId
-import com.wheretopop.infrastructure.chat.message.ChatMessageEntity
+import com.wheretopop.shared.infrastructure.entity.ChatMessageEntity
+import com.wheretopop.shared.infrastructure.entity.ChatEntity
 import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate

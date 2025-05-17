@@ -8,37 +8,18 @@ import org.springframework.ai.mcp.McpToolUtils
 import org.springframework.ai.tool.ToolCallback
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-
+import java.util.concurrent.Executors
+import javax.annotation.PreDestroy
 
 @Configuration
 class ChatClientConfig(
     private val chatModel: ChatModel,
-    private val asyncClients : List<McpAsyncClient>
-){
+    private val asyncClients: List<McpAsyncClient>
+) {
     private val logger = LoggerFactory.getLogger(ChatClientConfig::class.java)
     
-
-
-    // /**
-    //  * Spring AI Tool 호출을 위한 코루틴 디스패처를 제공합니다.
-    //  * WebFlux 환경에서 안전하게 블로킹 작업을 수행하기 위한 별도의 스레드 풀입니다.
-    //  * 모든 Tool 구현체에서 이 디스패처를 주입받아 사용할 수 있습니다.
-    //  */
-    // @Bean
-    // fun blockingTaskExecutor(): Executor {
-    //     return ThreadPoolTaskExecutor().apply {
-    //         corePoolSize = 10
-    //         maxPoolSize = 20
-    //         queueCapacity = 100
-    //         setThreadNamePrefix("blocking-task-")
-    //         initialize()
-    //     }
-    // }
-    
-    // @Bean
-    // fun blockingDispatcher(blockingTaskExecutor: Executor): CoroutineDispatcher {
-    //     return blockingTaskExecutor.asCoroutineDispatcher()
-    // }
+    // 도구 실행을 위한 자바 스레드풀
+    private val toolExecutor = Executors.newFixedThreadPool(10)
 
     /**
      * AI 채팅 클라이언트를 구성합니다.
@@ -53,5 +34,21 @@ class ChatClientConfig(
             .defaultTools(mcpToolCallbacks)
             .build()
     }
-
+    
+    /**
+     * 애플리케이션 종료 시 리소스 정리를 수행합니다.
+     */
+    @PreDestroy
+    fun cleanup() {
+        if (!toolExecutor.isShutdown) {
+            logger.info("Tool 실행용 Executor 정리 중...")
+            toolExecutor.shutdown()
+        }
+    }
+    
+    /**
+     * 도구 실행에 사용할 스레드풀을 제공합니다.
+     */
+    @Bean
+    fun toolExecutor() = toolExecutor
 }

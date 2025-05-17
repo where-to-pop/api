@@ -7,6 +7,7 @@ plugins {
 	kotlin("jvm") version "1.9.23"
 	kotlin("plugin.spring") version "1.9.23"
 	kotlin("plugin.serialization") version "1.9.23"
+	kotlin("plugin.jpa") version "1.9.23"
 }
 
 group = "com.example"
@@ -49,22 +50,18 @@ dependencies {
 	implementation("org.springframework.ai:spring-ai-starter-mcp-client")
 	implementation("org.springframework.ai:spring-ai-starter-vector-store-weaviate")
 
-	// Spring WebFlux + R2DBC
-	implementation("org.springframework.boot:spring-boot-starter-webflux")
-	implementation("org.springframework.boot:spring-boot-starter-data-r2dbc")
-	implementation("org.mariadb:r2dbc-mariadb:1.1.3")
-	runtimeOnly("org.mariadb:r2dbc-mariadb:1.1.3")
+	// Spring MVC + JPA (WebFlux, R2DBC 대체)
+	implementation("org.springframework.boot:spring-boot-starter-web")
+	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+	implementation("org.mariadb.jdbc:mariadb-java-client")
 
 	// Kotlin 및 코루틴
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 	implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
-	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
-	implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
-	implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
 	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+	implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
 	implementation("io.github.microutils:kotlin-logging:3.0.5")
-
 
 	// security
 	implementation("org.springframework.boot:spring-boot-starter-security")
@@ -72,25 +69,12 @@ dependencies {
 	runtimeOnly("io.jsonwebtoken:jjwt-impl:0.11.5")
 	runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.11.5")
 	
-
-
 	// Bean Validation
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 
-	// Elasticsearch
-	implementation("org.springframework.boot:spring-boot-starter-data-elasticsearch")
 
 	// UUID 생성기
 	implementation("com.github.f4b6a3:uuid-creator:5.3.3")
-
-	// JDBC 드라이버 (옵션)
-	implementation("org.mariadb.jdbc:mariadb-java-client")
-	runtimeOnly("org.mariadb.jdbc:mariadb-java-client")
-
-	// MapStruct
-	implementation("org.mapstruct:mapstruct:1.5.5.Final")
-	annotationProcessor("org.mapstruct:mapstruct-processor:1.5.5.Final")
-	annotationProcessor("org.projectlombok:lombok-mapstruct-binding:0.2.0")
 
 	// for crawling
 	implementation("org.jsoup:jsoup:1.19.1")
@@ -99,7 +83,8 @@ dependencies {
 	implementation("org.apache.httpcomponents.client5:httpclient5:5.3.1")
 
 	// REST Docs
-	testImplementation("org.springframework.restdocs:spring-restdocs-webtestclient")
+	testImplementation("org.springframework.restdocs:spring-restdocs-mockmvc")
+	
 	// 테스트
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")

@@ -1,37 +1,41 @@
-package com.wheretopop.infrastructure.popup
+package com.wheretopop.shared.infrastructure.entity
 
-import com.wheretopop.domain.building.BuildingId
+import com.wheretopop.config.JpaConverterConfig
 import com.wheretopop.domain.popup.Popup
 import com.wheretopop.domain.popup.PopupId
-import org.springframework.core.convert.converter.Converter
-import org.springframework.data.annotation.Id
-import org.springframework.data.convert.ReadingConverter
-import org.springframework.data.convert.WritingConverter
-import org.springframework.data.relational.core.mapping.Column
-import org.springframework.data.relational.core.mapping.Table
+import jakarta.persistence.*
+import org.springframework.data.annotation.CreatedDate
+import org.springframework.data.annotation.LastModifiedDate
+import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.time.Instant
 
-@Table("popups")
+/**
+ * 팝업(Popup) 테이블 엔티티
+ * JPA 기반으로 구현
+ */
+@Entity
+@Table(name = "popups")
+@EntityListeners(AuditingEntityListener::class)
 data class PopupEntity(
     @Id
-    @Column("id")
+    @Convert(converter = JpaConverterConfig.PopupIdConverter::class)
     val id: PopupId,
 
-    @Column("building_id")
+    @Column(name = "building_id")
     val buildingId: Long?,
 
-    @Column("name")
+    @Column(nullable = false)
     val name: String,
 
-    @Column("address")
+    @Column(nullable = false)
     val address : String,
 
-    @Column("created_at")
-    val createdAt: Instant,
+    @CreatedDate
+    @Column(name = "created_at", nullable = false, updatable = false)
+    val createdAt: Instant = Instant.now(),
 
-    @Column("deleted_at")
-    val deletedAt: Instant?,
-
+    @Column(name = "deleted_at")
+    val deletedAt: Instant?
 ) {
     companion object {
         fun of(popup: Popup): PopupEntity {
@@ -41,7 +45,7 @@ data class PopupEntity(
                 buildingId = popup.buildingId,
                 address = popup.address,
                 createdAt = popup.createdAt,
-                deletedAt = popup.deletedAt,
+                deletedAt = popup.deletedAt
             )
         }
     }
@@ -53,7 +57,7 @@ data class PopupEntity(
             buildingId = buildingId,
             address = address,
             createdAt = createdAt,
-            deletedAt = deletedAt,
+            deletedAt = deletedAt
         )
     }
 
@@ -64,18 +68,7 @@ data class PopupEntity(
             buildingId = popup.buildingId,
             address = popup.address,
             createdAt = createdAt,
-            deletedAt = deletedAt,
+            deletedAt = deletedAt
         )
     }
-}
-
-@WritingConverter
-class PopupIdToLongConverter : Converter<PopupId, Long> {
-    override fun convert(source: PopupId) = source.toLong()
-}
-
-
-@ReadingConverter
-class LongToPopupIdConverter : Converter<Long, PopupId> {
-    override fun convert(source: Long) = PopupId.of(source)
 }
