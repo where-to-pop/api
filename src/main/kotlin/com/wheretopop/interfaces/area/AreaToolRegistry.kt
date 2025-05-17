@@ -2,14 +2,16 @@ package com.wheretopop.interfaces.area
 
 import com.wheretopop.application.area.AreaFacade
 import com.wheretopop.domain.area.AreaId
-import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.reactor.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import org.springframework.ai.tool.annotation.Tool
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.stereotype.Component
-import java.util.concurrent.Executors
+import reactor.core.scheduler.Scheduler
+import reactor.core.scheduler.Schedulers
 import javax.annotation.PreDestroy
 
 /**
@@ -161,15 +163,19 @@ class AreaToolRegistry(
  */
 @Configuration
 class ToolDispatcherConfig {
-    private val logger = KotlinLogging.logger {}
-    
-    @Bean(destroyMethod = "close")
-    fun toolDispatcher() = Executors.newFixedThreadPool(4).asCoroutineDispatcher().also {
-        logger.info("Spring AI Tool 전용 코루틴 디스패처가 생성되었습니다.")
+    private lateinit var scheduler: Scheduler
+    private lateinit var dispatcher: CoroutineDispatcher
+
+    @Bean
+    fun toolDispatcher(): CoroutineDispatcher {
+        scheduler = Schedulers.boundedElastic()
+        dispatcher = scheduler.asCoroutineDispatcher()
+        return dispatcher
     }
-    
+
     @PreDestroy
     fun cleanup() {
-        logger.info("Spring AI Tool 전용 코루틴 디스패처 리소스를 정리합니다.")
+        scheduler.dispose() // 🔥 중요: Reactor Scheduler는 close가 아니라 dispose()!
+        // dispatcher는 따로 close 불필요
     }
 }
