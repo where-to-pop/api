@@ -133,10 +133,6 @@ class AuthController(
         // 응답 생성
         return ResponseEntity.ok()
             .contentType(MediaType.APPLICATION_JSON)
-            .header("Access-Control-Allow-Origin", originUrl)  // 클라이언트 오리진에 맞춤
-            .header("Access-Control-Allow-Credentials", "true")
-            .header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-            .header("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization")
             .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
             .header(HttpHeaders.SET_COOKIE, accessTokenCookie.toString())
             .body(CommonResponse.success(response))
@@ -224,10 +220,6 @@ class AuthController(
         
         return ResponseEntity.ok()
             .contentType(MediaType.APPLICATION_JSON)
-            .header("Access-Control-Allow-Origin", originUrl)  // 클라이언트 오리진에 맞춤
-            .header("Access-Control-Allow-Credentials", "true")
-            .header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-            .header("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization")
             .header(HttpHeaders.SET_COOKIE, newRefreshTokenCookie.toString())
             .header(HttpHeaders.SET_COOKIE, newAccessTokenCookie.toString())
             .body(CommonResponse.success(response))
@@ -286,12 +278,8 @@ class AuthController(
         
         return ResponseEntity.ok()
             .contentType(MediaType.APPLICATION_JSON)
-            .header("Access-Control-Allow-Origin", originUrl)  // 클라이언트 오리진에 맞춤
-            .header("Access-Control-Allow-Credentials", "true")
-            .header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-            .header("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization")
             .header(HttpHeaders.SET_COOKIE, expiredRefreshCookie.toString())
             .header(HttpHeaders.SET_COOKIE, expiredAccessCookie.toString())
             .body(CommonResponse.success("로그아웃 되었습니다."))
     }
-}   
+}
