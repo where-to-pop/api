@@ -4,10 +4,10 @@ import com.wheretopop.domain.popup.Popup
 import com.wheretopop.domain.popup.PopupId
 
 interface PopupRepository {
-    suspend fun findById(id: PopupId): Popup?
-    suspend fun findByName(name: String): Popup?
-    suspend fun findAll(): List<Popup>
-    suspend fun save(popup: Popup): Popup
-    suspend fun save(popups: List<Popup>): List<Popup>
-    suspend fun deleteById(id: PopupId)
+    fun findById(id: PopupId): Popup?
+    fun findByName(name: String): Popup?
+    fun findAll(): List<Popup>
+    fun save(popup: Popup): Popup
+    fun save(popups: List<Popup>): List<Popup>
+    fun deleteById(id: PopupId)
 }

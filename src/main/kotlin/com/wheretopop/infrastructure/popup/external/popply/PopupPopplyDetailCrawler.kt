@@ -6,10 +6,10 @@ import com.wheretopop.infrastructure.area.external.opendata.population.StringToI
 import mu.KotlinLogging
 import org.jsoup.Jsoup
 import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
-import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.reactive.function.client.awaitBody
-import reactor.core.publisher.Mono
+import org.springframework.web.client.HttpStatusCodeException
+import org.springframework.web.client.RestTemplate
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -22,7 +22,7 @@ private val logger = KotlinLogging.logger {}
  */
 @Component
 class PopupPopplyDetailCrawler(
-    @Qualifier("popupApiWebClient") private val webClient: WebClient,
+    @Qualifier("popupApiRestTemplate") private val restTemplate: RestTemplate,
     private val objectMapper: ObjectMapper
 ) {
     private val addressRegex: Pattern = Pattern.compile("^(.*?(?:로|길|가)\\s*\\d+)(?:\\s+(.*))?\$")
@@ -33,24 +33,23 @@ class PopupPopplyDetailCrawler(
      * @param popupId 크롤링할 팝업의 ID
      * @return 크롤링된 PopupDetail 객체. 실패 시 null 반환.
      */
-    suspend fun crawlDetail(popupId: Int): PopupDetail? {
+    fun crawlDetail(popupId: Int): PopupDetail? {
         val relativePath = "/$popupId"
         logger.info { "Crawling popup detail for ID $popupId using relative path: $relativePath" }
 
         return try {
-            val htmlResponse = webClient.get()
-                .uri { uriBuilder ->
-                    uriBuilder
-                        .path("/{id}") // 경로 변수 템플릿
-                        .build(popupId) // 템플릿에 실제 값 매핑
-                }
-                .header("User-Agent", "Mozilla/5.0")
-                .retrieve()
-                .onStatus({ status -> !status.is2xxSuccessful }) { response ->
-                    logger.error { "Page loading failed for ID $popupId. Status code: ${response.statusCode()}" }
-                    Mono.error(RuntimeException("Page loading failed with status code ${response.statusCode()}"))
-                }
-                .awaitBody<String>()
+            // RestTemplate은 기본적으로 상대 경로를 지원하지 않으므로 ID를 직접 URI에 추가
+            val htmlResponse = try {
+                restTemplate.getForObject("/{id}", String::class.java, popupId)
+            } catch (e: HttpStatusCodeException) {
+                logger.error { "Page loading failed for ID $popupId. Status code: ${e.statusCode}" }
+                throw RuntimeException("Page loading failed with status code ${e.statusCode}")
+            }
+
+            if (htmlResponse == null) {
+                logger.error { "Null response received for ID $popupId" }
+                return null
+            }
 
             val document = Jsoup.parse(htmlResponse)
             val jsonLdScriptElement = document.selectFirst("script[type=\"application/ld+json\"]")

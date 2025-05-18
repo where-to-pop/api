@@ -1,7 +1,5 @@
 package com.wheretopop.infrastructure.popup.external.popply
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import mu.KotlinLogging
 import org.openqa.selenium.By
 import org.openqa.selenium.TimeoutException
@@ -23,7 +21,7 @@ class PopupListCrawler(
     @Value("\${scraping.wait.timeoutSeconds:15}") private val timeoutSeconds: Long
 ) {
 
-    suspend fun fetchFirstPopupId(): Int? = withContext(Dispatchers.IO) {
+    fun fetchFirstPopupId(): Int? {
         try {
             driver.get(targetUrl)
 
@@ -37,27 +35,27 @@ class PopupListCrawler(
 
             if (hrefAttribute == null) {
                 logger.warn("href 속성을 찾을 수 없습니다.")
-                return@withContext null
+                return null
             }
             val idString = hrefAttribute.substringAfterLast('/', "")
             val popupId = idString.toIntOrNull()
 
             if (popupId == null) {
                 logger.error("href ('{}')에서 마지막 숫자 ID를 추출하거나 Int로 변환할 수 없습니다. 추출된 문자열: '{}'", hrefAttribute, idString)
-                return@withContext null
+                return null
             }
 
-            return@withContext popupId
+            return popupId
 
         } catch (e: TimeoutException) {
             logger.error("페이지 로드 또는 요소 검색 시간 초과 ({}초): {}", timeoutSeconds, e.message)
-            return@withContext null
+            return null
         } catch (e: NoSuchElementException) {
             logger.error("지정한 CSS 선택자({})로 요소를 찾을 수 없습니다: {}", cssSelector, e.message)
-            return@withContext null
+            return null
         } catch (e: Exception) {
             logger.error("스크래핑 중 예상치 못한 오류 발생: {}", e.message, e)
-            return@withContext null
+            return null
         }
     }
 }

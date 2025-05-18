@@ -12,19 +12,19 @@ class PopplyExternalManager(
     private val popupExternalStore: PopupExternalStore,
     private val popupExternalReader: PopupExternalReader
 ): PopplyUseCase {
-    override suspend fun crawlPopply():List<PopupDetail> {
+    override fun crawlPopply():List<PopupDetail> {
         return popupExternalStore.crawlPopply()
     }
-    override suspend fun savePopply(popupDetail: PopupDetail, popupId: PopupId) {
+    override fun savePopply(popupDetail: PopupDetail, popupId: PopupId) {
         popupExternalStore.savePopply(popupDetail, popupId)
     }
-    override suspend fun getPopplyList(): List<PopupInfo> {
+    override fun getPopplyList(): List<PopupInfo> {
         return popupExternalReader.getAllPopply()
     }
-    override suspend fun saveEmbeddedPopply(popupInfos: List<PopupInfo>) {
+    override fun saveEmbeddedPopply(popupInfos: List<PopupInfo>) {
         return popupExternalStore.saveEmbeddedPopply(popupInfos)
     }
-    override suspend fun getSimilarPopupInfos(query: String): List<PopupInfoWithScore> {
+    override fun getSimilarPopupInfos(query: String): List<PopupInfoWithScore> {
         return popupExternalReader.getSimilarPopups(query)
     }
 }

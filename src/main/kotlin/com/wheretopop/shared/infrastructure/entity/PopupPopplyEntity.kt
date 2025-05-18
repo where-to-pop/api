@@ -1,13 +1,13 @@
-package com.wheretopop.infrastructure.popup.external.popply
+package com.wheretopop.shared.infrastructure.entity
 
+import com.wheretopop.config.JpaConverterConfig
 import com.wheretopop.domain.popup.PopupInfo
+import com.wheretopop.infrastructure.popup.external.popply.PopupDetail
 import com.wheretopop.shared.model.UniqueId
-import org.springframework.core.convert.converter.Converter
-import org.springframework.data.annotation.Id
-import org.springframework.data.convert.ReadingConverter
-import org.springframework.data.convert.WritingConverter
-import org.springframework.data.relational.core.mapping.Column
-import org.springframework.data.relational.core.mapping.Table
+import jakarta.persistence.*
+import org.springframework.data.annotation.CreatedDate
+import org.springframework.data.annotation.LastModifiedDate
+import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.time.Instant
 
 class PopupPopplyId private constructor(
@@ -26,60 +26,67 @@ class PopupPopplyId private constructor(
     }
 }
 
-@Table("popup_popply")
-data class PopupPopplyEntity(
+/**
+ * 팝업 Popply 테이블 엔티티
+ * JPA 기반으로 구현
+ */
+@Entity
+@Table(name = "popup_popply")
+@EntityListeners(AuditingEntityListener::class)
+class PopupPopplyEntity(
     @Id
-    @Column("id")
+    @Convert(converter = JpaConverterConfig.PopupPopplyIdConverter::class)
     val id: PopupPopplyId = PopupPopplyId.create(),
 
-    @Column("popup_id")
+    @Column(name = "popup_id", nullable = false)
     val popupId: Long,
 
-    @Column("popup_name")
+    @Column(name = "popup_name", nullable = false)
     val popupName: String,
 
-    @Column("address")
+    @Column(name = "address", nullable = false)
     val address: String,
 
-    @Column("optional_address")
+    @Column(name = "optional_address")
     val optionalAddress: String? = null,
 
-    @Column("start_date")
+    @Column(name = "start_date")
     val startDate: Instant? = null,
 
-    @Column("end_date")
+    @Column(name = "end_date")
     val endDate: Instant? = null,
 
-    @Column("description")
+    @Column(name = "description", nullable = false)
     val description: String,
 
-    @Column("url")
+    @Column(name = "url")
     val url: String? = null,
 
-    @Column("latitude")
+    @Column(name = "latitude")
     val latitude: Double? = null,
 
-    @Column("longitude")
+    @Column(name = "longitude")
     val longitude: Double? = null,
 
-    @Column("organizer_name")
+    @Column(name = "organizer_name")
     val organizerName: String? = null,
 
-    @Column("organizer_url")
+    @Column(name = "organizer_url")
     val organizerUrl: String? = null,
 
-    @Column("popply_id")
+    @Column(name = "popply_id", nullable = false)
     val popplyId: Int,
 
-    @Column("created_at")
+    @CreatedDate
+    @Column(name = "created_at", nullable = false, updatable = false)
     val createdAt: Instant = Instant.now(),
 
-    @Column("updated_at")
+    @LastModifiedDate
+    @Column(name = "updated_at", nullable = false)
     val updatedAt: Instant = Instant.now(),
 
-    @Column("deleted_at")
+    @Column(name = "deleted_at")
     val deletedAt: Instant? = null
-
 ) {
     companion object {
         fun of(popupDetail: PopupDetail, popupId: Long): PopupPopplyEntity {
@@ -97,9 +104,7 @@ data class PopupPopplyEntity(
                 longitude = popupDetail.longitude,
                 organizerName = popupDetail.organizerName,
                 organizerUrl = popupDetail.organizerUrl,
-                popplyId = popupDetail.popplyId,
-                createdAt = Instant.now(),
-                updatedAt = Instant.now()
+                popplyId = popupDetail.popplyId
             )
         }
 
@@ -113,14 +118,4 @@ data class PopupPopplyEntity(
             )
         }
     }
-}
-
-@WritingConverter
-class PopupPopplyIdToLongConverter : Converter<PopupPopplyId, Long> {
-    override fun convert(source: PopupPopplyId) = source.toLong()
-}
-
-@ReadingConverter
-class LongToPopupPopplyIdConverter : Converter<Long, PopupPopplyId> {
-    override fun convert(source: Long) = PopupPopplyId.of(source)
 }

@@ -20,7 +20,7 @@ class PopupFacade(
     private val popplyUseCase: PopplyUseCase,
     private val xUseCase: XUseCase,
 ) {
-    suspend fun ingestPopupExternalData() {
+    fun ingestPopupExternalData() {
         val popplyPopupDetails = popplyUseCase.crawlPopply()
         popplyPopupDetails.forEach{ popupDetail: PopupDetail ->
             if (popupDetail.latitude == null || popupDetail.longitude == null) return
@@ -37,12 +37,12 @@ class PopupFacade(
         }
     }
 
-    suspend fun processPopupInfosForVectorSearch() {
+    fun processPopupInfosForVectorSearch() {
         val popplyPopupInfos = popplyUseCase.getPopplyList()
         popplyUseCase.saveEmbeddedPopply(popplyPopupInfos)
     }
 
-    suspend fun findSimilarPopupInfos(query: String): List<PopupInfoWithScore> {
+    fun findSimilarPopupInfos(query: String): List<PopupInfoWithScore> {
         return popplyUseCase.getSimilarPopupInfos(query)
     }
 }

@@ -12,7 +12,7 @@ class XExternalManager(
     private val popupExternalStore: PopupExternalStore,
     private val popupExternalReader: PopupExternalReader
 ): XUseCase {
-    override suspend fun crawlXAndSave(popup: Popup) {
+    override fun crawlXAndSave(popup: Popup) {
         popupExternalStore.crawlXAndSave(popup)
     }
 }

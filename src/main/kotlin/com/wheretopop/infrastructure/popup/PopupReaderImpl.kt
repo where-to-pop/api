@@ -10,15 +10,15 @@ class PopupReaderImpl(
     private val popupRepository: PopupRepository
 ) : PopupReader {
 
-    override suspend fun findAll(): List<Popup> {
+    override fun findAll(): List<Popup> {
         return popupRepository.findAll()
     }
 
-    override suspend fun findById(id: PopupId): Popup? {
+    override fun findById(id: PopupId): Popup? {
         return popupRepository.findById(id)
     }
 
-    override suspend fun findByName(name: String): Popup? {
+    override fun findByName(name: String): Popup? {
         return popupRepository.findByName(name)
     }
 }

@@ -6,9 +6,9 @@ import com.wheretopop.domain.popup.PopupInfoWithScore
 import com.wheretopop.infrastructure.popup.external.popply.PopupDetail
 
 interface PopplyUseCase {
-    suspend fun crawlPopply(): List<PopupDetail>
-    suspend fun savePopply(popupDetail: PopupDetail, popupId: PopupId)
-    suspend fun getPopplyList(): List<PopupInfo>
-    suspend fun saveEmbeddedPopply(popupInfos: List<PopupInfo>)
-    suspend fun getSimilarPopupInfos(query: String): List<PopupInfoWithScore>
+    fun crawlPopply(): List<PopupDetail>
+    fun savePopply(popupDetail: PopupDetail, popupId: PopupId)
+    fun getPopplyList(): List<PopupInfo>
+    fun saveEmbeddedPopply(popupInfos: List<PopupInfo>)
+    fun getSimilarPopupInfos(query: String): List<PopupInfoWithScore>
 }

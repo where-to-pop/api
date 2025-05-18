@@ -1,8 +1,8 @@
 package com.wheretopop.infrastructure.popup.external.x
 
-import com.wheretopop.domain.popup.PopupId
+import com.wheretopop.shared.infrastructure.entity.XEntity
 
 interface XRepository {
-    suspend fun save(entity: XEntity): XEntity
-    suspend fun save(entities: List<XEntity>): List<XEntity>
+    fun save(entity: XEntity): XEntity
+    fun save(entities: List<XEntity>): List<XEntity>
 }

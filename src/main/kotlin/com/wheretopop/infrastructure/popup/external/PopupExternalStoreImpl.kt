@@ -14,20 +14,20 @@ class PopupExternalStoreImpl(
     private val xProcessor: XProcessor,
 ): PopupExternalStore {
 
-    override suspend fun crawlPopplyAndSave() {
+    override fun crawlPopplyAndSave() {
         popplyProcessor.crawlAndSave()
     }
-    override suspend fun crawlPopply():List<PopupDetail> {
+    override fun crawlPopply():List<PopupDetail> {
         return popplyProcessor.crawl()
     }
-    override suspend fun savePopply(popupDetail: PopupDetail, popupId: PopupId) {
+    override fun savePopply(popupDetail: PopupDetail, popupId: PopupId) {
         popplyProcessor.save(popupDetail, popupId)
     }
 
-    override suspend fun saveEmbeddedPopply(popupInfos: List<PopupInfo>) {
+    override fun saveEmbeddedPopply(popupInfos: List<PopupInfo>) {
         popplyProcessor.saveEmbeddings(popupInfos)
     }
-    override suspend fun crawlXAndSave(popup: Popup) {
+    override fun crawlXAndSave(popup: Popup) {
         xProcessor.crawlAndSaveByPopup(popup)
     }
 }

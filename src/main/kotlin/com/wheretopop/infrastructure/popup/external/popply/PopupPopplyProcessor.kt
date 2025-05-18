@@ -1,12 +1,9 @@
 package com.wheretopop.infrastructure.popup.external.popply
 
-import com.wheretopop.domain.popup.Popup
-import com.wheretopop.domain.popup.PopupId
-import com.wheretopop.domain.popup.PopupInfo
-import com.wheretopop.domain.popup.PopupInfoWithScore
-import com.wheretopop.domain.popup.PopupVectorRepository
+import com.wheretopop.domain.popup.*
 import com.wheretopop.infrastructure.popup.PopupRepository
 import com.wheretopop.infrastructure.popup.external.RetrievedPopupInfoMetadata
+import com.wheretopop.shared.infrastructure.entity.PopupPopplyEntity
 import mu.KotlinLogging
 import org.springframework.stereotype.Service
 import java.time.LocalDate
@@ -26,19 +23,19 @@ class PopupPopplyProcessor(
     private val popupVectorRepository: PopupVectorRepository
 ) : PopplyProcessor {
 
-    override suspend fun crawlAndSave() {
+    override fun crawlAndSave() {
         val popupId = popupListCrawler.fetchFirstPopupId()
         if (popupId == null) return
         crawlDownPopupDetailsByIdAndSave(popupId)
     }
 
-    override suspend fun crawl():List<PopupDetail> {
+    override fun crawl():List<PopupDetail> {
         val popupId = popupListCrawler.fetchFirstPopupId()
         if (popupId == null) return emptyList()
         return crawlDownPopupDetailsById(popupId)
     }
 
-    override suspend fun save(popupDetail: PopupDetail, popupId: PopupId) {
+    override fun save(popupDetail: PopupDetail, popupId: PopupId) {
         val popupPopplyEntity = PopupPopplyEntity.of(
             popupDetail = popupDetail,
             popupId = popupId.toLong(),
@@ -46,15 +43,15 @@ class PopupPopplyProcessor(
         popupPopplyRepository.save(popupPopplyEntity)
     }
 
-    override suspend fun saveEmbeddings(popupInfos: List<PopupInfo>) {
+    override fun saveEmbeddings(popupInfos: List<PopupInfo>) {
         popupVectorRepository.addPopupInfos(popupInfos)
     }
 
-    override suspend fun getAllPopups(): List<PopupInfo> {
+    override fun getAllPopups(): List<PopupInfo> {
         return popupPopplyRepository.findAll()
     }
 
-    suspend fun getPopupDetail(popplyId: Int): PopupDetail? {
+    fun getPopupDetail(popplyId: Int): PopupDetail? {
         val existing = popupPopplyRepository.findByPopplyId(popplyId)
         if (existing != null) return null
 
@@ -67,7 +64,7 @@ class PopupPopplyProcessor(
         return popupDetailData
     }
 
-    override suspend fun getSiliarPopups(query: String): List<PopupInfoWithScore> {
+    override fun getSiliarPopups(query: String): List<PopupInfoWithScore> {
         val vectorSearchResults = popupVectorRepository.findSimilarPopups(query)
         return vectorSearchResults.mapNotNull { popup ->
             val metadataMap: Map<String, Any?> = popup.metadata
@@ -82,7 +79,7 @@ class PopupPopplyProcessor(
     }
 
 
-    suspend fun crawlDownPopupDetailsById(endId: Int, startId: Int = 15): List<PopupDetail> {
+    fun crawlDownPopupDetailsById(endId: Int, startId: Int = 15): List<PopupDetail> {
         logger.info("ID 범위 {}부터 {}까지 (역순) 팝업 상세 정보 크롤링 시작...", startId, endId)
 
         val popupDetailList = mutableListOf<PopupDetail>()
@@ -135,7 +132,7 @@ class PopupPopplyProcessor(
      * 도메인 객체로 변환 (Popup)
      * 도메인 객체 저장
      */
-    suspend fun processAndSavePopupDetail(popplyId: Int): Boolean {
+    fun processAndSavePopupDetail(popplyId: Int): Boolean {
         val existing = popupPopplyRepository.findByPopplyId(popplyId)
         if (existing != null) return false
 //        logger.info("Popply ID {} 상세 정보 처리 시작...", popplyId)
@@ -169,13 +166,13 @@ class PopupPopplyProcessor(
     /**
      * 기간에 맞춰 팝업 상세 정보들을 크롤링
      */
-    suspend fun crawlPopupDetailsByPeriod(startDate: LocalDate, endDate: LocalDate) {}
+    fun crawlPopupDetailsByPeriod(startDate: LocalDate, endDate: LocalDate) {}
 
     /**
      * 주어진 ID부터 역순으로 팝업 상세 정보들을 크롤링
      * 이미 있는 Popup 이면, 종료!
      */
-    suspend fun crawlDownPopupDetailsByIdAndSave(endId: Int, startId:Int = 15) {
+    fun crawlDownPopupDetailsByIdAndSave(endId: Int, startId:Int = 15) {
         logger.info("ID 범위 {}부터 {}까지 (역순) 팝업 상세 정보 크롤링 시작...", startId, endId)
         var successCount = 0
         var stoppedEarly = false

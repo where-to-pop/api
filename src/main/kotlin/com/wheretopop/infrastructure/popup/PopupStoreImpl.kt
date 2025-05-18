@@ -9,16 +9,16 @@ class PopupStoreImpl(
     private val popupRepository: PopupRepository
 ) : PopupStore {
 
-    override suspend fun save(popup: Popup): Popup {
+    override fun save(popup: Popup): Popup {
         return popupRepository.save(popup)
     }
-    override suspend fun save(popups: List<Popup>): List<Popup> {
+    override fun save(popups: List<Popup>): List<Popup> {
         return popupRepository.save(popups)
     }
-    override suspend fun delete(popup: Popup) {
+    override fun delete(popup: Popup) {
         popupRepository.deleteById(popup.id)
     }
-    override suspend fun delete(popups: List<Popup>) {
+    override fun delete(popups: List<Popup>) {
         popups.forEach { popup ->
             popupRepository.deleteById(popup.id)
         }

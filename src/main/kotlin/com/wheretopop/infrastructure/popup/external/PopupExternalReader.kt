@@ -4,6 +4,6 @@ import com.wheretopop.domain.popup.PopupInfo
 import com.wheretopop.domain.popup.PopupInfoWithScore
 
 interface PopupExternalReader {
-    suspend fun getAllPopply():List<PopupInfo>
-    suspend fun getSimilarPopups(query: String): List<PopupInfoWithScore>
+    fun getAllPopply():List<PopupInfo>
+    fun getSimilarPopups(query: String): List<PopupInfoWithScore>
 }

@@ -1,13 +1,13 @@
-package com.wheretopop.infrastructure.popup.external.x
+package com.wheretopop.shared.infrastructure.entity
 
+import com.wheretopop.config.JpaConverterConfig
 import com.wheretopop.domain.popup.PopupId
+import com.wheretopop.infrastructure.popup.external.x.EmotionScore
+import com.wheretopop.infrastructure.popup.external.x.XResponse
 import com.wheretopop.shared.model.UniqueId
-import org.springframework.core.convert.converter.Converter
-import org.springframework.data.annotation.Id
-import org.springframework.data.convert.ReadingConverter
-import org.springframework.data.convert.WritingConverter
-import org.springframework.data.relational.core.mapping.Column
-import org.springframework.data.relational.core.mapping.Table
+import jakarta.persistence.*
+import org.springframework.data.annotation.CreatedDate
+import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.time.Instant
 
 class XId private constructor(
@@ -26,25 +26,32 @@ class XId private constructor(
     }
 }
 
-@Table("popup_x")
-data class XEntity(
+/**
+ * X 테이블 엔티티
+ * JPA 기반으로 구현
+ */
+@Entity
+@Table(name = "popup_x")
+@EntityListeners(AuditingEntityListener::class)
+class XEntity(
     @Id
-    @Column("id")
+    @Convert(converter = JpaConverterConfig.XIdConverter::class)
     val id: XId = XId.create(),
 
-    @Column("popup_id")
+    @Column(name = "popup_id", nullable = false)
     val popupId: PopupId,
 
-    @Column("written_at")
+    @Column(name = "written_at", nullable = false)
     val writtenAt: Instant,
 
-    @Column("content")
+    @Column(name = "content", nullable = false)
     val content: String,
 
-    @Column("emotion_score")
+    @Column(name = "emotion_score", nullable = false)
     val emotionScore: EmotionScore,
 
-    @Column("created_at")
+    @CreatedDate
+    @Column(name = "created_at", nullable = false, updatable = false)
     val createdAt: Instant = Instant.now()
 ) {
     companion object {
@@ -54,19 +61,8 @@ data class XEntity(
                 popupId = popupId,
                 writtenAt = xResponse.writtenAt,
                 content = xResponse.content,
-                emotionScore = xResponse.emotionScore,
-                createdAt = Instant.now()
+                emotionScore = xResponse.emotionScore
             )
         }
     }
-}
-
-@WritingConverter
-class XIdToLongConverter : Converter<XId, Long> {
-    override fun convert(source: XId) = source.toLong()
-}
-
-@ReadingConverter
-class LongToXIdConverter : Converter<Long, XId> {
-    override fun convert(source: Long) = XId.of(source)
 }

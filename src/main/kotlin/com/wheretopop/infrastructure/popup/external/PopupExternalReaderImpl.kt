@@ -9,11 +9,11 @@ import org.springframework.stereotype.Component
 class PopupExternalReaderImpl(
     private val popplyProcessor: PopplyProcessor,
 ): PopupExternalReader {
-    override suspend fun getAllPopply(): List<PopupInfo> {
+    override fun getAllPopply(): List<PopupInfo> {
         return popplyProcessor.getAllPopups()
     }
 
-    override suspend fun getSimilarPopups(query: String): List<PopupInfoWithScore> {
+    override fun getSimilarPopups(query: String): List<PopupInfoWithScore> {
         return popplyProcessor.getSiliarPopups(query)
     }
 }
