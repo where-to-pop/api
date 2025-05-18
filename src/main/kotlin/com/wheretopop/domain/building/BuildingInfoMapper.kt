@@ -10,7 +10,7 @@ class BuildingInfoMapper {
      */
     fun of(domain: Building): BuildingInfo.Main {
         return BuildingInfo.Main(
-            id = domain.id.value,
+            id = domain.id,
             address = domain.address,
             location = BuildingInfo.LocationInfo(
                 latitude = domain.location.latitude,

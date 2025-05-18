@@ -2,6 +2,7 @@ package com.wheretopop.infrastructure.building.register
 
 import com.wheretopop.domain.building.register.BuildingRegister
 import com.wheretopop.domain.building.register.BuildingRegisterId
+import com.wheretopop.domain.building.BuildingId
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
 
@@ -13,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional
 interface BuildingRegisterRepository {
     fun findById(id: BuildingRegisterId): BuildingRegister?
+    fun findByBuildingId(buildingId: BuildingId): BuildingRegister?
     fun findAll(): List<BuildingRegister>
     fun save(building: BuildingRegister): BuildingRegister
     fun save(buildings: List<BuildingRegister>): List<BuildingRegister>

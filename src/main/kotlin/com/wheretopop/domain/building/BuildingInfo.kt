@@ -1,5 +1,7 @@
 package com.wheretopop.domain.building
 
+import com.wheretopop.domain.building.register.BuildingRegisterInfo
+
 /**
  * 도메인 계층 외부에 넘겨줄 Building 관련 DTO 클래스들
  * 도메인 로직이 누설되지 않도록 데이터만 전달
@@ -11,7 +13,7 @@ class BuildingInfo {
      * Building 기본 정보를 담은 DTO
      */
     data class Main(
-        val id: Long,
+        val id: BuildingId,
         val address: String,
         val location: LocationInfo,
     )

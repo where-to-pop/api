@@ -4,6 +4,7 @@ import com.wheretopop.domain.building.register.BuildingRegister
 import com.wheretopop.domain.building.register.BuildingRegisterCriteria
 import com.wheretopop.domain.building.register.BuildingRegisterId
 import com.wheretopop.domain.building.register.BuildingRegisterReader
+import com.wheretopop.domain.building.BuildingId
 import org.springframework.stereotype.Component
 
 /**
@@ -17,6 +18,10 @@ class BuildingRegisterReaderImpl(
 
     override fun findById(id: BuildingRegisterId): BuildingRegister? {
         return buildingRegisterRepository.findById(id)
+    }
+
+    override fun findByBuildingId(buildingId: BuildingId): BuildingRegister? {
+        return buildingRegisterRepository.findByBuildingId(buildingId)
     }
     
 

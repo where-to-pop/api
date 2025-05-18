@@ -23,6 +23,12 @@ class BuildingServiceImpl(
         return buildingInfoMapper.of(buildings)
     }
 
+    override fun findBuildingByAddress(address: String): BuildingInfo.Main {
+        val building = this.buildingReader.findByAddress(address) ?: throw Exception("Building not found")
+
+        return buildingInfoMapper.of(building)
+    }
+
     override fun createBuilding(command: BuildingCommand.CreateBuildingCommand): BuildingInfo.Main? {
         val building = Building.create(
             address = command.address,

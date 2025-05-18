@@ -14,6 +14,11 @@ enum class StrategyType(val id: String, val description: String) {
      * 지역 정보를 조회하는 전략
      */
     AREA_QUERY("area_query", "Provides information about areas, including congestion levels and population insights"),
+
+    /**
+     * 건물 정보를 조회하는 전략
+     */
+    BUILDING_QUERY("building_query", "Provides detailed information about buildings, including specifications, facilities, and approval details"),
     
     /**
      * 적합한 전략을 선택하는 전략
