@@ -2,15 +2,10 @@ package com.wheretopop.interfaces.area
 
 import com.wheretopop.application.area.AreaFacade
 import com.wheretopop.shared.domain.identifier.AreaId
-import kotlinx.coroutines.asCoroutineDispatcher
-import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import org.springframework.ai.tool.annotation.Tool
 import org.springframework.stereotype.Component
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
-import javax.annotation.PreDestroy
+
 
 /**
  * AI tool registry for searching area information.
@@ -22,22 +17,6 @@ class AreaToolRegistry(
 ) {
     private val logger = KotlinLogging.logger {}
     
-    // 완전히 WebFlux와 분리된 자바 스레드풀 사용
-    private val executor = Executors.newFixedThreadPool(10)
-    private val dispatcher = executor.asCoroutineDispatcher()
-    
-    @PreDestroy
-    fun cleanup() {
-        executor.shutdown()
-        try {
-            if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
-                executor.shutdownNow()
-            }
-        } catch (e: InterruptedException) {
-            executor.shutdownNow()
-        }
-    }
-
     /**
      * Retrieves all area information.
      * AI model calls this tool when the user needs a complete list of areas.
@@ -48,18 +27,7 @@ class AreaToolRegistry(
     fun findAllArea(): String {
         logger.info("findAllArea tool was called")
         
-        // 자바 스레드에서 비동기 로직 실행 (WebFlux 이벤트 루프와 완전히 분리)
-        val future = CompletableFuture.supplyAsync(
-            {
-                runBlocking {
-                    areaFacade.findAll()
-                }
-            },
-            executor
-        )
-        
-        // 결과 기다리기 (이것은 블로킹이지만 별도 스레드에서 실행되므로 안전)
-        val areas = future.get()
+        val areas = areaFacade.findAll()
         
         logger.info("Retrieved information for ${areas.size} areas")
         
@@ -94,18 +62,7 @@ class AreaToolRegistry(
     fun findAreaById(id: String): String {
         logger.info("findAreaById tool was called: id={}", id)
         
-        // 자바 스레드에서 비동기 로직 실행 (WebFlux 이벤트 루프와 완전히 분리)
-        val future = CompletableFuture.supplyAsync(
-            {
-                runBlocking {
-                    areaFacade.getAreaDetailById(AreaId.of(id))
-                }
-            },
-            executor
-        )
-        
-        // 결과 기다리기
-        val area = future.get()
+        val area = areaFacade.getAreaDetailById(AreaId.of(id))
         
         if (area == null) {
             logger.warn("Could not find area with ID {}", id)

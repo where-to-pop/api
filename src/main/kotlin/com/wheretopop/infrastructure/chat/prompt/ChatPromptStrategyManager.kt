@@ -29,7 +29,7 @@ class ChatPromptStrategyManager(
      * @param userMessage 사용자의 첫 메시지
      * @return 생성된 채팅 제목
      */
-    override suspend fun execute(userMessage: String): String {
+    override fun execute(userMessage: String): String {
         logger.info("Generating chat title for message: $userMessage")
         val titleStrategy = getStrategyByType(StrategyType.TITLE_GENERATION)
         val response = executeStrategy(titleStrategy, userMessage)
@@ -45,7 +45,7 @@ class ChatPromptStrategyManager(
      * @param userMessage 사용자 메시지
      * @return AI 응답
      */
-    override suspend fun execute(chat: Chat): Chat {
+    override fun execute(chat: Chat): Chat {
         val userMessage = chat.getLatestUserMessage()?.content
             ?: throw ErrorCode.COMMON_SYSTEM_ERROR.toException()
         logger.info("Processing user message: $userMessage")
@@ -81,7 +81,7 @@ class ChatPromptStrategyManager(
      * @param userMessage 사용자 메시지
      * @return 선택된 전략 ID
      */
-    private suspend fun selectStrategyId(userMessage: String): String {
+    private fun selectStrategyId(userMessage: String): String {
         val selectorStrategy = getStrategyByType(StrategyType.STRATEGY_SELECTOR)
         val response = executeStrategy(selectorStrategy, userMessage)
         
@@ -117,7 +117,7 @@ class ChatPromptStrategyManager(
      * @param userMessage 사용자 메시지
      * @return AI 응답
      */
-    private suspend fun executeStrategy(strategy: ChatPromptStrategy, userMessage: String): ChatResponse {
+    private fun executeStrategy(strategy: ChatPromptStrategy, userMessage: String): ChatResponse {
         val prompt = strategy.createPrompt(userMessage)
         val chatOptions = strategy.getToolCallingChatOptions()
         return chatAssistant.call(prompt, chatOptions)

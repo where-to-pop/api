@@ -15,10 +15,10 @@ class ChatStoreImpl(
     private val chatRepository: ChatRepository
 ) : ChatStore {
 
-    override suspend fun save(chat: Chat): Chat {
+    override fun save(chat: Chat): Chat {
         return chatRepository.save(chat)
     }
-    override suspend fun save(chats: List<Chat>): List<Chat> {
+    override fun save(chats: List<Chat>): List<Chat> {
         return chatRepository.save(chats)
     }
 } 

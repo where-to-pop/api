@@ -22,7 +22,7 @@ class ChatServiceImpl(
     /**
      * 새 채팅을 초기화합니다.
      */
-    override suspend fun initializeChat(command: ChatCommand.InitializeChat): ChatInfo.Detail {
+    override fun initializeChat(command: ChatCommand.InitializeChat): ChatInfo.Detail {
         val chat = command.toDomain()
         val messageAddedChat = chat.addMessage(ChatMessage.create(
             chatId = chat.id,
@@ -44,7 +44,7 @@ class ChatServiceImpl(
     /**
      * 채팅 정보를 업데이트합니다.
      */
-    override suspend fun updateChat(command: ChatCommand.UpdateChat): ChatInfo.Main {
+    override fun updateChat(command: ChatCommand.UpdateChat): ChatInfo.Main {
         val (chatId, title, isActive) = command
         val chat = chatReader.findById(chatId) ?: throw ErrorCode.COMMON_ENTITY_NOT_FOUND.toException()
         val updatedChat = chat.update(title, isActive)
@@ -55,7 +55,7 @@ class ChatServiceImpl(
     /**
      * 채팅을 삭제(소프트 삭제)합니다.
      */
-    override suspend fun deleteChat(command: ChatCommand.DeleteChat): ChatInfo.Main {
+    override fun deleteChat(command: ChatCommand.DeleteChat): ChatInfo.Main {
         val (chatId) = command
         val chat = chatReader.findById(chatId) ?: throw ErrorCode.COMMON_ENTITY_NOT_FOUND.toException()
         
@@ -68,7 +68,7 @@ class ChatServiceImpl(
     /**
      * 채팅에 사용자 메시지를 추가하고 AI 응답을 반환합니다.
      */
-    override suspend fun sendMessage(chatId: ChatId, message: String): ChatInfo.Simple {
+    override fun sendMessage(chatId: ChatId, message: String): ChatInfo.Simple {
         val chat = chatReader.findById(chatId) ?: throw ErrorCode.COMMON_ENTITY_NOT_FOUND.toException()
         val messageAddedChat = chat.addMessage(ChatMessage.create(
             chatId = chat.id,
@@ -89,7 +89,7 @@ class ChatServiceImpl(
     /**
      * 채팅의 상세 정보를 조회합니다.
      */
-    override suspend fun getDetail(chatId: ChatId): ChatInfo.Detail {
+    override fun getDetail(chatId: ChatId): ChatInfo.Detail {
         val chat = chatReader.findById(chatId) ?: throw ErrorCode.COMMON_ENTITY_NOT_FOUND.toException()
         return ChatInfoMapper.toDetailInfo(chat)
     }
@@ -97,7 +97,7 @@ class ChatServiceImpl(
     /**
      * 채팅의 기본 정보 목록을 조회합니다.
      */
-    override suspend fun getList(userId: UserId): List<ChatInfo.Main> {
+    override fun getList(userId: UserId): List<ChatInfo.Main> {
         val chats = chatReader.findByUserId(userId)
         return chats.map { ChatInfoMapper.toMainInfo(it) }
     }

@@ -11,27 +11,27 @@ class ChatFacadeImpl(
     private val chatService: ChatService
 ) : ChatFacade {
     
-    override suspend fun initialize(input: ChatInput.Initialize): ChatInfo.Detail {
+    override fun initialize(input: ChatInput.Initialize): ChatInfo.Detail {
         return chatService.initializeChat(input.toCommand())
     }
 
-    override suspend fun update(input: ChatInput.Update): ChatInfo.Main {
+    override fun update(input: ChatInput.Update): ChatInfo.Main {
         return chatService.updateChat(input.toCommand())
     }
 
-    override suspend fun delete(input: ChatInput.Delete): ChatInfo.Main {
+    override fun delete(input: ChatInput.Delete): ChatInfo.Main {
         return chatService.deleteChat(input.toCommand())
     }
 
-    override suspend fun sendMessage(input: ChatInput.SendMessage): ChatInfo.Simple {
+    override fun sendMessage(input: ChatInput.SendMessage): ChatInfo.Simple {
         return chatService.sendMessage(input.chatId, input.message)
     }
 
-    override suspend fun getDetail(chatId: ChatId): ChatInfo.Detail {
+    override fun getDetail(chatId: ChatId): ChatInfo.Detail {
         return chatService.getDetail(chatId)
     }
 
-    override suspend fun getList(userId: UserId): List<ChatInfo.Main> {
+    override fun getList(userId: UserId): List<ChatInfo.Main> {
         return chatService.getList(userId)
     }
 } 

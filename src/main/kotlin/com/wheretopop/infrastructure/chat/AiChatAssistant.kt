@@ -22,7 +22,7 @@ class AiChatAssistant(
 
 
 
-    override suspend fun call(prompt: Prompt, toolCallingChatOption: ToolCallingChatOptions?): ChatResponse {
+    override fun call(prompt: Prompt, toolCallingChatOption: ToolCallingChatOptions?): ChatResponse {
         var mergedPrompt = Prompt(prompt.instructions, toolCallingChatOption)
         logger.info { "available tools: ${toolCallingChatOption?.toolCallbacks}" }
         var chatResponse = chatModel.call(mergedPrompt) ?: throw ErrorCode.CHAT_NULL_RESPONSE.toException();

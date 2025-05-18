@@ -7,6 +7,6 @@ import org.springframework.ai.model.tool.ToolCallingChatOptions
 
 interface ChatAssistant {
 
-    suspend fun call(prompt: Prompt, toolCallingChatOption: ToolCallingChatOptions?): ChatResponse
+    fun call(prompt: Prompt, toolCallingChatOption: ToolCallingChatOptions?): ChatResponse
 
 }

@@ -16,19 +16,19 @@ class ChatReaderImpl(
     private val chatRepository: ChatRepository
 ) : ChatReader {
 
-    override suspend fun findAll(): List<Chat> {
+    override fun findAll(): List<Chat> {
         return chatRepository.findAll()
     }
 
-    override suspend fun findById(id: ChatId): Chat? {
+    override fun findById(id: ChatId): Chat? {
         return chatRepository.findById(id)
     }
     
-    override suspend fun findByUserId(userId: UserId): List<Chat> {
+    override fun findByUserId(userId: UserId): List<Chat> {
         return chatRepository.findByUserId(userId)
     }
     
-    override suspend fun findByProjectId(projectId: ProjectId): List<Chat> {
+    override fun findByProjectId(projectId: ProjectId): List<Chat> {
         return chatRepository.findByProjectId(projectId)
     }
 } 

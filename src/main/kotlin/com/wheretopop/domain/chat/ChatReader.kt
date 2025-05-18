@@ -10,20 +10,20 @@ interface ChatReader {
     /**
      * 모든 채팅을 조회합니다.
      */
-    suspend fun findAll(): List<Chat>
+    fun findAll(): List<Chat>
     
     /**
      * ID로 채팅을 조회합니다.
      */
-    suspend fun findById(id: ChatId): Chat?
+    fun findById(id: ChatId): Chat?
     
     /**
      * 사용자 ID로 채팅 목록을 조회합니다.
      */
-    suspend fun findByUserId(userId: UserId): List<Chat>
+    fun findByUserId(userId: UserId): List<Chat>
     
     /**
      * 프로젝트 ID로 채팅 목록을 조회합니다.
      */
-    suspend fun findByProjectId(projectId: ProjectId): List<Chat>
+    fun findByProjectId(projectId: ProjectId): List<Chat>
 } 

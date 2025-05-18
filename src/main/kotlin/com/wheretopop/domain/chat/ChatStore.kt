@@ -1,6 +1,6 @@
 package com.wheretopop.domain.chat
 
 interface ChatStore {
-    suspend fun save(chat: Chat): Chat
-    suspend fun save(chats: List<Chat>): List<Chat>
+    fun save(chat: Chat): Chat
+    fun save(chats: List<Chat>): List<Chat>
 }
