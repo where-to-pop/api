@@ -6,4 +6,5 @@ interface AreaService {
     fun searchAreas(criteria: AreaCriteria.SearchAreaCriteria): List<AreaInfo.Main>
     fun findAll(): List<AreaInfo.Main>
     fun getAreaDetailById(id: AreaId): AreaInfo.Detail
+    fun findNearestArea(latitude: Double, longitude: Double): AreaInfo.Main?
 }

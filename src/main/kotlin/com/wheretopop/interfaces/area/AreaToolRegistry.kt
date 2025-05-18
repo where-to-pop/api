@@ -151,20 +151,26 @@ class AreaToolRegistry(
         try {
             logger.info("findNearestArea tool was called: latitude={}, longitude={}", latitude, longitude)
 
-            // Actual implementation requires additional functionality in areaFacade.
-            // Below is an example response format.
+            val nearestArea = areaFacade.findNearestArea(latitude, longitude)
+            
+            if (nearestArea == null) {
+                return "Sorry, I couldn't find any registered areas near these coordinates."
+            }
+
             return """
-            |The nearest area to your location (latitude: $latitude, longitude: $longitude) is Sample Area (ID: sample-id).
+            |I found the nearest area:
             |
-            |Description: This is a sample area.
-            |Distance: Approximately 0.5km away
-            |Location: Latitude 37.123, Longitude 127.456
+            |Name: ${nearestArea.name}
+            |ID: ${nearestArea.id}
+            |Description: ${nearestArea.description ?: "No description available"}
+            |Location: Latitude ${nearestArea.location.latitude}, Longitude ${nearestArea.location.longitude}
             |
-            |Note: For complete detailed information about this area, you can use the findAreaById tool with ID 'sample-id'.
+            |For more detailed information, you can use the findAreaById tool with ID '${nearestArea.id}'.
             """.trimMargin()
+
         } catch (e: Exception) {
             logger.error("Error finding nearest area", e)
-            return "An error occurred while finding the nearest area. Please try again later."
+            return "Sorry, an error occurred while finding the nearest area. Please try again later."
         }
     }
 }

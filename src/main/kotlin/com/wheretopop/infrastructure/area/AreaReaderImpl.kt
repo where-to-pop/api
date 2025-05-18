@@ -30,4 +30,8 @@ class AreaReaderImpl(
     override fun findAll(): List<Area> {
         return areaRepository.findAll()
     }
+
+    override fun findNearestArea(latitude: Double, longitude: Double): Area? {
+        return areaRepository.findNearest(latitude, longitude)
+    }
 }

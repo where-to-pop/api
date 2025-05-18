@@ -39,4 +39,8 @@ class AreaFacade(
     fun ingestAreaExternalData() {
         return areaOpenDataUseCase.callOpenDataApiAndSave()
     }
+
+    fun findNearestArea(latitude: Double, longitude: Double): AreaInfo.Main? {
+        return areaService.findNearestArea(latitude, longitude)
+    }
 }
