@@ -1,16 +1,19 @@
 package com.wheretopop.shared.infrastructure.entity
 
 import com.fasterxml.jackson.core.type.TypeReference
-import com.wheretopop.config.JpaConverterConfig
+import com.wheretopop.config.AreaIdConverter
+import com.wheretopop.config.AreaPopulationIdConverter
 import com.wheretopop.shared.domain.identifier.AreaId
 import com.wheretopop.infrastructure.area.external.opendata.population.CityDataPopulation
 import com.wheretopop.infrastructure.area.external.opendata.population.ForecastPopulation
 import com.wheretopop.shared.domain.identifier.AreaPopulationId
 import com.wheretopop.shared.util.JsonUtil
 import jakarta.persistence.*
+import org.hibernate.annotations.JdbcTypeCode
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
+import java.sql.Types
 import java.time.Instant
 
 /**
@@ -22,11 +25,13 @@ import java.time.Instant
 @EntityListeners(AuditingEntityListener::class)
 class AreaPopulationEntity(
     @Id
-    @Convert(converter = JpaConverterConfig.AreaPopulationIdConverter::class)
+    @JdbcTypeCode(Types.BIGINT)
+    @Convert(converter = AreaPopulationIdConverter::class)
     val id: AreaPopulationId = AreaPopulationId.create(),
 
     @Column(name = "area_id", nullable = false)
-    @Convert(converter = JpaConverterConfig.AreaIdConverter::class)
+    @JdbcTypeCode(Types.BIGINT)
+    @Convert(converter = AreaIdConverter::class)
     val areaId: AreaId,
 
     @Column(name = "area_name", nullable = false)

@@ -9,11 +9,11 @@ import org.springframework.stereotype.Component
 internal class UserReaderImpl(
     private val userRepository: UserRepository
 ) : UserReader {
-    override suspend fun findById(id: UserId): User? {
+    override fun findById(id: UserId): User? {
         return userRepository.findById(id)
     }
 
-    override suspend fun findByEmail(email: String): User? {
+    override fun findByEmail(email: String): User? {
         return userRepository.findByEmail(email)
     }
 } 

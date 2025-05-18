@@ -18,7 +18,7 @@ interface JpaUserRepository : JpaRepository<UserEntity, UserId> {
  * 사용자 저장소 JPA 구현체
  */
 @Repository
-class JpaUserRepositoryImpl(
+class UserRepositoryJpaAdapter(
     private val jpaRepository: JpaUserRepository
 ) : UserRepository {
 

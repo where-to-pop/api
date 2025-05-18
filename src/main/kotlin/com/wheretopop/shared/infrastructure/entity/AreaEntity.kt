@@ -1,13 +1,16 @@
 package com.wheretopop.shared.infrastructure.entity
 
-import com.wheretopop.config.JpaConverterConfig
+import com.wheretopop.config.AreaIdConverter
 import com.wheretopop.domain.area.Area
 import com.wheretopop.shared.domain.identifier.AreaId
 import com.wheretopop.shared.model.Location
 import jakarta.persistence.*
+import org.hibernate.annotations.JavaType
+import org.hibernate.annotations.JdbcTypeCode
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
+import java.sql.Types
 import java.time.Instant
 
 /**
@@ -19,8 +22,9 @@ import java.time.Instant
 @EntityListeners(AuditingEntityListener::class)
 class AreaEntity(
     @Id
-    @Convert(converter = JpaConverterConfig.AreaIdConverter::class)
-    val id: AreaId,
+    @JdbcTypeCode(Types.BIGINT)
+    @Convert(converter = AreaIdConverter::class)
+    val id: AreaId = AreaId.create(),
 
     @Column(nullable = false)
     var name: String,

@@ -1,5 +1,6 @@
 package com.wheretopop.infrastructure.popup.external
 
+import com.wheretopop.domain.popup.PopupId
 import com.wheretopop.domain.popup.PopupInfo
 
 data class RetrievedPopupInfoMetadata(
@@ -15,7 +16,7 @@ data class RetrievedPopupInfoMetadata(
         }
 
         return PopupInfo(
-            id = originalId,
+            id = PopupId.of(originalId),
             name = popupName,
             address = address,
             description = description,

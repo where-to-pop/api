@@ -4,7 +4,7 @@ import com.wheretopop.domain.user.User
 import com.wheretopop.domain.user.UserId
 
 internal interface UserRepository {
-    suspend fun findById(id: UserId): User?
-    suspend fun findByEmail(email: String): User?
-    suspend fun save(user: User): User
+    fun findById(id: UserId): User?
+    fun findByEmail(email: String): User?
+    fun save(user: User): User
 }

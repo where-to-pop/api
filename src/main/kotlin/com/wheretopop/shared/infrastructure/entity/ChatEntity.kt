@@ -1,14 +1,18 @@
 package com.wheretopop.shared.infrastructure.entity
 
-import com.wheretopop.config.JpaConverterConfig
+import com.wheretopop.config.ChatIdConverter
+import com.wheretopop.config.ProjectIdConverter
+import com.wheretopop.config.UserIdConverter
 import com.wheretopop.domain.chat.Chat
 import com.wheretopop.domain.chat.ChatId
 import com.wheretopop.domain.project.ProjectId
 import com.wheretopop.domain.user.UserId
 import jakarta.persistence.*
+import org.hibernate.annotations.JdbcTypeCode
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
+import java.sql.Types
 import java.time.Instant
 
 /**
@@ -20,15 +24,19 @@ import java.time.Instant
 @EntityListeners(AuditingEntityListener::class)
 class ChatEntity(
     @Id
-    @Convert(converter = JpaConverterConfig.ChatIdConverter::class)
+    @JdbcTypeCode(Types.BIGINT)
+
+    @Convert(converter = ChatIdConverter::class)
     val id: ChatId,
     
     @Column(name = "user_id", nullable = false)
-    @Convert(converter = JpaConverterConfig.UserIdConverter::class)
+    @JdbcTypeCode(Types.BIGINT)
+    @Convert(converter = UserIdConverter::class)
     val userId: UserId,
     
     @Column(name = "project_id", nullable = false)
-    @Convert(converter = JpaConverterConfig.ProjectIdConverter::class)
+    @JdbcTypeCode(Types.BIGINT)
+    @Convert(converter = ProjectIdConverter::class)
     val projectId: ProjectId,
     
     @Column(nullable = false)

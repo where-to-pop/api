@@ -24,7 +24,7 @@ interface JpaPopupPopplyRepository : JpaRepository<PopupPopplyEntity, PopupPoppl
  * 팝업 Popply 저장소 JPA 구현체
  */
 @Repository
-class JpaPopupPopplyRepositoryImpl(
+class PopupPopplyRepositoryJpaAdapter(
     private val jpaRepository: JpaPopupPopplyRepository
 ) : PopupPopplyRepository {
     

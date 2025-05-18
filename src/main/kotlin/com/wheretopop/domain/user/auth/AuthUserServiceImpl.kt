@@ -14,7 +14,7 @@ class AuthUserServiceImpl(
 ): AuthUserService {
 
     @Transactional
-    override suspend fun createAuthUser(command: AuthCommand.CreateAuthUser): AuthInfo.Main {
+    override fun createAuthUser(command: AuthCommand.CreateAuthUser): AuthInfo.Main {
         val exists = authUserReader.findAuthUserByIdentifier(command.identifier) != null
         if (exists) {
             throw ErrorCode.AUTH_IDENTIFIER_ALREADY_EXISTS.toException()
@@ -24,7 +24,7 @@ class AuthUserServiceImpl(
     }
 
     @Transactional
-    override suspend fun authenticate(command: AuthCommand.Authenticate): AuthInfo.Token {
+    override fun authenticate(command: AuthCommand.Authenticate): AuthInfo.Token {
         val (identifier, rawPassword) = command
         val authUser = authUserReader.findAuthUserByIdentifier(identifier)
             ?: throw ErrorCode.AUTH_INVALID_IDENTIFIER.toException()
@@ -37,7 +37,7 @@ class AuthUserServiceImpl(
     }
 
     @Transactional
-    override suspend fun refresh(command: AuthCommand.Refresh): AuthInfo.Token {
+    override fun refresh(command: AuthCommand.Refresh): AuthInfo.Token {
         val (rawRefreshToken, userId) = command
         val existingRefreshToken: RefreshToken = tokenManager.load(rawRefreshToken) ?:
             throw ErrorCode.AUTH_INVALID_TOKEN.toException()
@@ -52,7 +52,7 @@ class AuthUserServiceImpl(
         return newTokens
     }
 
-    override suspend fun findAuthUserById(id: AuthUserId): AuthInfo.Main? {
+    override fun findAuthUserById(id: AuthUserId): AuthInfo.Main? {
         return authUserReader.findAuthUserById(id).let {
             it?.let { authUser ->
                 AuthInfoMapper.toMainInfo(authUser)
@@ -60,7 +60,7 @@ class AuthUserServiceImpl(
         }
     }
 
-    override suspend fun findAuthUserByIdentifier(identifier: String): AuthInfo.Main? {
+    override fun findAuthUserByIdentifier(identifier: String): AuthInfo.Main? {
         return authUserReader.findAuthUserByIdentifier(identifier).let {
             it?.let { authUser ->
                 AuthInfoMapper.toMainInfo(authUser)

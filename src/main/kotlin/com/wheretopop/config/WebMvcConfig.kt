@@ -1,10 +1,10 @@
 package com.wheretopop.config
 
-
+import com.wheretopop.config.security.UserPrincipalResolver
 import org.springframework.context.annotation.Configuration
+import org.springframework.web.method.support.HandlerMethodArgumentResolver
 import org.springframework.web.servlet.config.annotation.CorsRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
-
 
 /**
  * Spring MVC 웹 설정
@@ -12,7 +12,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
  * CORS 설정 및 기타 웹 관련 설정을 담당합니다.
  */
 @Configuration
-class WebMvcConfig : WebMvcConfigurer {
+class WebMvcConfig(private val userPrincipalResolver: UserPrincipalResolver) : WebMvcConfigurer {
     
     /**
      * CORS 설정
@@ -35,5 +35,14 @@ class WebMvcConfig : WebMvcConfigurer {
             .allowedHeaders("Origin", "Content-Type", "Accept", "Authorization")
             .allowCredentials(true)
             .maxAge(3600)
+    }
+
+    /**
+     * 핸들러 메서드 인자 리졸버 추가
+     * 
+     * @CurrentUser 어노테이션이 있는 파라미터에 현재 인증된 사용자 정보를 주입합니다.
+     */
+    override fun addArgumentResolvers(resolvers: MutableList<HandlerMethodArgumentResolver>) {
+        resolvers.add(userPrincipalResolver)
     }
 } 

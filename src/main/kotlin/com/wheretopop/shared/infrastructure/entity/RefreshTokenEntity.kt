@@ -1,13 +1,16 @@
 package com.wheretopop.shared.infrastructure.entity
 
-import com.wheretopop.config.JpaConverterConfig
+import com.wheretopop.config.AuthUserIdConverter
+import com.wheretopop.config.RefreshTokenIdConverter
 import com.wheretopop.domain.user.auth.AuthUserId
 import com.wheretopop.domain.user.auth.RefreshToken
 import com.wheretopop.domain.user.auth.RefreshTokenId
 import jakarta.persistence.*
+import org.hibernate.annotations.JdbcTypeCode
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
+import java.sql.Types
 import java.time.Instant
 
 /**
@@ -19,11 +22,14 @@ import java.time.Instant
 @EntityListeners(AuditingEntityListener::class)
 class RefreshTokenEntity(
     @Id
-    @Convert(converter = JpaConverterConfig.RefreshTokenIdConverter::class)
+    @Convert(converter = RefreshTokenIdConverter::class)
+    @JdbcTypeCode(Types.BIGINT)
+
     val id: RefreshTokenId,
     
     @Column(name = "auth_user_id", nullable = false)
-    @Convert(converter = JpaConverterConfig.AuthUserIdConverter::class)
+    @Convert(converter = AuthUserIdConverter::class)
+    @JdbcTypeCode(Types.BIGINT)
     val authUserId: AuthUserId,
     
     @Column(nullable = false)

@@ -9,11 +9,11 @@ import org.springframework.stereotype.Component
 class AuthUserReaderImpl(
     private val authUserRepository: AuthUserRepository
 ) : AuthUserReader {
-    override suspend fun findAuthUserById(id: AuthUserId): AuthUser? {
+    override fun findAuthUserById(id: AuthUserId): AuthUser? {
         return authUserRepository.findById(id)
     }
 
-    override suspend fun findAuthUserByIdentifier(identifier: String): AuthUser? {
+    override fun findAuthUserByIdentifier(identifier: String): AuthUser? {
         return authUserRepository.findByIdentifier(identifier)
     }
 }

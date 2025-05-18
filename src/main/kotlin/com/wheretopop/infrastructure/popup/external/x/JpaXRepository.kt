@@ -15,7 +15,7 @@ interface JpaXRepository : JpaRepository<XEntity, XId>
  * X 저장소 JPA 구현체
  */
 @Repository
-class JpaXRepositoryImpl(
+class XRepositoryJpaAdapter(
     private val jpaRepository: JpaXRepository
 ) : XRepository {
     

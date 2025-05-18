@@ -14,7 +14,7 @@ class UserFacadeImpl(
 ) : UserFacade {
 
     @Transactional
-    override suspend fun signUp(
+    override fun signUp(
         input: UserInput.SignUp
     ): UserInfo.Main {
         val user = userService.createUser(input.toCommand())
@@ -22,12 +22,12 @@ class UserFacadeImpl(
         return user
     }
 
-    override suspend fun login(input: UserInput.Authenticate): AuthInfo.Token {
+    override fun login(input: UserInput.Authenticate): AuthInfo.Token {
         val token = authUserService.authenticate(input.toCommand())
         return token
     }
 
-    override suspend fun refresh(input: UserInput.Refresh): AuthInfo.Token {
+    override fun refresh(input: UserInput.Refresh): AuthInfo.Token {
         val token = authUserService.refresh(input.toCommand())
         return token
     }

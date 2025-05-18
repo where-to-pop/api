@@ -38,7 +38,7 @@ class PopupPopplyProcessor(
     override fun save(popupDetail: PopupDetail, popupId: PopupId) {
         val popupPopplyEntity = PopupPopplyEntity.of(
             popupDetail = popupDetail,
-            popupId = popupId.toLong(),
+            popupId = popupId,
         )
         popupPopplyRepository.save(popupPopplyEntity)
     }
@@ -155,7 +155,7 @@ class PopupPopplyProcessor(
 
         val popupPopplyEntity = PopupPopplyEntity.of(
             popupDetail = popupDetailData,
-            popupId = generatedPopupId.toLong(),
+            popupId = generatedPopupId,
         )
 
         popupPopplyRepository.save(popupPopplyEntity)

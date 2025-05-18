@@ -10,7 +10,7 @@ class JwtTokenManager(
     private val refreshTokenRepository: RefreshTokenRepository,
     private val jwtProvider: JwtProvider
 ) : TokenManager {
-    override suspend fun issue(authUser: AuthUser): AuthInfo.Token {
+    override fun issue(authUser: AuthUser): AuthInfo.Token {
         // JwtProvider를 통해 토큰 생성
         val tokenDto = jwtProvider.generateTokens(authUser.userId)
         
@@ -36,11 +36,11 @@ class JwtTokenManager(
         )
     }
 
-    override suspend fun save(refreshToken: RefreshToken): RefreshToken {
+    override fun save(refreshToken: RefreshToken): RefreshToken {
         return refreshTokenRepository.save(refreshToken)
     }
 
-    override suspend fun load(rawRefreshToken: String): RefreshToken? {
+    override fun load(rawRefreshToken: String): RefreshToken? {
         return refreshTokenRepository.findByToken(rawRefreshToken)
     }
 }

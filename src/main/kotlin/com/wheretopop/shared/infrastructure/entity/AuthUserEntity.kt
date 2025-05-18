@@ -1,14 +1,18 @@
 package com.wheretopop.shared.infrastructure.entity
 
-import com.wheretopop.config.JpaConverterConfig
+import com.wheretopop.config.AuthUserIdConverter
+import com.wheretopop.config.PasswordConverter
+import com.wheretopop.config.UserIdConverter
 import com.wheretopop.domain.user.UserId
 import com.wheretopop.domain.user.auth.AuthUser
 import com.wheretopop.domain.user.auth.AuthUserId
 import com.wheretopop.domain.user.auth.Password
 import jakarta.persistence.*
+import org.hibernate.annotations.JdbcTypeCode
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
+import java.sql.Types
 import java.time.Instant
 
 /**
@@ -23,18 +27,20 @@ import java.time.Instant
 @EntityListeners(AuditingEntityListener::class)
 class AuthUserEntity(
     @Id
-    @Convert(converter = JpaConverterConfig.AuthUserIdConverter::class)
+    @JdbcTypeCode(Types.BIGINT)
+    @Convert(converter = AuthUserIdConverter::class)
     val id: AuthUserId,
     
     @Column(name = "user_id", nullable = false)
-    @Convert(converter = JpaConverterConfig.UserIdConverter::class)
+    @JdbcTypeCode(Types.BIGINT)
+    @Convert(converter = UserIdConverter::class)
     val userId: UserId,
     
     @Column(nullable = false)
     var identifier: String,
     
     @Column(nullable = false)
-    @Convert(converter = JpaConverterConfig.PasswordConverter::class)
+    @Convert(converter = PasswordConverter::class)
     var password: Password,
     
     @CreatedDate

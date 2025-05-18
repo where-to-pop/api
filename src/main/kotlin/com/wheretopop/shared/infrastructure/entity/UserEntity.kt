@@ -1,12 +1,14 @@
 package com.wheretopop.shared.infrastructure.entity
 
-import com.wheretopop.config.JpaConverterConfig
+import com.wheretopop.config.UserIdConverter
 import com.wheretopop.domain.user.User
 import com.wheretopop.domain.user.UserId
 import jakarta.persistence.*
+import org.hibernate.annotations.JdbcTypeCode
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
+import java.sql.Types
 import java.time.Instant
 
 /**
@@ -21,7 +23,8 @@ import java.time.Instant
 @EntityListeners(AuditingEntityListener::class)
 class UserEntity(
     @Id
-    @Convert(converter = JpaConverterConfig.UserIdConverter::class)
+    @Convert(converter = UserIdConverter::class)
+    @JdbcTypeCode(Types.BIGINT)
     val id: UserId,
     
     @Column(nullable = false)

@@ -1,9 +1,9 @@
 package com.wheretopop.domain.popup
 
-import java.util.UUID
+import java.util.*
 
 data class PopupInfo(
-    val id: Long,
+    val id: PopupId,
     val name: String,
     val address: String,
     val description: String,

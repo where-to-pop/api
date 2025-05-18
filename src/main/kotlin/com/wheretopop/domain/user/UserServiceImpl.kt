@@ -9,7 +9,7 @@ class UserServiceImpl(
     private val userStore: UserStore
 ) : UserService {
 
-    override suspend fun createUser(command: UserCommand.CreateUser): UserInfo.Main {
+    override fun createUser(command: UserCommand.CreateUser): UserInfo.Main {
         // 이메일 중복 검사
         userReader.findByEmail(command.email)?.let {
             throw IllegalArgumentException("이미 존재하는 이메일입니다: ${command.email}")
@@ -28,7 +28,7 @@ class UserServiceImpl(
         return UserInfoMapper.toMainInfo(savedUser)
     }
 
-    override suspend fun updateUser(command: UserCommand.UpdateUser): UserInfo.Main {
+    override fun updateUser(command: UserCommand.UpdateUser): UserInfo.Main {
         val user = userReader.findById(command.id)
             ?: throw IllegalArgumentException("사용자를 찾을 수 없습니다: ${command.id}")
 
@@ -42,7 +42,7 @@ class UserServiceImpl(
         return UserInfoMapper.toMainInfo(savedUser)
     }
     
-    override suspend fun findUserById(id: UserId): UserInfo.Main? {
+    override fun findUserById(id: UserId): UserInfo.Main? {
         val user = userReader.findById(id) ?: return null
         return UserInfoMapper.toMainInfo(user)
     }

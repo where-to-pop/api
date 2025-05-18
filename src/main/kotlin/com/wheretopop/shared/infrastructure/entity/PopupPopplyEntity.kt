@@ -1,14 +1,17 @@
 package com.wheretopop.shared.infrastructure.entity
 
-import com.wheretopop.config.JpaConverterConfig
+import com.wheretopop.config.PopupIdConverter
+import com.wheretopop.config.PopupPopplyIdConverter
+import com.wheretopop.domain.popup.PopupId
 import com.wheretopop.domain.popup.PopupInfo
 import com.wheretopop.infrastructure.popup.external.popply.PopupDetail
 import com.wheretopop.shared.domain.identifier.PopupPopplyId
-import com.wheretopop.shared.model.UniqueId
 import jakarta.persistence.*
+import org.hibernate.annotations.JdbcTypeCode
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
+import java.sql.Types
 import java.time.Instant
 
 
@@ -22,11 +25,14 @@ import java.time.Instant
 @EntityListeners(AuditingEntityListener::class)
 class PopupPopplyEntity(
     @Id
-    @Convert(converter = JpaConverterConfig.PopupPopplyIdConverter::class)
+    @JdbcTypeCode(Types.BIGINT)
+    @Convert(converter = PopupPopplyIdConverter::class)
     val id: PopupPopplyId = PopupPopplyId.create(),
 
     @Column(name = "popup_id", nullable = false)
-    val popupId: Long,
+    @JdbcTypeCode(Types.BIGINT)
+    @Convert(converter = PopupIdConverter::class)
+    val popupId: PopupId,
 
     @Column(name = "popup_name", nullable = false)
     val popupName: String,
@@ -76,7 +82,7 @@ class PopupPopplyEntity(
     val deletedAt: Instant? = null
 ) {
     companion object {
-        fun of(popupDetail: PopupDetail, popupId: Long): PopupPopplyEntity {
+        fun of(popupDetail: PopupDetail, popupId: PopupId): PopupPopplyEntity {
             return PopupPopplyEntity(
                 id = PopupPopplyId.create(),
                 popupId = popupId,

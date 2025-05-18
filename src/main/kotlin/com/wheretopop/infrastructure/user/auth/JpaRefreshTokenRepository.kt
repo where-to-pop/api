@@ -21,7 +21,7 @@ interface JpaRefreshTokenRepository : JpaRepository<RefreshTokenEntity, RefreshT
  * 리프레시 토큰 저장소 JPA 구현체
  */
 @Repository
-class JpaRefreshTokenRepositoryImpl(
+class RefreshTokenRepositoryJpaAdapter(
     private val jpaRepository: JpaRefreshTokenRepository
 ) : RefreshTokenRepository {
 

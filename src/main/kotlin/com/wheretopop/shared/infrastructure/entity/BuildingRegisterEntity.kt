@@ -1,14 +1,17 @@
 package com.wheretopop.shared.infrastructure.entity
 
-import com.wheretopop.config.JpaConverterConfig
+import com.wheretopop.config.BuildingIdConverter
+import com.wheretopop.config.BuildingRegisterIdConverter
 import com.wheretopop.domain.building.BuildingId
 import com.wheretopop.domain.building.register.BuildingRegister
 import com.wheretopop.domain.building.register.BuildingRegisterId
 import com.wheretopop.shared.model.Location
 import jakarta.persistence.*
+import org.hibernate.annotations.JdbcTypeCode
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
+import java.sql.Types
 import java.time.Instant
 
 /**
@@ -20,11 +23,13 @@ import java.time.Instant
 @EntityListeners(AuditingEntityListener::class)
 class BuildingRegisterEntity(
     @Id
-    @Convert(converter = JpaConverterConfig.BuildingRegisterIdConverter::class)
+    @JdbcTypeCode(Types.BIGINT)
+    @Convert(converter = BuildingRegisterIdConverter::class)
     val id: BuildingRegisterId,
     
     @Column(name = "building_id", nullable = false)
-    @Convert(converter = JpaConverterConfig.BuildingIdConverter::class)
+    @JdbcTypeCode(Types.BIGINT)
+    @Convert(converter = BuildingIdConverter::class)
     val buildingId: BuildingId,
     
     @Column(nullable = false)

@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component
 internal class UserStoreImpl(
     private val userRepository: UserRepository
 ) : UserStore {
-    override suspend fun save(user: User): User {
+    override fun save(user: User): User {
         return userRepository.save(user)
     }
 } 

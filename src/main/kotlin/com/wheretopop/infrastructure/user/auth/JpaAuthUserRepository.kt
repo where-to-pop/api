@@ -23,7 +23,7 @@ interface JpaAuthUserRepository : JpaRepository<AuthUserEntity, AuthUserId> {
  * 인증 사용자 저장소 JPA 구현체
  */
 @Repository
-class JpaAuthUserRepositoryImpl(
+class AuthUserRepositoryJpaAdapter(
     private val jpaRepository: JpaAuthUserRepository
 ) : AuthUserRepository {
 

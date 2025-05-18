@@ -19,7 +19,7 @@ interface JpaProjectRepository : JpaRepository<ProjectEntity, ProjectId> {
  * 프로젝트 저장소 JPA 구현체
  */
 @Repository
-class JpaProjectRepositoryImpl(
+class ProjectRepositoryJpaAdapter(
     private val jpaRepository: JpaProjectRepository
 ) : ProjectRepository {
 

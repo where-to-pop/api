@@ -8,11 +8,11 @@ import org.springframework.stereotype.Component
 class AuthUserStoreImpl(
     private val authUserRepository: AuthUserRepository
 ) : AuthUserStore {
-    override suspend fun save(authUser: AuthUser): AuthUser {
+    override fun save(authUser: AuthUser): AuthUser {
         return authUserRepository.save(authUser)
     }
 
-    override suspend fun save(authUsers: List<AuthUser>): List<AuthUser> {
+    override fun save(authUsers: List<AuthUser>): List<AuthUser> {
         return authUserRepository.save(authUsers)
     }
 }

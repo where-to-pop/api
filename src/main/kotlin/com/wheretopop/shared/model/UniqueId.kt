@@ -1,14 +1,7 @@
 package com.wheretopop.shared.model
 
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.descriptors.PrimitiveKind
-import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
 import java.time.Instant
 import java.util.concurrent.atomic.AtomicInteger
-import java.io.Serializable as JavaSerializable
 
 /**
  * Snowflake ID 형식의 고유 식별자 클래스
@@ -19,10 +12,9 @@ import java.io.Serializable as JavaSerializable
  * - worker id (10비트): 서버/프로세스 식별자 (0-1023)
  * - sequence (12비트): 같은 밀리초 내 순차번호 (0-4095)
  */
-@Serializable(with = UniqueIdSerializer::class)
 open class UniqueId protected constructor(
     val value: Long
-) : JavaSerializable {
+) : java.io.Serializable {
     companion object {
         private const val serialVersionUID = 1L
         
@@ -136,14 +128,14 @@ open class UniqueId protected constructor(
     }
 }
 
-object UniqueIdSerializer : KSerializer<UniqueId> {
-    override val descriptor = PrimitiveSerialDescriptor("UniqueId", PrimitiveKind.LONG)
-
-    override fun deserialize(decoder: Decoder): UniqueId {
-        return UniqueId.of(decoder.decodeLong())
-    }
-
-    override fun serialize(encoder: Encoder, value: UniqueId) {
-        encoder.encodeLong(value.toLong())
-    }
-} 
+//object UniqueIdSerializer : KSerializer<UniqueId> {
+//    override val descriptor = PrimitiveSerialDescriptor("UniqueId", PrimitiveKind.LONG)
+//
+//    override fun deserialize(decoder: Decoder): UniqueId {
+//        return UniqueId.of(decoder.decodeLong())
+//    }
+//
+//    override fun serialize(encoder: Encoder, value: UniqueId) {
+//        encoder.encodeLong(value.toLong())
+//    }
+//}

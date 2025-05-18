@@ -1,12 +1,13 @@
 package com.wheretopop.shared.infrastructure.entity
 
-import com.wheretopop.config.JpaConverterConfig
+import com.wheretopop.config.PopupIdConverter
 import com.wheretopop.domain.popup.Popup
 import com.wheretopop.domain.popup.PopupId
 import jakarta.persistence.*
+import org.hibernate.annotations.JdbcTypeCode
 import org.springframework.data.annotation.CreatedDate
-import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
+import java.sql.Types
 import java.time.Instant
 
 /**
@@ -18,10 +19,12 @@ import java.time.Instant
 @EntityListeners(AuditingEntityListener::class)
 data class PopupEntity(
     @Id
-    @Convert(converter = JpaConverterConfig.PopupIdConverter::class)
+    @JdbcTypeCode(Types.BIGINT)
+    @Convert(converter = PopupIdConverter::class)
     val id: PopupId,
 
     @Column(name = "building_id")
+    @JdbcTypeCode(Types.BIGINT)
     val buildingId: Long?,
 
     @Column(nullable = false)

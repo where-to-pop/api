@@ -133,14 +133,3 @@ class JwtAuthenticationFilter(private val jwtProvider: JwtProvider) : org.spring
         return null
     }
 }
-
-/**
- * MVC 설정 클래스
- * 인자 리졸버 등록을 담당합니다.
- */
-@Configuration
-class WebMvcConfig(private val userPrincipalResolver: UserPrincipalResolver) : WebMvcConfigurer {
-    override fun addArgumentResolvers(resolvers: MutableList<HandlerMethodArgumentResolver>) {
-        resolvers.add(userPrincipalResolver)
-    }
-}

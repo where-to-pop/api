@@ -1,13 +1,15 @@
 package com.wheretopop.shared.infrastructure.entity
 
-import com.wheretopop.config.JpaConverterConfig
+import com.wheretopop.config.XIdConverter
 import com.wheretopop.domain.popup.PopupId
 import com.wheretopop.infrastructure.popup.external.x.EmotionScore
 import com.wheretopop.infrastructure.popup.external.x.XResponse
 import com.wheretopop.shared.domain.identifier.XId
 import jakarta.persistence.*
+import org.hibernate.annotations.JdbcTypeCode
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
+import java.sql.Types
 import java.time.Instant
 
 
@@ -20,10 +22,12 @@ import java.time.Instant
 @EntityListeners(AuditingEntityListener::class)
 class XEntity(
     @Id
-    @Convert(converter = JpaConverterConfig.XIdConverter::class)
+    @Convert(converter = XIdConverter::class)
+    @JdbcTypeCode(Types.BIGINT)
     val id: XId = XId.create(),
 
     @Column(name = "popup_id", nullable = false)
+    @JdbcTypeCode(Types.BIGINT)
     val popupId: PopupId,
 
     @Column(name = "written_at", nullable = false)

@@ -1,15 +1,18 @@
 package com.wheretopop.shared.infrastructure.entity
 
-import com.wheretopop.config.JpaConverterConfig
+import com.wheretopop.config.ChatIdConverter
+import com.wheretopop.config.ChatMessageIdConverter
 import com.wheretopop.domain.chat.ChatId
 import com.wheretopop.domain.chat.ChatMessage
 import com.wheretopop.domain.chat.ChatMessageId
 import com.wheretopop.shared.enums.ChatMessageFinishReason
 import com.wheretopop.shared.enums.ChatMessageRole
 import jakarta.persistence.*
+import org.hibernate.annotations.JdbcTypeCode
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
+import java.sql.Types
 import java.time.Instant
 
 /**
@@ -21,11 +24,13 @@ import java.time.Instant
 @EntityListeners(AuditingEntityListener::class)
 class ChatMessageEntity(
     @Id
-    @Convert(converter = JpaConverterConfig.ChatMessageIdConverter::class)
+    @JdbcTypeCode(Types.BIGINT)
+    @Convert(converter = ChatMessageIdConverter::class)
     val id: ChatMessageId,
     
     @Column(name = "chat_id", nullable = false)
-    @Convert(converter = JpaConverterConfig.ChatIdConverter::class)
+    @JdbcTypeCode(Types.BIGINT)
+    @Convert(converter = ChatIdConverter::class)
     val chatId: ChatId,
     
     @Column(nullable = false)

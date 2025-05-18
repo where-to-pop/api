@@ -13,7 +13,7 @@ spring:
       idle-timeout: 30000
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MariaDBDialect
@@ -22,12 +22,6 @@ spring:
 
   ai:
     mcp:
-      server:
-        name: where-to-pop
-        type: async
-        sse-endpoint: /mcp/sse
-        sse-message-endpoint: /mcp/message
-        enabled: true
       client:
         enabled: true
         initialized: true
