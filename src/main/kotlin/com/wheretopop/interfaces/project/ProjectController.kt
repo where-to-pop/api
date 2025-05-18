@@ -2,8 +2,8 @@ package com.wheretopop.interfaces.project
 
 import com.wheretopop.application.project.ProjectFacade
 import com.wheretopop.config.security.CurrentUser
+import com.wheretopop.config.security.UserPrincipal
 import com.wheretopop.domain.project.ProjectId
-import com.wheretopop.domain.user.UserId
 import com.wheretopop.shared.exception.toException
 import com.wheretopop.shared.response.CommonResponse
 import com.wheretopop.shared.response.ErrorCode
@@ -24,9 +24,9 @@ class ProjectController(private val projectFacade: ProjectFacade) {
     @PostMapping("", produces = [MediaType.APPLICATION_JSON_VALUE])
     fun createProject(
         @RequestBody createRequest: ProjectDto.CreateRequest,
-        @CurrentUser userId: UserId
+        @CurrentUser principal: UserPrincipal
     ): CommonResponse<ProjectDto.ProjectResponse> {
-        val projectInfo = projectFacade.createProject(createRequest.toInput(userId))
+        val projectInfo = projectFacade.createProject(createRequest.toInput(principal.userId))
         
         return CommonResponse.success(ProjectDto.ProjectResponse.from(projectInfo))
     }
@@ -38,7 +38,7 @@ class ProjectController(private val projectFacade: ProjectFacade) {
     fun updateProject(
         @PathVariable projectId: Long,
         @RequestBody updateRequest: ProjectDto.UpdateRequest,
-        @CurrentUser userId: UserId
+        @CurrentUser principal: UserPrincipal
     ): CommonResponse<ProjectDto.ProjectResponse> {
         val projectInfo = projectFacade.updateProject(updateRequest.toInput(ProjectId.of(projectId)))
         
@@ -51,7 +51,7 @@ class ProjectController(private val projectFacade: ProjectFacade) {
     @GetMapping("/{projectId}", produces = [MediaType.APPLICATION_JSON_VALUE])
     fun getProject(
         @PathVariable projectId: Long,
-        @CurrentUser userId: UserId
+        @CurrentUser principal: UserPrincipal
     ): CommonResponse<ProjectDto.ProjectResponse> {
         val projectInfo = projectFacade.findProjectById(ProjectId.of(projectId))
             ?: throw ErrorCode.COMMON_ENTITY_NOT_FOUND.toException()
@@ -64,9 +64,9 @@ class ProjectController(private val projectFacade: ProjectFacade) {
      */
     @GetMapping("", produces = [MediaType.APPLICATION_JSON_VALUE])
     fun getMyProjects(
-        @CurrentUser userId: UserId
+        @CurrentUser principal: UserPrincipal
     ): CommonResponse<List<ProjectDto.ProjectResponse>> {
-        val projectInfos = projectFacade.findProjectsByOwnerId(userId)
+        val projectInfos = projectFacade.findProjectsByOwnerId(principal.userId)
         
         return CommonResponse.success(
             projectInfos.map { ProjectDto.ProjectResponse.from(it) }

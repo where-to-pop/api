@@ -14,4 +14,5 @@ interface AreaRepository {
     fun save(area: Area): Area
     fun save(areas: List<Area>): List<Area>
     fun deleteById(id: AreaId)
+    fun findNearest(latitude: Double, longitude: Double, maxDistanceKm: Double = 10.0): Area?
 }

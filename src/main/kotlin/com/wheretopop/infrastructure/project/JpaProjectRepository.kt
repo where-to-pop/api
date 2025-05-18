@@ -11,8 +11,8 @@ import org.springframework.stereotype.Repository
  * JPA 프로젝트 저장소 인터페이스
  */
 @Repository
-interface JpaProjectRepository : JpaRepository<ProjectEntity, ProjectId> {
-    fun findByOwnerId(ownerId: UserId): List<ProjectEntity>
+interface JpaProjectRepository : JpaRepository<ProjectEntity, Long> {
+    fun findByOwnerId(ownerId: Long): List<ProjectEntity>
 }
 
 /**
@@ -24,11 +24,11 @@ class ProjectRepositoryJpaAdapter(
 ) : ProjectRepository {
 
     override fun findById(id: ProjectId): Project? {
-        return jpaRepository.findById(id).orElse(null)?.toDomain()
+        return jpaRepository.findById(id.toLong()).orElse(null)?.toDomain()
     }
 
     override fun findByOwnerId(ownerId: UserId): List<Project> {
-        return jpaRepository.findByOwnerId(ownerId).map { it.toDomain() }
+        return jpaRepository.findByOwnerId(ownerId.toLong()).map { it.toDomain() }
     }
 
     override fun save(project: Project): Project {
