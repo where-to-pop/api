@@ -5,17 +5,18 @@ import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
-import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.reactive.function.client.awaitBody
+import org.springframework.web.client.RestTemplate
+import org.springframework.http.HttpMethod
 
 private val logger = KotlinLogging.logger {}
 
 /**
  * 서울시 실시간 인구데이터 API 호출을 담당하는 클래스
+ * JPA 기반으로 변경됨
  */
 @Component
 class AreaPopulationApiCaller(
-    @Qualifier("seoulApiWebClient") private val webClient: WebClient,
+    @Qualifier("seoulApiRestTemplate") private val restTemplate: RestTemplate,
     @Value("\${openapi.seoul.key}") private val apiKey: String
 ) {
     /**
@@ -24,21 +25,28 @@ class AreaPopulationApiCaller(
      * @param areaName 조회할 지역 이름
      * @return API 응답 데이터
      */
-    suspend fun fetchPopulationData(areaName: String): SeoulPopulationResponse? {
+    fun fetchPopulationData(areaName: String): SeoulPopulationResponse? {
         return try {
             logger.info { "Fetching population data for area: $areaName" }
-            val rawResponse = webClient.get()
-                .uri { builder ->
-                    builder
-                        .path("/{key}/json/citydata_ppltn/1/5/{areaNm}")
-                        .build(apiKey, areaName)
-                }
-                .retrieve()
-                .awaitBody<String>()
+            
+            val url = "/{key}/json/citydata_ppltn/1/5/{areaNm}"
+                .replace("{key}", apiKey)
+                .replace("{areaNm}", areaName)
+            
+            val response = restTemplate.exchange(
+                url,
+                HttpMethod.GET,
+                null,
+                String::class.java
+            )
+            
+            val rawResponse = response.body
 
             logger.info { "Raw response for $areaName: $rawResponse" } // 찍는다
 
-            objectMapper.readValue(rawResponse, SeoulPopulationResponse::class.java)
+            rawResponse?.let {
+                objectMapper.readValue(it, SeoulPopulationResponse::class.java)
+            }
         } catch (e: Exception) {
             logger.error(e) { "Error fetching population data for $areaName: ${e.message}" }
             null

@@ -1,7 +1,7 @@
 package com.wheretopop.application.area
 
 interface AreaOpenDataUseCase {
-    suspend fun callOpenDataApiAndSave()
+    fun callOpenDataApiAndSave()
 }
 
 interface AreaSnsUseCase {

@@ -3,13 +3,12 @@ package com.wheretopop.config.security
 import com.wheretopop.domain.user.UserId
 import org.springframework.core.MethodParameter
 import org.springframework.security.core.Authentication
-import org.springframework.security.core.context.ReactiveSecurityContextHolder
-import org.springframework.security.core.context.SecurityContext
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
-import org.springframework.web.reactive.BindingContext
-import org.springframework.web.reactive.result.method.HandlerMethodArgumentResolver
-import org.springframework.web.server.ServerWebExchange
-import reactor.core.publisher.Mono
+import org.springframework.web.bind.support.WebDataBinderFactory
+import org.springframework.web.context.request.NativeWebRequest
+import org.springframework.web.method.support.HandlerMethodArgumentResolver
+import org.springframework.web.method.support.ModelAndViewContainer
 
 /**
  * 현재 인증된 사용자를 주입할 수 있는 어노테이션
@@ -38,15 +37,19 @@ class UserPrincipalResolver : HandlerMethodArgumentResolver {
     
     override fun resolveArgument(
         parameter: MethodParameter,
-        bindingContext: BindingContext,
-        exchange: ServerWebExchange
-    ): Mono<Any> {
-        return ReactiveSecurityContextHolder.getContext()
-            .map(SecurityContext::getAuthentication)
-            .filter(Authentication::isAuthenticated)
-            .map { authentication ->
-                val userId = authentication.principal as? UserId
-                userId?.let { UserPrincipal(it) } ?: throw IllegalStateException("User ID not found in authentication")
-            }
+        mavContainer: ModelAndViewContainer?,
+        webRequest: NativeWebRequest,
+        binderFactory: WebDataBinderFactory?
+    ): Any? {
+        val authentication = SecurityContextHolder.getContext().authentication
+        
+        if (authentication == null || !authentication.isAuthenticated) {
+            throw IllegalStateException("User is not authenticated")
+        }
+        
+        val userId = authentication.principal as? UserId
+            ?: throw IllegalStateException("User ID not found in authentication")
+            
+        return UserPrincipal(userId)
     }
 } 

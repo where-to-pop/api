@@ -9,6 +9,8 @@ import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
+import org.springframework.web.method.support.HandlerMethodArgumentResolver
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 
 /**
  * Spring Security 설정 클래스
@@ -95,6 +97,8 @@ class JwtAuthenticationFilter(private val jwtProvider: JwtProvider) : org.spring
                     
                     // 사용자 ID를 요청 속성으로 저장 (컨트롤러에서 @RequestAttribute로 접근 가능)
                     request.setAttribute("userId", userId)
+                    request.setAttribute(JwtAuthenticationConverter.AUTH_STATUS, "VALID")
+                    request.setAttribute(JwtAuthenticationConverter.AUTH_USER_ID, userId)
                 }
             }
         } catch (ex: Exception) {
@@ -127,5 +131,16 @@ class JwtAuthenticationFilter(private val jwtProvider: JwtProvider) : org.spring
         }
         
         return null
+    }
+}
+
+/**
+ * MVC 설정 클래스
+ * 인자 리졸버 등록을 담당합니다.
+ */
+@Configuration
+class WebMvcConfig(private val userPrincipalResolver: UserPrincipalResolver) : WebMvcConfigurer {
+    override fun addArgumentResolvers(resolvers: MutableList<HandlerMethodArgumentResolver>) {
+        resolvers.add(userPrincipalResolver)
     }
 }

@@ -2,7 +2,7 @@ package com.wheretopop.shared.infrastructure.entity
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.wheretopop.config.JpaConverterConfig
-import com.wheretopop.domain.area.AreaId
+import com.wheretopop.shared.domain.identifier.AreaId
 import com.wheretopop.infrastructure.area.external.opendata.population.CityDataPopulation
 import com.wheretopop.infrastructure.area.external.opendata.population.ForecastPopulation
 import com.wheretopop.shared.domain.identifier.AreaPopulationId
@@ -20,12 +20,12 @@ import java.time.Instant
 @Entity
 @Table(name = "area_populations")
 @EntityListeners(AuditingEntityListener::class)
-data class AreaPopulationEntity(
+class AreaPopulationEntity(
     @Id
     @Convert(converter = JpaConverterConfig.AreaPopulationIdConverter::class)
     val id: AreaPopulationId = AreaPopulationId.create(),
 
-    @Column(name = "area_id", nullable = false) // FK
+    @Column(name = "area_id", nullable = false)
     @Convert(converter = JpaConverterConfig.AreaIdConverter::class)
     val areaId: AreaId,
 
@@ -92,7 +92,7 @@ data class AreaPopulationEntity(
     @Column(name = "forecast_yn", nullable = false)
     val forecastYn: Boolean,
 
-    @Column(name = "forecast_population_json")
+    @Column(name = "forecast_population_json", columnDefinition = "TEXT")
     val forecastPopulationJson: String?,
 
     @CreatedDate
@@ -123,8 +123,7 @@ data class AreaPopulationEntity(
     }
     
     companion object {
-        fun of(cityDataPopulation: CityDataPopulation, areaId: AreaId): AreaPopulationEntity {
-            // ForecastPopulation 리스트를 JSON 문자열로 변환
+        fun from(cityDataPopulation: CityDataPopulation, areaId: AreaId): AreaPopulationEntity {
             val forecastPopulationJson = cityDataPopulation.forecastPopulation?.let {
                 JsonUtil.objectMapper.writeValueAsString(it)
             }
@@ -153,10 +152,7 @@ data class AreaPopulationEntity(
                 replaceYn = cityDataPopulation.replaceYn,
                 populationUpdateTime = cityDataPopulation.populationUpdateTime,
                 forecastYn = cityDataPopulation.forecastYn,
-                forecastPopulationJson = forecastPopulationJson,
-                createdAt = Instant.now(),
-                updatedAt = Instant.now(),
-                deletedAt = null
+                forecastPopulationJson = forecastPopulationJson
             )
         }
     }

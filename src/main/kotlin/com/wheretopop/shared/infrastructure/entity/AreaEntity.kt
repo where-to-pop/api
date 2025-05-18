@@ -2,7 +2,7 @@ package com.wheretopop.shared.infrastructure.entity
 
 import com.wheretopop.config.JpaConverterConfig
 import com.wheretopop.domain.area.Area
-import com.wheretopop.domain.area.AreaId
+import com.wheretopop.shared.domain.identifier.AreaId
 import com.wheretopop.shared.model.Location
 import jakarta.persistence.*
 import org.springframework.data.annotation.CreatedDate
@@ -21,32 +21,44 @@ class AreaEntity(
     @Id
     @Convert(converter = JpaConverterConfig.AreaIdConverter::class)
     val id: AreaId,
-    
+
     @Column(nullable = false)
     var name: String,
-    
+
     @Column(nullable = false, columnDefinition = "TEXT")
     var description: String,
-    
+
     @Column(nullable = false)
     var latitude: Double,
-    
+
     @Column(nullable = false)
     var longitude: Double,
-    
+
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     var createdAt: Instant = Instant.now(),
-    
+
     @LastModifiedDate
     @Column(name = "updated_at", nullable = false)
     var updatedAt: Instant = Instant.now(),
-    
+
     @Column(name = "deleted_at")
     var deletedAt: Instant? = null
 ) {
+    fun toDomain(): Area {
+        return Area.create(
+            id = id,
+            name = name,
+            description = description,
+            location = Location(latitude, longitude),
+            createdAt = createdAt,
+            updatedAt = updatedAt,
+            deletedAt = deletedAt,
+        )
+    }
+
     companion object {
-        fun of(area: Area): AreaEntity {
+        fun from(area: Area): AreaEntity {
             return AreaEntity(
                 id = area.id,
                 name = area.name,
@@ -58,18 +70,6 @@ class AreaEntity(
                 deletedAt = area.deletedAt
             )
         }
-    }
-
-    fun toDomain(): Area {
-        return Area.create(
-            id = id,
-            name = name,
-            description = description,
-            location = Location(latitude, longitude),
-            createdAt = createdAt,
-            updatedAt = updatedAt,
-            deletedAt = deletedAt,
-        )
     }
 }
 

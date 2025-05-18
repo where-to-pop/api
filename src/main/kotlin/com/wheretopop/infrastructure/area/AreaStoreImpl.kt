@@ -13,16 +13,16 @@ class AreaStoreImpl(
     private val areaRepository: AreaRepository
 ) : AreaStore {
 
-    override suspend fun save(area: Area): Area {
+    override fun save(area: Area): Area {
         return areaRepository.save(area)
     }
-    override suspend fun save(areas: List<Area>): List<Area> {
+    override fun save(areas: List<Area>): List<Area> {
         return areaRepository.save(areas)
     }
-    override suspend fun delete(area: Area) {
+    override fun delete(area: Area) {
         areaRepository.deleteById(area.id)
     }   
-    override suspend fun delete(areas: List<Area>) {
+    override fun delete(areas: List<Area>) {
         areas.forEach { area ->
             areaRepository.deleteById(area.id)
         }

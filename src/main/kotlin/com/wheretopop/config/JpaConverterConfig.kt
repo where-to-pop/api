@@ -1,6 +1,6 @@
 package com.wheretopop.config
 
-import com.wheretopop.domain.area.AreaId
+import com.wheretopop.shared.domain.identifier.AreaId
 import com.wheretopop.domain.building.BuildingId
 import com.wheretopop.domain.building.register.BuildingRegisterId
 import com.wheretopop.domain.chat.ChatId

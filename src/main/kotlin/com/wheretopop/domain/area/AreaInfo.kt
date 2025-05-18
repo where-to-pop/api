@@ -1,5 +1,6 @@
 package com.wheretopop.domain.area
 
+import com.wheretopop.shared.domain.identifier.AreaId
 import java.time.Instant
 
 /**

@@ -27,7 +27,7 @@ class AreaPopulationProcessor(
     /**
      * 모든 지역의 인구 데이터를 수집하고 저장합니다.
      */
-    override suspend fun callAndSave() {
+    override fun callAndSave() {
         val areas = areaRepository.findAll()
         logger.info { "Starting population data collection for ${areas.size} areas" }
         
@@ -41,7 +41,7 @@ class AreaPopulationProcessor(
                 if (response != null) {
                     // 응답 데이터 변환 및 저장
                     response.cityDataPopulation.forEach { cityDataPopulation ->
-                        val areaPopulationEntity = AreaPopulationEntity.of(cityDataPopulation, area.id)
+                        val areaPopulationEntity = AreaPopulationEntity.from(cityDataPopulation, area.id)
                         areaPopulationRepository.save(areaPopulationEntity)
                     }
                     

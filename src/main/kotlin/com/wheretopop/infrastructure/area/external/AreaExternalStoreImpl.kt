@@ -9,7 +9,7 @@ class AreaExternalStoreImpl(
     private val opendDataProcessor: List<OpenDataProcessor>
 ): AreaExternalStore {
 
-    override suspend fun callOpenDataApiAndSave() {
+    override fun callOpenDataApiAndSave() {
         opendDataProcessor.forEach { processor ->
             processor.callAndSave()
         }

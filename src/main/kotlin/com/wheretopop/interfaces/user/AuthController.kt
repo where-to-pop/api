@@ -2,8 +2,9 @@ package com.wheretopop.interfaces.user
 
 import com.wheretopop.application.user.UserFacade
 import com.wheretopop.application.user.UserInput
+import com.wheretopop.config.security.CurrentUser
 import com.wheretopop.config.security.JwtProvider
-import com.wheretopop.domain.user.UserId
+import com.wheretopop.config.security.UserPrincipal
 import com.wheretopop.shared.response.CommonResponse
 import com.wheretopop.shared.response.ErrorCode
 import org.springframework.http.HttpHeaders
@@ -25,8 +26,10 @@ class AuthController(
     private val userFacade: UserFacade,
     private val jwtProvider: JwtProvider
 ) {
-    private val ACCESS_TOKEN_COOKIE_NAME = "access_token"
-    private val REFRESH_TOKEN_COOKIE_NAME = "refresh_token"
+    companion object {
+        private const val ACCESS_TOKEN_COOKIE_NAME = "access_token"
+        private const val REFRESH_TOKEN_COOKIE_NAME = "refresh_token"
+    }
     private val HTTP_ONLY = true
     
     /**
@@ -144,7 +147,7 @@ class AuthController(
      * 쿠키에서 리프레시 토큰을 읽어 새로운 액세스 토큰과 리프레시 토큰을 발급합니다.
      */
     @PostMapping("/refresh")
-    fun refresh(@CookieValue(name = REFRESH_TOKEN_COOKIE_NAME, required = false) refreshToken: String?, 
+    fun refresh(@CookieValue(REFRESH_TOKEN_COOKIE_NAME) refreshToken: String?,
                 @RequestHeader(value = "Origin", required = false) origin: String?): ResponseEntity<CommonResponse<*>> {
         // 쿠키에서 리프레시 토큰 추출
         if (refreshToken == null) {
@@ -235,8 +238,10 @@ class AuthController(
      * 액세스 토큰과 리프레시 토큰 쿠키를 만료시킵니다.
      */
     @DeleteMapping("/logout")
-    fun logout(@RequestAttribute("userId") userId: UserId,
+    fun logout(@CurrentUser principal: UserPrincipal,
                @RequestHeader(value = "Origin", required = false) origin: String?): ResponseEntity<CommonResponse<String>> {
+        val userId = principal.userId
+               
         // 원본 요청의 오리진 추출
         val originUrl = origin ?: ""
         val isLocalhost = originUrl.contains("localhost")

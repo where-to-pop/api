@@ -2,7 +2,7 @@ package com.wheretopop.infrastructure.area.external
 
 import com.wheretopop.application.area.AreaOpenDataUseCase
 import com.wheretopop.application.area.AreaSnsUseCase
-import com.wheretopop.domain.area.AreaId
+import com.wheretopop.shared.domain.identifier.AreaId
 import com.wheretopop.domain.area.AreaInfo
 import com.wheretopop.domain.area.AreaInsightProvider
 import org.springframework.stereotype.Component
@@ -16,11 +16,11 @@ class AreaExternalManager(
         return areaExternalStore.callOpenDataApiAndSave()
     }
 
-    override suspend fun findPopulationInsightByAreaId(areaId: AreaId): AreaInfo.PopulationInsight? {
+    override fun findPopulationInsightByAreaId(areaId: AreaId): AreaInfo.PopulationInsight? {
         return areaExternalReader.findPopulationInsightByAreaId(areaId)
     }
 
-    override suspend fun findPopulationInsightsByAreaIds(areaIds: List<AreaId>): List<AreaInfo.PopulationInsight> {
+    override fun findPopulationInsightsByAreaIds(areaIds: List<AreaId>): List<AreaInfo.PopulationInsight> {
         return areaExternalReader.findPopulationInsightsByAreaIds(areaIds)
     }
 }

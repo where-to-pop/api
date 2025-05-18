@@ -4,6 +4,9 @@ import com.wheretopop.domain.user.UserId
 import io.jsonwebtoken.*
 import io.jsonwebtoken.security.Keys
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.core.Authentication
+import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.stereotype.Component
 import java.security.Key
 import java.time.Instant
@@ -219,5 +222,14 @@ class JwtProvider(
      */
     fun getRefreshTokenExpirationInstant(): Instant {
         return Instant.now().plus(refreshTokenExpirationMs, ChronoUnit.MILLIS)
+    }
+
+    /**
+     * 사용자 ID로부터 Authentication 객체를 생성합니다.
+     * Spring Security에서 사용합니다.
+     */
+    fun getAuthentication(userId: UserId): Authentication {
+        val authorities = listOf(SimpleGrantedAuthority("ROLE_USER"))
+        return UsernamePasswordAuthenticationToken(userId, null, authorities)
     }
 } 

@@ -1,4 +1,4 @@
-package com.wheretopop.domain.area
+package com.wheretopop.shared.domain.identifier
 
 import com.wheretopop.shared.model.UniqueId
 

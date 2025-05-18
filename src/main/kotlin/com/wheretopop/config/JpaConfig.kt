@@ -70,13 +70,5 @@ class JpaConfig {
         transactionManager.entityManagerFactory = entityManagerFactory.`object`
         return transactionManager
     }
-    
-    /**
-     * UUID 타입 변환을 위한 설정
-     * JPA에서 UUID를 처리하기 위한 설정을 추가할 수 있습니다.
-     */
-    @Bean
-    fun uuidConverter(): java.util.function.Function<String, UUID> {
-        return java.util.function.Function { it: String -> UUID.fromString(it) }
-    }
+        
 } 

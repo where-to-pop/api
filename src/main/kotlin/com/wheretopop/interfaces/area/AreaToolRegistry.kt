@@ -1,7 +1,7 @@
 package com.wheretopop.interfaces.area
 
 import com.wheretopop.application.area.AreaFacade
-import com.wheretopop.domain.area.AreaId
+import com.wheretopop.shared.domain.identifier.AreaId
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging

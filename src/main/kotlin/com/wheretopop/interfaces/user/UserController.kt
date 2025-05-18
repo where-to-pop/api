@@ -2,7 +2,8 @@ package com.wheretopop.interfaces.user
 
 import com.wheretopop.application.user.UserFacade
 import com.wheretopop.application.user.UserInput
-import com.wheretopop.domain.user.UserId
+import com.wheretopop.config.security.CurrentUser
+import com.wheretopop.config.security.UserPrincipal
 import com.wheretopop.shared.response.CommonResponse
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -42,7 +43,9 @@ class UserController(private val userFacade: UserFacade) {
      * Spring Security를 통해 인증된 사용자만 접근 가능합니다.
      */
     @GetMapping("/me")
-    fun getCurrentUser(@RequestAttribute("userId") userId: UserId): ResponseEntity<CommonResponse<String>> {
+    fun getCurrentUser(@CurrentUser principal: UserPrincipal): ResponseEntity<CommonResponse<String>> {
+        val userId = principal.userId
+        
         // TODO: userFacade에 findUserById 메서드를 구현하고 호출
         // val userInfo = userFacade.findUserById(userId)
         

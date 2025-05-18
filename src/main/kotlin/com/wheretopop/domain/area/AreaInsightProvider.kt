@@ -1,6 +1,8 @@
 package com.wheretopop.domain.area
 
+import com.wheretopop.shared.domain.identifier.AreaId
+
 interface AreaInsightProvider{
-    suspend fun findPopulationInsightByAreaId(areaId: AreaId): AreaInfo.PopulationInsight?
-    suspend fun findPopulationInsightsByAreaIds(areaIds: List<AreaId>): List<AreaInfo.PopulationInsight>
+    fun findPopulationInsightByAreaId(areaId: AreaId): AreaInfo.PopulationInsight?
+    fun findPopulationInsightsByAreaIds(areaIds: List<AreaId>): List<AreaInfo.PopulationInsight>
 }
