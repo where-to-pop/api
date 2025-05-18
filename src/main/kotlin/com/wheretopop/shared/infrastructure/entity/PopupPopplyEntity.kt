@@ -1,7 +1,5 @@
 package com.wheretopop.shared.infrastructure.entity
 
-import com.wheretopop.config.PopupIdConverter
-import com.wheretopop.config.PopupPopplyIdConverter
 import com.wheretopop.domain.popup.PopupId
 import com.wheretopop.domain.popup.PopupInfo
 import com.wheretopop.infrastructure.popup.external.popply.PopupDetail
@@ -25,14 +23,10 @@ import java.time.Instant
 @EntityListeners(AuditingEntityListener::class)
 class PopupPopplyEntity(
     @Id
-    @JdbcTypeCode(Types.BIGINT)
-    @Convert(converter = PopupPopplyIdConverter::class)
-    val id: PopupPopplyId = PopupPopplyId.create(),
+    val id: Long,
 
     @Column(name = "popup_id", nullable = false)
-    @JdbcTypeCode(Types.BIGINT)
-    @Convert(converter = PopupIdConverter::class)
-    val popupId: PopupId,
+    val popupId: Long,
 
     @Column(name = "popup_name", nullable = false)
     val popupName: String,
@@ -68,7 +62,7 @@ class PopupPopplyEntity(
     val organizerUrl: String? = null,
 
     @Column(name = "popply_id", nullable = false)
-    val popplyId: Int,
+    val popplyId: Long,
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -84,8 +78,8 @@ class PopupPopplyEntity(
     companion object {
         fun of(popupDetail: PopupDetail, popupId: PopupId): PopupPopplyEntity {
             return PopupPopplyEntity(
-                id = PopupPopplyId.create(),
-                popupId = popupId,
+                id = PopupPopplyId.create().toLong(),
+                popupId = popupId.toLong(),
                 popupName = popupDetail.name,
                 address = popupDetail.address,
                 optionalAddress = popupDetail.optionalAddress,
@@ -97,13 +91,13 @@ class PopupPopplyEntity(
                 longitude = popupDetail.longitude,
                 organizerName = popupDetail.organizerName,
                 organizerUrl = popupDetail.organizerUrl,
-                popplyId = popupDetail.popplyId
+                popplyId = popupDetail.popplyId.toLong()
             )
         }
 
         fun toDomain(entity: PopupPopplyEntity): PopupInfo {
             return PopupInfo(
-                id = entity.popupId,
+                id = PopupId.of(entity.popupId),
                 name = entity.popupName,
                 address = entity.address,
                 description = entity.description,

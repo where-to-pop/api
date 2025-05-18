@@ -1,9 +1,7 @@
 package com.wheretopop.shared.infrastructure.entity
 
-import com.wheretopop.config.ChatIdConverter
-import com.wheretopop.config.ChatMessageIdConverter
-import com.wheretopop.domain.chat.ChatId
 import com.wheretopop.domain.chat.ChatMessage
+import com.wheretopop.domain.chat.ChatId
 import com.wheretopop.domain.chat.ChatMessageId
 import com.wheretopop.shared.enums.ChatMessageFinishReason
 import com.wheretopop.shared.enums.ChatMessageRole
@@ -24,22 +22,20 @@ import java.time.Instant
 @EntityListeners(AuditingEntityListener::class)
 class ChatMessageEntity(
     @Id
-    @JdbcTypeCode(Types.BIGINT)
-    @Convert(converter = ChatMessageIdConverter::class)
-    val id: ChatMessageId,
+    val id: Long,
     
     @Column(name = "chat_id", nullable = false)
-    @JdbcTypeCode(Types.BIGINT)
-    @Convert(converter = ChatIdConverter::class)
-    val chatId: ChatId,
+    val chatId: Long,
     
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     val role: ChatMessageRole,
     
     @Column(nullable = false)
     val content: String,
     
     @Column(name = "finish_reason")
+    @Enumerated(EnumType.STRING)
     val finishReason: ChatMessageFinishReason?,
     
     @Column(name = "latency_ms", nullable = false)
@@ -59,8 +55,8 @@ class ChatMessageEntity(
     companion object {
         fun of(chatMessage: ChatMessage): ChatMessageEntity {
             return ChatMessageEntity(
-                id = chatMessage.id,
-                chatId = chatMessage.chatId,
+                id = chatMessage.id.toLong(),
+                chatId = chatMessage.chatId.toLong(),
                 role = chatMessage.role,
                 content = chatMessage.content,
                 finishReason = chatMessage.finishReason,
@@ -74,8 +70,8 @@ class ChatMessageEntity(
 
     fun toDomain(): ChatMessage {
         return ChatMessage.create(
-            id = id,
-            chatId = chatId,
+            id = ChatMessageId.of(id),
+            chatId = ChatId.of(chatId),
             role = role,
             content = content,
             finishReason = finishReason,

@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository
  * JPA 팝업 저장소
  */
 @Repository
-interface JpaPopupJpaRepository : JpaRepository<PopupEntity, PopupId> {
+interface JpaPopupJpaRepository : JpaRepository<PopupEntity, Long> {
     fun findByName(name: String): PopupEntity?
 }
 
@@ -23,7 +23,7 @@ class JpaPopupRepository(
 ) : PopupRepository {
     
     override fun findById(id: PopupId): Popup? {
-        return jpaRepository.findById(id).orElse(null)?.toDomain()
+        return jpaRepository.findById(id.toLong()).orElse(null)?.toDomain()
     }
 
     override fun findByName(name: String): Popup? {
@@ -45,6 +45,6 @@ class JpaPopupRepository(
     }
 
     override fun deleteById(id: PopupId) {
-        jpaRepository.deleteById(id)
+        jpaRepository.deleteById(id.toLong())
     }
 }

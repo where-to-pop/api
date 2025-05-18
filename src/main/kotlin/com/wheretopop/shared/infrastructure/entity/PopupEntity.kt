@@ -1,6 +1,5 @@
 package com.wheretopop.shared.infrastructure.entity
 
-import com.wheretopop.config.PopupIdConverter
 import com.wheretopop.domain.popup.Popup
 import com.wheretopop.domain.popup.PopupId
 import jakarta.persistence.*
@@ -19,12 +18,9 @@ import java.time.Instant
 @EntityListeners(AuditingEntityListener::class)
 data class PopupEntity(
     @Id
-    @JdbcTypeCode(Types.BIGINT)
-    @Convert(converter = PopupIdConverter::class)
-    val id: PopupId,
+    val id: Long,
 
     @Column(name = "building_id")
-    @JdbcTypeCode(Types.BIGINT)
     val buildingId: Long?,
 
     @Column(nullable = false)
@@ -43,7 +39,7 @@ data class PopupEntity(
     companion object {
         fun of(popup: Popup): PopupEntity {
             return PopupEntity(
-                id = popup.id,
+                id = popup.id.toLong(),
                 name = popup.name,
                 buildingId = popup.buildingId,
                 address = popup.address,
@@ -55,7 +51,7 @@ data class PopupEntity(
 
     fun toDomain(): Popup {
         return Popup.create(
-            id = id,
+            id = PopupId.of(id),
             name = name,
             buildingId = buildingId,
             address = address,

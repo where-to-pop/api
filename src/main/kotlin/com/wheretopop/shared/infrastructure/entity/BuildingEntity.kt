@@ -1,6 +1,5 @@
 package com.wheretopop.shared.infrastructure.entity
 
-import com.wheretopop.config.BuildingIdConverter
 import com.wheretopop.domain.building.Building
 import com.wheretopop.domain.building.BuildingId
 import com.wheretopop.shared.model.Location
@@ -22,9 +21,7 @@ import java.time.Instant
 class BuildingEntity(
     @Id
     @JdbcTypeCode(Types.BIGINT)
-
-    @Convert(converter = BuildingIdConverter::class)
-    val id: BuildingId,
+    val id: Long,
     
     @Column(nullable = false)
     val address: String,
@@ -49,7 +46,7 @@ class BuildingEntity(
     companion object {
         fun of(building: Building): BuildingEntity {
             return BuildingEntity(
-                id = building.id,
+                id = building.id.toLong(),
                 address = building.address,
                 latitude = building.location.latitude,
                 longitude = building.location.longitude,
@@ -62,7 +59,7 @@ class BuildingEntity(
 
     fun toDomain(): Building {
         return Building.create(
-            id = id,
+            id = BuildingId.of(id),
             address = address,
             location = Location(latitude, longitude),
             createdAt = createdAt,

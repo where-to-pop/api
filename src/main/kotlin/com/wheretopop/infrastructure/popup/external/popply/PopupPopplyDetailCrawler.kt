@@ -3,6 +3,7 @@ package com.wheretopop.infrastructure.popup.external.popply
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.wheretopop.infrastructure.area.external.opendata.population.StringToInstantDeserializer
+import com.wheretopop.shared.domain.identifier.PopupPopplyId
 import mu.KotlinLogging
 import org.jsoup.Jsoup
 import org.springframework.beans.factory.annotation.Qualifier
@@ -33,7 +34,7 @@ class PopupPopplyDetailCrawler(
      * @param popupId 크롤링할 팝업의 ID
      * @return 크롤링된 PopupDetail 객체. 실패 시 null 반환.
      */
-    fun crawlDetail(popupId: Int): PopupDetail? {
+    fun crawlDetail(popupId: Long): PopupDetail? {
         val relativePath = "/$popupId"
         logger.info { "Crawling popup detail for ID $popupId using relative path: $relativePath" }
 
@@ -105,7 +106,7 @@ class PopupPopplyDetailCrawler(
                 longitude = longitude,
                 organizerName = organizerName,
                 organizerUrl = organizerUrl,
-                popplyId = popupId
+                popplyId = PopupPopplyId.of(popupId),
             )
 
         } catch(e: Exception) {

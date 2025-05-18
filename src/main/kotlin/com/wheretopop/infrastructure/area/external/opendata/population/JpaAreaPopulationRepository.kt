@@ -1,47 +1,45 @@
 package com.wheretopop.infrastructure.area.external.opendata.population
 
-import com.wheretopop.shared.domain.identifier.AreaId
 import com.wheretopop.domain.area.AreaInfo
+import com.wheretopop.shared.domain.identifier.AreaId
 import com.wheretopop.shared.infrastructure.entity.AreaPopulationEntity
-import com.wheretopop.shared.domain.identifier.AreaPopulationId
-import jakarta.persistence.EntityManager
-import jakarta.persistence.PersistenceContext
-import jakarta.transaction.Transactional
+import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Query
+import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 import java.time.ZoneId
 
 /**
- * 지역 인구 데이터 리포지토리 JPA 구현체
+ * JPA 지역 인구 데이터 저장소 인터페이스
  */
 @Repository
-@Transactional
-class JpaAreaPopulationRepository(
-    @PersistenceContext private val entityManager: EntityManager
+interface JpaAreaPopulationRepository : JpaRepository<AreaPopulationEntity, Long> {
+    @Query("""
+        SELECT a FROM AreaPopulationEntity a 
+        WHERE a.areaId = :areaId 
+        AND a.deletedAt IS NULL 
+        ORDER BY a.populationUpdateTime DESC
+        LIMIT 1
+    """)
+    fun findLatestByAreaId(@Param("areaId") areaId: Long): AreaPopulationEntity?
+}
+
+/**
+ * 지역 인구 데이터 저장소 JPA 구현체
+ */
+@Repository
+class AreaPopulationRepositoryJpaAdapter(
+    private val jpaRepository: JpaAreaPopulationRepository
 ) : AreaPopulationRepository {
 
-    override fun save(entity: AreaPopulationEntity): AreaPopulationEntity {
-        entityManager.persist(entity)
-        return entity
-    }
+    override fun save(entity: AreaPopulationEntity): AreaPopulationEntity =
+        jpaRepository.save(entity)
 
     override fun save(entities: List<AreaPopulationEntity>): List<AreaPopulationEntity> =
         entities.map { save(it) }
 
-    override fun findLatestByAreaId(areaId: AreaId): AreaPopulationEntity? {
-        val query = entityManager.createQuery(
-            """
-            SELECT a FROM AreaPopulationEntity a 
-            WHERE a.areaId = :areaId 
-            AND a.deletedAt IS NULL 
-            ORDER BY a.populationUpdateTime DESC
-            """,
-            AreaPopulationEntity::class.java
-        )
-        query.setParameter("areaId", areaId)
-        query.maxResults = 1
-        
-        return query.resultList.firstOrNull()
-    }
+    override fun findLatestByAreaId(areaId: AreaId): AreaPopulationEntity? =
+        jpaRepository.findLatestByAreaId(areaId.toLong())
 
     /**
      * 지역 ID를 기반으로 인구 데이터 인사이트를 도출합니다.
@@ -51,7 +49,7 @@ class JpaAreaPopulationRepository(
         val forecastData = latestData.getForecastPopulations() ?: emptyList()
         
         return AreaInfo.PopulationInsight(
-            areaId = latestData.areaId,
+            areaId = AreaId.of(latestData.areaId),
             areaName = latestData.areaName,
             congestionLevel = latestData.congestionLevel,
             congestionMessage = latestData.congestionMessage,

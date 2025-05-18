@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository
  * JPA 사용자 저장소 인터페이스
  */
 @Repository
-interface JpaUserRepository : JpaRepository<UserEntity, UserId> {
+interface JpaUserRepository : JpaRepository<UserEntity, Long> {
     fun findByEmail(email: String): UserEntity?
 }
 
@@ -23,7 +23,7 @@ class UserRepositoryJpaAdapter(
 ) : UserRepository {
 
     override fun findById(id: UserId): User? {
-        return jpaRepository.findById(id).orElse(null)?.toDomain()
+        return jpaRepository.findById(id.toLong()).orElse(null)?.toDomain()
     }
 
     override fun findByEmail(email: String): User? {

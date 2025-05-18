@@ -1,7 +1,5 @@
 package com.wheretopop.shared.infrastructure.entity
 
-import com.wheretopop.config.AuthUserIdConverter
-import com.wheretopop.config.RefreshTokenIdConverter
 import com.wheretopop.domain.user.auth.AuthUserId
 import com.wheretopop.domain.user.auth.RefreshToken
 import com.wheretopop.domain.user.auth.RefreshTokenId
@@ -22,15 +20,11 @@ import java.time.Instant
 @EntityListeners(AuditingEntityListener::class)
 class RefreshTokenEntity(
     @Id
-    @Convert(converter = RefreshTokenIdConverter::class)
     @JdbcTypeCode(Types.BIGINT)
-
-    val id: RefreshTokenId,
+    val id: Long,
     
     @Column(name = "auth_user_id", nullable = false)
-    @Convert(converter = AuthUserIdConverter::class)
-    @JdbcTypeCode(Types.BIGINT)
-    val authUserId: AuthUserId,
+    val authUserId: Long,
     
     @Column(nullable = false)
     val token: String,
@@ -52,8 +46,8 @@ class RefreshTokenEntity(
     companion object {
         fun of(refreshToken: RefreshToken): RefreshTokenEntity {
             return RefreshTokenEntity(
-                id = refreshToken.id,
-                authUserId = refreshToken.authUserId,
+                id = refreshToken.id.toLong(),
+                authUserId = refreshToken.authUserId.toLong(),
                 token = refreshToken.token,
                 expiresAt = refreshToken.expiresAt,
                 createdAt = refreshToken.createdAt,
@@ -65,8 +59,8 @@ class RefreshTokenEntity(
 
     fun toDomain(): RefreshToken {
         return RefreshToken.create(
-            id = id,
-            authUserId = authUserId,
+            id = RefreshTokenId.of(id),
+            authUserId = AuthUserId.of(authUserId),
             token = token,
             expiresAt = expiresAt,
             createdAt = createdAt,

@@ -2,6 +2,7 @@ package com.wheretopop.infrastructure.popup.external.popply
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.wheretopop.shared.domain.identifier.PopupPopplyId
 import java.time.Instant
 
 // 팝업 상세 정보를 담을 데이터 클래스
@@ -17,7 +18,7 @@ data class PopupDetail(
     val longitude: Double?,
     val organizerName: String?,
     val organizerUrl: String?,
-    val popplyId: Int
+    val popplyId: PopupPopplyId
 )
 
 // JSON-LD 스키마를 위한 데이터 클래스

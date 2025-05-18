@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository
  * JPA X 저장소
  */
 @Repository
-interface JpaXRepository : JpaRepository<XEntity, XId>
+interface JpaXRepository : JpaRepository<XEntity, Long>
 
 /**
  * X 저장소 JPA 구현체

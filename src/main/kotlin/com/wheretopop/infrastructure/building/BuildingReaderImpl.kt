@@ -18,10 +18,7 @@ class BuildingReaderImpl(
     override fun findById(id: BuildingId): Building? {
         return buildingRepository.findById(id)
     }
-    
-    override fun findByName(name: String): Building? {
-        return buildingRepository.findByName(name)
-    }
+
 
     override fun findByAddress(address: String): Building? {
         return buildingRepository.findByAddress(address)

@@ -3,6 +3,7 @@ package com.wheretopop.infrastructure.popup.external.popply
 import com.wheretopop.domain.popup.*
 import com.wheretopop.infrastructure.popup.PopupRepository
 import com.wheretopop.infrastructure.popup.external.RetrievedPopupInfoMetadata
+import com.wheretopop.shared.domain.identifier.PopupPopplyId
 import com.wheretopop.shared.infrastructure.entity.PopupPopplyEntity
 import mu.KotlinLogging
 import org.springframework.stereotype.Service
@@ -51,11 +52,11 @@ class PopupPopplyProcessor(
         return popupPopplyRepository.findAll()
     }
 
-    fun getPopupDetail(popplyId: Int): PopupDetail? {
+    fun getPopupDetail(popplyId: PopupPopplyId): PopupDetail? {
         val existing = popupPopplyRepository.findByPopplyId(popplyId)
         if (existing != null) return null
 
-        val popupDetailData: PopupDetail = popupPopplyDetailCrawler.crawlDetail(popplyId)
+        val popupDetailData: PopupDetail = popupPopplyDetailCrawler.crawlDetail(popplyId.toLong())
             ?: run {
                 logger.error("ID {} 에 해당하는 Popply 상세 정보를 찾을 수 없습니다.", popplyId)
                 return null
@@ -79,22 +80,22 @@ class PopupPopplyProcessor(
     }
 
 
-    fun crawlDownPopupDetailsById(endId: Int, startId: Int = 15): List<PopupDetail> {
+    fun crawlDownPopupDetailsById(endId: PopupPopplyId, startId: PopupPopplyId = PopupPopplyId.of(15)): List<PopupDetail> {
         logger.info("ID 범위 {}부터 {}까지 (역순) 팝업 상세 정보 크롤링 시작...", startId, endId)
 
         val popupDetailList = mutableListOf<PopupDetail>()
         var successCount = 0
         var processedCount = 0
-        val failedIds = mutableListOf<Int>()
+        val failedIds = mutableListOf<Long>()
         var consecutiveFailures = 0
         val maxConsecutiveFailures = 10 // 연속 실패 허용치
 
-        for (id in endId downTo startId) {
+        for (id in endId.toLong() downTo startId.toLong()) {
             processedCount++
             logger.debug("ID {} 처리 시도", id)
 
             val popupDetail = try {
-                getPopupDetail(id)
+                getPopupDetail(PopupPopplyId.of(id))
             } catch (e: Exception) {
                 logger.error(e) { "ID $id: 예외 발생, 건너뜁니다." }
                 null
@@ -132,11 +133,11 @@ class PopupPopplyProcessor(
      * 도메인 객체로 변환 (Popup)
      * 도메인 객체 저장
      */
-    fun processAndSavePopupDetail(popplyId: Int): Boolean {
+    fun processAndSavePopupDetail(popplyId: PopupPopplyId): Boolean {
         val existing = popupPopplyRepository.findByPopplyId(popplyId)
         if (existing != null) return false
 //        logger.info("Popply ID {} 상세 정보 처리 시작...", popplyId)
-        val popupDetailData: PopupDetail = popupPopplyDetailCrawler.crawlDetail(popplyId)
+        val popupDetailData: PopupDetail = popupPopplyDetailCrawler.crawlDetail(popplyId.toLong())
             ?: run {
                 logger.error("ID {} 에 해당하는 Popply 상세 정보를 찾을 수 없습니다.", popplyId)
                 return false
@@ -172,17 +173,17 @@ class PopupPopplyProcessor(
      * 주어진 ID부터 역순으로 팝업 상세 정보들을 크롤링
      * 이미 있는 Popup 이면, 종료!
      */
-    fun crawlDownPopupDetailsByIdAndSave(endId: Int, startId:Int = 15) {
+    fun crawlDownPopupDetailsByIdAndSave(endId: PopupPopplyId, startId:PopupPopplyId = PopupPopplyId.of(15)) {
         logger.info("ID 범위 {}부터 {}까지 (역순) 팝업 상세 정보 크롤링 시작...", startId, endId)
         var successCount = 0
         var stoppedEarly = false
         var processedCount = 0
 
-        for (id in endId downTo startId) {
+        for (id in endId.toLong() downTo startId.toLong()) {
             processedCount++
             logger.debug("ID {} 처리 시도", id)
 
-            val success = processAndSavePopupDetail(id)
+            val success = processAndSavePopupDetail(PopupPopplyId.of(id))
 
             if (success) {
                 successCount++

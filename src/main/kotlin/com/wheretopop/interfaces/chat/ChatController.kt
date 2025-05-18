@@ -3,9 +3,9 @@ package com.wheretopop.interfaces.chat
 import com.wheretopop.application.chat.ChatFacade
 import com.wheretopop.application.chat.ChatInput
 import com.wheretopop.config.security.CurrentUser
+import com.wheretopop.config.security.UserPrincipal
 import com.wheretopop.domain.chat.ChatId
 import com.wheretopop.domain.project.ProjectId
-import com.wheretopop.domain.user.UserId
 import com.wheretopop.shared.response.CommonResponse
 import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.*
@@ -24,11 +24,11 @@ class ChatController(private val chatFacade: ChatFacade) {
     @PostMapping("", produces = [MediaType.APPLICATION_JSON_VALUE])
     fun initializeChat(
         @RequestBody initializeRequest: ChatDto.InitializeRequest,
-        @CurrentUser userId: UserId
+        @CurrentUser principal: UserPrincipal
     ): CommonResponse<ChatDto.ChatDetailResponse> {
         val chatInfo = chatFacade.initialize(
             ChatInput.Initialize(
-                userId = userId,
+                userId = principal.userId,
                 projectId = ProjectId.of(initializeRequest.projectId),
                 initialMessage = initializeRequest.initialMessage
             )
@@ -44,11 +44,12 @@ class ChatController(private val chatFacade: ChatFacade) {
     fun updateChat(
         @PathVariable chatId: Long,
         @RequestBody updateRequest: ChatDto.UpdateRequest,
-        @CurrentUser userId: UserId
+        @CurrentUser principal: UserPrincipal
     ): CommonResponse<ChatDto.ChatResponse> {
         val chatInfo = chatFacade.update(
             ChatInput.Update(
                 chatId = ChatId.of(chatId),
+                userId = principal.userId,
                 title = updateRequest.title
             )
         )
@@ -62,7 +63,7 @@ class ChatController(private val chatFacade: ChatFacade) {
     @GetMapping("/{chatId}", produces = [MediaType.APPLICATION_JSON_VALUE])
     fun getChat(
         @PathVariable chatId: Long,
-        @CurrentUser userId: UserId
+        @CurrentUser principal: UserPrincipal
     ): CommonResponse<ChatDto.ChatDetailResponse> {
         val chatInfo = chatFacade.getDetail(ChatId.of(chatId))
         
@@ -74,9 +75,9 @@ class ChatController(private val chatFacade: ChatFacade) {
      */
     @GetMapping("", produces = [MediaType.APPLICATION_JSON_VALUE])
     fun getChatList(
-        @CurrentUser userId: UserId
+        @CurrentUser principal: UserPrincipal
     ): CommonResponse<List<ChatDto.ChatResponse>> {
-        val chatInfos = chatFacade.getList(userId)
+        val chatInfos = chatFacade.getList(principal.userId)
         
         return CommonResponse.success(
             chatInfos.map { ChatDto.ChatResponse.from(it) }
@@ -90,12 +91,12 @@ class ChatController(private val chatFacade: ChatFacade) {
     fun sendMessage(
         @PathVariable chatId: Long,
         @RequestBody messageRequest: ChatDto.SendMessageRequest,
-        @CurrentUser userId: UserId
+        @CurrentUser principal: UserPrincipal
     ): CommonResponse<ChatDto.ChatSimpleResponse> {
         val chatInfo = chatFacade.sendMessage(
             ChatInput.SendMessage(
                 chatId = ChatId.of(chatId),
-                userId = userId,
+                userId = principal.userId,
                 message = messageRequest.message
             )
         )

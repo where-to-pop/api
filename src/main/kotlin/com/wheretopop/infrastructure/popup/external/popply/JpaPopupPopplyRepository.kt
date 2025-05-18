@@ -12,12 +12,12 @@ import org.springframework.stereotype.Repository
  * JPA 팝업 Popply 저장소
  */
 @Repository
-interface JpaPopupPopplyRepository : JpaRepository<PopupPopplyEntity, PopupPopplyId> {
-    fun findByPopupId(popupId: PopupId): PopupPopplyEntity?
-    fun findByPopplyId(popplyId: Int): PopupPopplyEntity?
+interface JpaPopupPopplyRepository : JpaRepository<PopupPopplyEntity, Long> {
+    fun findByPopupId(popupId: Long): PopupPopplyEntity?
+    fun findByPopplyId(popplyId: Long): PopupPopplyEntity?
     
     @Query("SELECT p FROM PopupPopplyEntity p ORDER BY p.createdAt DESC")
-    fun findAllOrderByCreatedAtDesc(): List<PopupPopplyEntity>
+    fun findAllOrderByCreatedAtDesc(): List<PopupPopplyEntity> 
 }
 
 /**
@@ -39,8 +39,8 @@ class PopupPopplyRepositoryJpaAdapter(
             .map { PopupPopplyEntity.toDomain(it) }
 
     override fun findByPopupId(popupId: PopupId): PopupPopplyEntity? =
-        jpaRepository.findByPopupId(popupId)
+        jpaRepository.findByPopupId(popupId.toLong())
 
-    override fun findByPopplyId(popplyId: Int): PopupPopplyEntity? =
-        jpaRepository.findByPopplyId(popplyId)
+    override fun findByPopplyId(popplyId: PopupPopplyId): PopupPopplyEntity? =
+        jpaRepository.findByPopplyId(popplyId.toLong())
 }

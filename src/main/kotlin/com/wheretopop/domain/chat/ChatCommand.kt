@@ -28,6 +28,7 @@ class ChatCommand {
 
     data class UpdateChat(
         val chatId: ChatId,
+        val userId: UserId,
         val title: String?,
         val isActive: Boolean?,
     )

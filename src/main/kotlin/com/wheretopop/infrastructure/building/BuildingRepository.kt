@@ -13,7 +13,6 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional
 interface BuildingRepository {
     fun findById(id: BuildingId): Building?
-    fun findByName(name: String): Building?
     fun findByAddress(address: String): Building?
     fun findAll(): List<Building>
     fun save(building: Building): Building

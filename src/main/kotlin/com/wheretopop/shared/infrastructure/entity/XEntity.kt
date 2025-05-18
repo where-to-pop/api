@@ -1,6 +1,5 @@
 package com.wheretopop.shared.infrastructure.entity
 
-import com.wheretopop.config.XIdConverter
 import com.wheretopop.domain.popup.PopupId
 import com.wheretopop.infrastructure.popup.external.x.EmotionScore
 import com.wheretopop.infrastructure.popup.external.x.XResponse
@@ -22,13 +21,10 @@ import java.time.Instant
 @EntityListeners(AuditingEntityListener::class)
 class XEntity(
     @Id
-    @Convert(converter = XIdConverter::class)
-    @JdbcTypeCode(Types.BIGINT)
-    val id: XId = XId.create(),
+    val id: Long,
 
     @Column(name = "popup_id", nullable = false)
-    @JdbcTypeCode(Types.BIGINT)
-    val popupId: PopupId,
+    val popupId: Long,
 
     @Column(name = "written_at", nullable = false)
     val writtenAt: Instant,
@@ -37,6 +33,7 @@ class XEntity(
     val content: String,
 
     @Column(name = "emotion_score", nullable = false)
+    @Enumerated(EnumType.STRING)
     val emotionScore: EmotionScore,
 
     @CreatedDate
@@ -46,8 +43,8 @@ class XEntity(
     companion object {
         fun of(xResponse: XResponse, popupId: PopupId): XEntity {
             return XEntity(
-                id = XId.create(),
-                popupId = popupId,
+                id = XId.create().toLong(),
+                popupId = popupId.toLong(),
                 writtenAt = xResponse.writtenAt,
                 content = xResponse.content,
                 emotionScore = xResponse.emotionScore

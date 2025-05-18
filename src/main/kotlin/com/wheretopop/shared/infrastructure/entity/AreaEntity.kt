@@ -1,11 +1,9 @@
 package com.wheretopop.shared.infrastructure.entity
 
-import com.wheretopop.config.AreaIdConverter
 import com.wheretopop.domain.area.Area
 import com.wheretopop.shared.domain.identifier.AreaId
 import com.wheretopop.shared.model.Location
 import jakarta.persistence.*
-import org.hibernate.annotations.JavaType
 import org.hibernate.annotations.JdbcTypeCode
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
@@ -23,8 +21,7 @@ import java.time.Instant
 class AreaEntity(
     @Id
     @JdbcTypeCode(Types.BIGINT)
-    @Convert(converter = AreaIdConverter::class)
-    val id: AreaId = AreaId.create(),
+    val id: Long,
 
     @Column(nullable = false)
     var name: String,
@@ -51,7 +48,7 @@ class AreaEntity(
 ) {
     fun toDomain(): Area {
         return Area.create(
-            id = id,
+            id = AreaId.of(id),
             name = name,
             description = description,
             location = Location(latitude, longitude),
@@ -64,7 +61,7 @@ class AreaEntity(
     companion object {
         fun from(area: Area): AreaEntity {
             return AreaEntity(
-                id = area.id,
+                id = area.id.toLong(),
                 name = area.name,
                 description = area.description,
                 latitude = area.location.latitude,

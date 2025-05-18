@@ -7,5 +7,4 @@ interface BuildingRegisterReader {
     fun findAll(): List<BuildingRegister>
     fun findBuildingRegisters(criteria: BuildingRegisterCriteria.SearchBuildingRegisterCriteria): List<BuildingRegister>
     fun findById(id: BuildingRegisterId): BuildingRegister?
-    fun findByName(name: String): BuildingRegister?
 }

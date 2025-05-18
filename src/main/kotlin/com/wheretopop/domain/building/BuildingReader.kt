@@ -7,6 +7,5 @@ interface BuildingReader {
     fun findAll(): List<Building>
     fun findBuildings(criteria: BuildingCriteria.SearchBuildingCriteria): List<Building>
     fun findById(id: BuildingId): Building?
-    fun findByName(name: String): Building?
     fun findByAddress(address: String): Building?
 }

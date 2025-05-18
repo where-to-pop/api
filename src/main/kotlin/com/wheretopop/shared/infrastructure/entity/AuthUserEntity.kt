@@ -1,8 +1,5 @@
 package com.wheretopop.shared.infrastructure.entity
 
-import com.wheretopop.config.AuthUserIdConverter
-import com.wheretopop.config.PasswordConverter
-import com.wheretopop.config.UserIdConverter
 import com.wheretopop.domain.user.UserId
 import com.wheretopop.domain.user.auth.AuthUser
 import com.wheretopop.domain.user.auth.AuthUserId
@@ -28,20 +25,16 @@ import java.time.Instant
 class AuthUserEntity(
     @Id
     @JdbcTypeCode(Types.BIGINT)
-    @Convert(converter = AuthUserIdConverter::class)
-    val id: AuthUserId,
+    val id: Long,
     
     @Column(name = "user_id", nullable = false)
-    @JdbcTypeCode(Types.BIGINT)
-    @Convert(converter = UserIdConverter::class)
-    val userId: UserId,
+    val userId: Long,
     
     @Column(nullable = false)
     var identifier: String,
     
     @Column(nullable = false)
-    @Convert(converter = PasswordConverter::class)
-    var password: Password,
+    var password: String,
     
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -57,10 +50,10 @@ class AuthUserEntity(
     companion object {
         fun of(authUser: AuthUser): AuthUserEntity {
             return AuthUserEntity(
-                id = authUser.id,
-                userId = authUser.userId,
+                id = authUser.id.toLong(),
+                userId = authUser.userId.toLong(),
                 identifier = authUser.identifier,
-                password = authUser.password,
+                password = authUser.password.toString(),
                 createdAt = authUser.createdAt,
                 updatedAt = authUser.updatedAt,
                 deletedAt = authUser.deletedAt
@@ -70,10 +63,10 @@ class AuthUserEntity(
 
     fun toDomain(): AuthUser {
         return AuthUser.create(
-            id = id,
-            userId = userId,
+            id = AuthUserId.of(id),
+            userId = UserId.of(userId),
             identifier = identifier,
-            password = password,
+            password = Password.of(password),
             createdAt = createdAt,
             updatedAt = updatedAt,
             deletedAt = deletedAt

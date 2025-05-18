@@ -20,12 +20,14 @@ class ChatInput {
     }
 
     data class Update(
+        val userId: UserId,
         val chatId: ChatId,
         val title: String?
     ) {
         fun toCommand() = ChatCommand.UpdateChat(
             chatId = chatId,
             title = title,
+            userId = userId,
             isActive = null
         )
     }

@@ -1,6 +1,5 @@
 package com.wheretopop.shared.infrastructure.entity
 
-import com.wheretopop.config.UserIdConverter
 import com.wheretopop.domain.user.User
 import com.wheretopop.domain.user.UserId
 import jakarta.persistence.*
@@ -23,9 +22,7 @@ import java.time.Instant
 @EntityListeners(AuditingEntityListener::class)
 class UserEntity(
     @Id
-    @Convert(converter = UserIdConverter::class)
-    @JdbcTypeCode(Types.BIGINT)
-    val id: UserId,
+    val id: Long,
     
     @Column(nullable = false)
     var username: String,
@@ -50,7 +47,7 @@ class UserEntity(
     companion object {
         fun of(user: User): UserEntity {
             return UserEntity(
-                id = user.id,
+                id = user.id.toLong(),
                 username = user.username,
                 email = user.email,
                 profileImageUrl = user.profileImageUrl,
@@ -63,7 +60,7 @@ class UserEntity(
 
     fun toDomain(): User {
         return User.create(
-            id = id,
+            id = UserId.of(id),
             username = username,
             email = email,
             profileImageUrl = profileImageUrl,

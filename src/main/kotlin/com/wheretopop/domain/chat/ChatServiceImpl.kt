@@ -45,8 +45,11 @@ class ChatServiceImpl(
      * 채팅 정보를 업데이트합니다.
      */
     override fun updateChat(command: ChatCommand.UpdateChat): ChatInfo.Main {
-        val (chatId, title, isActive) = command
+        val (chatId, userId, title, isActive, ) = command
         val chat = chatReader.findById(chatId) ?: throw ErrorCode.COMMON_ENTITY_NOT_FOUND.toException()
+        if (chat.userId != userId) {
+            throw ErrorCode.COMMON_FORBIDDEN.toException()
+        }
         val updatedChat = chat.update(title, isActive)
         val savedChat = chatStore.save(updatedChat)
         return ChatInfoMapper.toMainInfo(savedChat)

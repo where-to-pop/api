@@ -14,8 +14,8 @@ private val logger = KotlinLogging.logger {}
  * JPA 인증 사용자 저장소 인터페이스
  */
 @Repository
-interface JpaAuthUserRepository : JpaRepository<AuthUserEntity, AuthUserId> {
-    fun findByUserId(userId: UserId): AuthUserEntity?
+interface JpaAuthUserRepository : JpaRepository<AuthUserEntity, Long> {
+    fun findByUserId(userId: Long): AuthUserEntity?
     fun findByIdentifier(identifier: String): AuthUserEntity?
 }
 
@@ -28,13 +28,13 @@ class AuthUserRepositoryJpaAdapter(
 ) : AuthUserRepository {
 
     override fun findById(id: AuthUserId): AuthUser? {
-        val authUser = jpaRepository.findById(id).orElse(null)?.toDomain()
+        val authUser = jpaRepository.findById(id.toLong()).orElse(null)?.toDomain()
         logger.debug { "findById: $id -> $authUser" }
         return authUser
     }
 
     override fun findByUserId(userId: UserId): AuthUser? {
-        val authUser = jpaRepository.findByUserId(userId)?.toDomain()
+        val authUser = jpaRepository.findByUserId(userId.toLong())?.toDomain()
         logger.debug { "findByUserId: $userId -> $authUser" }
         return authUser
     }
@@ -58,6 +58,6 @@ class AuthUserRepositoryJpaAdapter(
     }
 
     override fun deleteById(id: AuthUserId) {
-        jpaRepository.deleteById(id)
+        jpaRepository.deleteById(id.toLong())
     }
 } 

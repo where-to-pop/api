@@ -1,8 +1,5 @@
 package com.wheretopop.shared.infrastructure.entity
 
-import com.wheretopop.config.ChatIdConverter
-import com.wheretopop.config.ProjectIdConverter
-import com.wheretopop.config.UserIdConverter
 import com.wheretopop.domain.chat.Chat
 import com.wheretopop.domain.chat.ChatId
 import com.wheretopop.domain.project.ProjectId
@@ -24,20 +21,13 @@ import java.time.Instant
 @EntityListeners(AuditingEntityListener::class)
 class ChatEntity(
     @Id
-    @JdbcTypeCode(Types.BIGINT)
-
-    @Convert(converter = ChatIdConverter::class)
-    val id: ChatId,
+    val id: Long,
     
     @Column(name = "user_id", nullable = false)
-    @JdbcTypeCode(Types.BIGINT)
-    @Convert(converter = UserIdConverter::class)
-    val userId: UserId,
+    val userId: Long,
     
     @Column(name = "project_id", nullable = false)
-    @JdbcTypeCode(Types.BIGINT)
-    @Convert(converter = ProjectIdConverter::class)
-    val projectId: ProjectId,
+    val projectId: Long,
     
     @Column(nullable = false)
     val title: String,
@@ -59,9 +49,9 @@ class ChatEntity(
     companion object {
         fun of(chat: Chat): ChatEntity {
             return ChatEntity(
-                id = chat.id,
-                userId = chat.userId,
-                projectId = chat.projectId,
+                id = chat.id.toLong(),
+                userId = chat.userId.toLong(),
+                projectId = chat.projectId.toLong(),
                 title = chat.title,
                 isActive = chat.isActive,
                 createdAt = chat.createdAt,
@@ -73,10 +63,10 @@ class ChatEntity(
 
     fun toDomain(chatMessages: List<ChatMessageEntity>): Chat {
         return Chat.create(
-            id = id,
+            id = ChatId.of(id),
             title = title,
-            userId = userId,
-            projectId = projectId,
+            userId = UserId.of(userId),
+            projectId = ProjectId.of(projectId),
             isActive = isActive,
             messages = chatMessages.map { it.toDomain() },
             createdAt = createdAt,

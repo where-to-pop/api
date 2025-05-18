@@ -19,9 +19,7 @@ class BuildingRegisterReaderImpl(
         return buildingRegisterRepository.findById(id)
     }
     
-    override fun findByName(name: String): BuildingRegister? {
-        return buildingRegisterRepository.findByName(name)
-    }
+
 
     override fun findBuildingRegisters(criteria: BuildingRegisterCriteria.SearchBuildingRegisterCriteria): List<BuildingRegister> {
         TODO("Not yet implemented")

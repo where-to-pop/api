@@ -1,8 +1,6 @@
 package com.wheretopop.shared.infrastructure.entity
 
 import com.fasterxml.jackson.core.type.TypeReference
-import com.wheretopop.config.AreaIdConverter
-import com.wheretopop.config.AreaPopulationIdConverter
 import com.wheretopop.shared.domain.identifier.AreaId
 import com.wheretopop.infrastructure.area.external.opendata.population.CityDataPopulation
 import com.wheretopop.infrastructure.area.external.opendata.population.ForecastPopulation
@@ -26,13 +24,10 @@ import java.time.Instant
 class AreaPopulationEntity(
     @Id
     @JdbcTypeCode(Types.BIGINT)
-    @Convert(converter = AreaPopulationIdConverter::class)
-    val id: AreaPopulationId = AreaPopulationId.create(),
+    val id: Long,
 
     @Column(name = "area_id", nullable = false)
-    @JdbcTypeCode(Types.BIGINT)
-    @Convert(converter = AreaIdConverter::class)
-    val areaId: AreaId,
+    val areaId: Long,
 
     @Column(name = "area_name", nullable = false)
     val areaName: String,
@@ -134,8 +129,8 @@ class AreaPopulationEntity(
             }
             
             return AreaPopulationEntity(
-                id = AreaPopulationId.create(),
-                areaId = areaId,
+                id = AreaPopulationId.create().toLong(),
+                areaId = areaId.toLong(),
                 areaName = cityDataPopulation.areaName,
                 areaCode = cityDataPopulation.areaCode,
                 congestionLevel = cityDataPopulation.congestionLevel,

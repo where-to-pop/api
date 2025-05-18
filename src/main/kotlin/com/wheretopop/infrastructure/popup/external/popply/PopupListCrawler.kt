@@ -1,5 +1,6 @@
 package com.wheretopop.infrastructure.popup.external.popply
 
+import com.wheretopop.shared.domain.identifier.PopupPopplyId
 import mu.KotlinLogging
 import org.openqa.selenium.By
 import org.openqa.selenium.TimeoutException
@@ -21,7 +22,7 @@ class PopupListCrawler(
     @Value("\${scraping.wait.timeoutSeconds:15}") private val timeoutSeconds: Long
 ) {
 
-    fun fetchFirstPopupId(): Int? {
+    fun fetchFirstPopupId(): PopupPopplyId? {
         try {
             driver.get(targetUrl)
 
@@ -38,14 +39,14 @@ class PopupListCrawler(
                 return null
             }
             val idString = hrefAttribute.substringAfterLast('/', "")
-            val popupId = idString.toIntOrNull()
+            val popupId = idString.toLongOrNull()
 
             if (popupId == null) {
                 logger.error("href ('{}')에서 마지막 숫자 ID를 추출하거나 Int로 변환할 수 없습니다. 추출된 문자열: '{}'", hrefAttribute, idString)
                 return null
             }
 
-            return popupId
+            return PopupPopplyId.of(popupId)
 
         } catch (e: TimeoutException) {
             logger.error("페이지 로드 또는 요소 검색 시간 초과 ({}초): {}", timeoutSeconds, e.message)

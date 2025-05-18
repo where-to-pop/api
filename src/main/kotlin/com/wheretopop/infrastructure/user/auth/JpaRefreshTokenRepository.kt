@@ -11,9 +11,9 @@ import org.springframework.stereotype.Repository
  * JPA 리프레시 토큰 저장소 인터페이스
  */
 @Repository
-interface JpaRefreshTokenRepository : JpaRepository<RefreshTokenEntity, RefreshTokenId> {
+interface JpaRefreshTokenRepository : JpaRepository<RefreshTokenEntity, Long> {
     fun findByToken(token: String): RefreshTokenEntity?
-    fun findByAuthUserId(authUserId: AuthUserId): List<RefreshTokenEntity>
+    fun findByAuthUserId(authUserId: Long): List<RefreshTokenEntity>
     fun deleteByToken(token: String)
 }
 
@@ -26,7 +26,7 @@ class RefreshTokenRepositoryJpaAdapter(
 ) : RefreshTokenRepository {
 
     override fun findById(id: RefreshTokenId): RefreshToken? {
-        return jpaRepository.findById(id).orElse(null)?.toDomain()
+        return jpaRepository.findById(id.toLong()).orElse(null)?.toDomain()
     }
 
     override fun findByToken(token: String): RefreshToken? {
@@ -34,7 +34,7 @@ class RefreshTokenRepositoryJpaAdapter(
     }
 
     override fun findByUserId(userId: AuthUserId): List<RefreshToken> {
-        return jpaRepository.findByAuthUserId(userId).map { it.toDomain() }
+        return jpaRepository.findByAuthUserId(userId.toLong()).map { it.toDomain() }
     }
 
     override fun save(refreshToken: RefreshToken): RefreshToken {
@@ -44,7 +44,7 @@ class RefreshTokenRepositoryJpaAdapter(
     }
 
     override fun deleteById(id: RefreshTokenId) {
-        jpaRepository.deleteById(id)
+        jpaRepository.deleteById(id.toLong())
     }
 
     override fun deleteByToken(token: String) {

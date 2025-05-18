@@ -1,7 +1,5 @@
 package com.wheretopop.shared.infrastructure.entity
 
-import com.wheretopop.config.ProjectIdConverter
-import com.wheretopop.config.UserIdConverter
 import com.wheretopop.domain.project.Project
 import com.wheretopop.domain.project.ProjectId
 import com.wheretopop.domain.user.UserId
@@ -26,14 +24,11 @@ import java.time.Instant
 @EntityListeners(AuditingEntityListener::class)
 class ProjectEntity(
     @Id
-    @Convert(converter = ProjectIdConverter::class)
     @JdbcTypeCode(Types.BIGINT)
-    val id: ProjectId,
+    val id: Long,
     
     @Column(name = "owner_id", nullable = false)
-    @Convert(converter = UserIdConverter::class)
-    @JdbcTypeCode(Types.BIGINT)
-    val ownerId: UserId,
+    val ownerId: Long,
     
     @Column(nullable = false)
     val name: String,
@@ -87,8 +82,8 @@ class ProjectEntity(
     companion object {
         fun of(project: Project): ProjectEntity {
             return ProjectEntity(
-                id = project.id,
-                ownerId = project.ownerId,
+                id = project.id.toLong(),
+                ownerId = project.ownerId.toLong(),
                 name = project.name,
                 brandName = project.brandName,
                 popupCategory = project.popupCategory,
@@ -109,8 +104,8 @@ class ProjectEntity(
 
     fun toDomain(): Project {
         return Project.create(
-            id = id,
-            ownerId = ownerId,
+            id = ProjectId.of(id),
+            ownerId = UserId.of(ownerId),
             name = name,
             brandName = brandName,
             popupCategory = popupCategory,

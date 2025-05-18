@@ -3,57 +3,47 @@ package com.wheretopop.infrastructure.building
 import com.wheretopop.domain.building.Building
 import com.wheretopop.domain.building.BuildingId
 import com.wheretopop.shared.infrastructure.entity.BuildingEntity
-import jakarta.persistence.EntityManager
-import jakarta.persistence.PersistenceContext
-import jakarta.transaction.Transactional
+import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Query
+import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 
+/**
+ * JPA 빌딩 저장소 인터페이스
+ */
 @Repository
-@Transactional
-class JpaBuildingRepository(
-    @PersistenceContext private val entityManager: EntityManager
+interface JpaBuildingRepository : JpaRepository<BuildingEntity, Long> {
+    @Query("SELECT b FROM BuildingEntity b WHERE b.address = :address AND b.deletedAt IS NULL")
+    fun findByAddress(@Param("address") address: String): BuildingEntity?
+    
+    @Query("SELECT b FROM BuildingEntity b WHERE b.deletedAt IS NULL")
+    override fun findAll(): List<BuildingEntity>
+}
+
+/**
+ * 빌딩 저장소 JPA 구현체
+ */
+@Repository
+class BuildingRepositoryJpaAdapter(
+    private val jpaRepository: JpaBuildingRepository
 ) : BuildingRepository {
 
     override fun findById(id: BuildingId): Building? =
-        entityManager.find(BuildingEntity::class.java, id)?.toDomain()
+        jpaRepository.findById(id.toLong()).orElse(null)?.toDomain()
 
-    override fun findByName(name: String): Building? {
-        val query = entityManager.createQuery(
-            "SELECT b FROM BuildingEntity b WHERE b.name = :name AND b.deletedAt IS NULL", 
-            BuildingEntity::class.java
-        )
-        query.setParameter("name", name)
-        
-        return query.resultList.firstOrNull()?.toDomain()
-    }
+    override fun findByAddress(address: String): Building? =
+        jpaRepository.findByAddress(address)?.toDomain()
 
-    override fun findByAddress(address: String): Building? {
-        val query = entityManager.createQuery(
-            "SELECT b FROM BuildingEntity b WHERE b.address = :address AND b.deletedAt IS NULL", 
-            BuildingEntity::class.java
-        )
-        query.setParameter("address", address)
-        
-        return query.resultList.firstOrNull()?.toDomain()
-    }
-
-    override fun findAll(): List<Building> {
-        val query = entityManager.createQuery(
-            "SELECT b FROM BuildingEntity b WHERE b.deletedAt IS NULL", 
-            BuildingEntity::class.java
-        )
-        
-        return query.resultList.map { it.toDomain() }
-    }
+    override fun findAll(): List<Building> =
+        jpaRepository.findAll().map { it.toDomain() }
 
     override fun save(building: Building): Building {
         val entity = BuildingEntity.of(building)
-        entityManager.persist(entity)
-        return building
+        val savedEntity = jpaRepository.save(entity)
+        return savedEntity.toDomain()
     }
 
     override fun save(buildings: List<Building>): List<Building> =
         buildings.map { save(it) }
-
 }
 
