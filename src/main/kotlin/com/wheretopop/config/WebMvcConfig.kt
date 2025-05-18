@@ -26,10 +26,7 @@ class WebMvcConfig(private val userPrincipalResolver: UserPrincipalResolver) : W
                 // 로컬 개발 환경
                 "http://localhost:3000",
                 "http://localhost:5173",
-                // 개발 서버
-                "https://dev.wheretopop.com",
-                // 프로덕션 서버
-                "https://wheretopop.com"
+                "https://where-to-pop.devkor.club",
             )
             .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
             .allowedHeaders("Origin", "Content-Type", "Accept", "Authorization")
