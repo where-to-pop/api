@@ -4,27 +4,12 @@ import com.wheretopop.config.JpaConverterConfig
 import com.wheretopop.domain.popup.PopupId
 import com.wheretopop.infrastructure.popup.external.x.EmotionScore
 import com.wheretopop.infrastructure.popup.external.x.XResponse
-import com.wheretopop.shared.model.UniqueId
+import com.wheretopop.shared.domain.identifier.XId
 import jakarta.persistence.*
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.time.Instant
 
-class XId private constructor(
-    value: Long
-) : UniqueId(value) {
-    companion object {
-        @JvmStatic
-        fun create(): XId {
-            return XId(UniqueId.create().value)
-        }
-
-        @JvmStatic
-        fun of(value: Long): XId {
-            return XId(UniqueId.of(value).value)
-        }
-    }
-}
 
 /**
  * X 테이블 엔티티

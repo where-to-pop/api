@@ -10,11 +10,11 @@ import org.springframework.stereotype.Component
 internal class ProjectReaderImpl(
     private val projectRepository: ProjectRepository
 ) : ProjectReader {
-    override suspend fun findById(id: ProjectId): Project? {
+    override fun findById(id: ProjectId): Project? {
         return projectRepository.findById(id)
     }
 
-    override suspend fun findByOwnerId(ownerId: UserId): List<Project> {
+    override fun findByOwnerId(ownerId: UserId): List<Project> {
         return projectRepository.findByOwnerId(ownerId)
     }
 } 

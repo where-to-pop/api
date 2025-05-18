@@ -3,6 +3,7 @@ package com.wheretopop.shared.infrastructure.entity
 import com.wheretopop.config.JpaConverterConfig
 import com.wheretopop.domain.popup.PopupInfo
 import com.wheretopop.infrastructure.popup.external.popply.PopupDetail
+import com.wheretopop.shared.domain.identifier.PopupPopplyId
 import com.wheretopop.shared.model.UniqueId
 import jakarta.persistence.*
 import org.springframework.data.annotation.CreatedDate
@@ -10,21 +11,7 @@ import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.time.Instant
 
-class PopupPopplyId private constructor(
-    value: Long
-) : UniqueId(value) {
-    companion object {
-        @JvmStatic
-        fun create(): PopupPopplyId {
-            return PopupPopplyId(UniqueId.create().value)
-        }
 
-        @JvmStatic
-        fun of(value: Long): PopupPopplyId {
-            return PopupPopplyId(UniqueId.of(value).value)
-        }
-    }
-}
 
 /**
  * 팝업 Popply 테이블 엔티티

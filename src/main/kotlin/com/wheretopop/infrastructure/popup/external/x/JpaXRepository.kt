@@ -1,7 +1,7 @@
 package com.wheretopop.infrastructure.popup.external.x
 
+import com.wheretopop.shared.domain.identifier.XId
 import com.wheretopop.shared.infrastructure.entity.XEntity
-import com.wheretopop.shared.infrastructure.entity.XId
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 

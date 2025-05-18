@@ -2,8 +2,8 @@ package com.wheretopop.infrastructure.popup.external.popply
 
 import com.wheretopop.domain.popup.PopupId
 import com.wheretopop.domain.popup.PopupInfo
+import com.wheretopop.shared.domain.identifier.PopupPopplyId
 import com.wheretopop.shared.infrastructure.entity.PopupPopplyEntity
-import com.wheretopop.shared.infrastructure.entity.PopupPopplyId
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository

@@ -1,6 +1,5 @@
 package com.wheretopop.config
 
-import com.wheretopop.shared.domain.identifier.AreaId
 import com.wheretopop.domain.building.BuildingId
 import com.wheretopop.domain.building.register.BuildingRegisterId
 import com.wheretopop.domain.chat.ChatId
@@ -11,7 +10,10 @@ import com.wheretopop.domain.user.UserId
 import com.wheretopop.domain.user.auth.AuthUserId
 import com.wheretopop.domain.user.auth.Password
 import com.wheretopop.domain.user.auth.RefreshTokenId
+import com.wheretopop.shared.domain.identifier.AreaId
 import com.wheretopop.shared.domain.identifier.AreaPopulationId
+import com.wheretopop.shared.domain.identifier.PopupPopplyId
+import com.wheretopop.shared.domain.identifier.XId
 import jakarta.persistence.AttributeConverter
 import jakarta.persistence.Converter
 import org.springframework.context.annotation.Configuration
@@ -121,6 +123,29 @@ class JpaConverterConfig {
             return dbData?.let { PopupId.of(it) }
         }
     }
+
+    @Converter(autoApply = true)
+    class XIdConverter : AttributeConverter<XId, Long> {
+        override fun convertToDatabaseColumn(attribute: XId?): Long? {
+            return attribute?.toLong()
+        }
+
+        override fun convertToEntityAttribute(dbData: Long?): XId? {
+            return dbData?.let { XId.of(it) }
+        }
+    }
+
+    @Converter(autoApply = true)
+    class PopupPopplyIdConverter : AttributeConverter<PopupPopplyId, Long> {
+        override fun convertToDatabaseColumn(attribute: PopupPopplyId?): Long? {
+            return attribute?.toLong()
+        }
+
+        override fun convertToEntityAttribute(dbData: Long?): PopupPopplyId? {
+            return dbData?.let { PopupPopplyId.of(it) }
+        }
+    }
+
 
     // 프로젝트(Project) ID 변환기
     @Converter(autoApply = true)

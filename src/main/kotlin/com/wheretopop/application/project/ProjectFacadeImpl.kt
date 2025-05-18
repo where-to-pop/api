@@ -10,22 +10,22 @@ import org.springframework.stereotype.Service
 class ProjectFacadeImpl (
     private val projectService: ProjectService,
 ): ProjectFacade {
-    override suspend fun createProject(input: ProjectInput.Create): ProjectInfo.Main {
+    override fun createProject(input: ProjectInput.Create): ProjectInfo.Main {
         val command = input.toCommand()
         return projectService.createProject(command)
     }
 
-    override suspend fun updateProject(input: ProjectInput.Update): ProjectInfo.Main {
+    override fun updateProject(input: ProjectInput.Update): ProjectInfo.Main {
         val command = input.toCommand()
         return projectService.updateProject(command)
     }
 
 
-    override suspend fun findProjectById(id: ProjectId): ProjectInfo.Main? {
+    override fun findProjectById(id: ProjectId): ProjectInfo.Main? {
         return projectService.findProjectById(id)
     }
 
-    override suspend fun findProjectsByOwnerId(ownerId: UserId): List<ProjectInfo.Main> {
+    override fun findProjectsByOwnerId(ownerId: UserId): List<ProjectInfo.Main> {
         return projectService.findProjectsByOwnerId(ownerId)
     }
 }

@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component
 internal class ProjectStoreImpl(
     private val projectRepository: ProjectRepository
 ) : ProjectStore {
-    override suspend fun save(project: Project): Project {
+    override fun save(project: Project): Project {
         return projectRepository.save(project)
     }
 } 
