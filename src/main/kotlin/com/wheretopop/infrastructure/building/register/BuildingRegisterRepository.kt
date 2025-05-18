@@ -2,16 +2,19 @@ package com.wheretopop.infrastructure.building.register
 
 import com.wheretopop.domain.building.register.BuildingRegister
 import com.wheretopop.domain.building.register.BuildingRegisterId
+import org.springframework.stereotype.Repository
+import org.springframework.transaction.annotation.Transactional
 
 /**
  * BuildingRegister 애그리거트의 저장소 인터페이스
- * 이 인터페이스는 도메인 레이어에 정의되고, 인프라 레이어에서 구현됨
+ * JPA 기반으로 구현
  */
+@Repository
+@Transactional
 interface BuildingRegisterRepository {
-    suspend fun findById(id: BuildingRegisterId): BuildingRegister?
-    suspend fun findByName(name: String): BuildingRegister?
-    suspend fun findAll(): List<BuildingRegister>
-    suspend fun save(building: BuildingRegister): BuildingRegister
-    suspend fun save(buildings: List<BuildingRegister>): List<BuildingRegister>
-    suspend fun deleteById(id: BuildingRegisterId)
+    fun findById(id: BuildingRegisterId): BuildingRegister?
+    fun findByName(name: String): BuildingRegister?
+    fun findAll(): List<BuildingRegister>
+    fun save(building: BuildingRegister): BuildingRegister
+    fun save(buildings: List<BuildingRegister>): List<BuildingRegister>
 }

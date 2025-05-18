@@ -15,23 +15,23 @@ class BuildingReaderImpl(
     private val buildingRepository: BuildingRepository
 ) : BuildingReader {
 
-    override suspend fun findById(id: BuildingId): Building? {
+    override fun findById(id: BuildingId): Building? {
         return buildingRepository.findById(id)
     }
     
-    override suspend fun findByName(name: String): Building? {
+    override fun findByName(name: String): Building? {
         return buildingRepository.findByName(name)
     }
 
-    override suspend fun findByAddress(address: String): Building? {
+    override fun findByAddress(address: String): Building? {
         return buildingRepository.findByAddress(address)
     }
 
-    override suspend fun findBuildings(criteria: BuildingCriteria.SearchBuildingCriteria): List<Building> {
+    override fun findBuildings(criteria: BuildingCriteria.SearchBuildingCriteria): List<Building> {
         TODO("Not yet implemented")
     }
 
-    override suspend fun findAll(): List<Building> {
+    override fun findAll(): List<Building> {
         return buildingRepository.findAll()
     }
 }

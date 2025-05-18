@@ -15,7 +15,7 @@ import org.springframework.web.client.RestTemplate
 import java.util.function.Supplier
 
 @Configuration
-class WebConfig {
+class HttpClientConfig {
 
     private fun createHttpClient(connectTimeoutMillis: Int, readTimeoutMillis: Int): CloseableHttpClient {
         val socketConfig = SocketConfig.custom()

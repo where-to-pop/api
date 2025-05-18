@@ -22,26 +22,18 @@ class BuildingRegisterStoreImpl(
     private val addressToAreaCodeApiCaller: AddressToAreaCodeApiCaller,
     private val koreaBuildingRegisterApiCaller: KoreaBuildingRegisterApiCaller
 ) : BuildingRegisterStore {
-    override suspend fun callAndSave(command: BuildingRegisterCommand.CreateBuildingRegisterCommand): BuildingRegister? {
+    override fun callAndSave(command: BuildingRegisterCommand.CreateBuildingRegisterCommand): BuildingRegister? {
         val buildingRegister = this.call(command) ?: return null
         return buildingRegisterRepository.save(buildingRegister)
     }
-    override suspend fun callAndSave(commands: List<BuildingRegisterCommand.CreateBuildingRegisterCommand>): List<BuildingRegister> {
+    override fun callAndSave(commands: List<BuildingRegisterCommand.CreateBuildingRegisterCommand>): List<BuildingRegister> {
         val buildingRegisters: List<BuildingRegister> = commands.mapNotNull { command ->
             this.call(command)
         }
         return buildingRegisterRepository.save(buildingRegisters)
     }
-    override suspend fun delete(buildingRegister: BuildingRegister) {
-        buildingRegisterRepository.deleteById(buildingRegister.id)
-    }   
-    override suspend fun delete(buildingRegisters: List<BuildingRegister>) {
-        buildingRegisters.forEach { buildingRegister ->
-            buildingRegisterRepository.deleteById(buildingRegister.id)
-        }
-    }
 
-    private suspend fun call(command: BuildingRegisterCommand.CreateBuildingRegisterCommand): BuildingRegister? {
+    private fun call(command: BuildingRegisterCommand.CreateBuildingRegisterCommand): BuildingRegister? {
         try {
             val areaCode = addressToAreaCodeApiCaller.fetchAreaCode(command.address) ?: throw Exception("지역 코드를 불러오지 못했습니다.")
             val koreaBuildingRegisterResponse = koreaBuildingRegisterApiCaller.fetchBuildingRegisterData(

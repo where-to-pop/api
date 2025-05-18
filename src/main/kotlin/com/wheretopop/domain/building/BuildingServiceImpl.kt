@@ -13,17 +13,17 @@ class BuildingServiceImpl(
 
     private val buildingInfoMapper = BuildingInfoMapper()
 
-    override suspend fun getBuilding(address: String): BuildingInfo.Main? {
+    override fun getBuilding(address: String): BuildingInfo.Main? {
         val building = buildingReader.findByAddress(address) ?: return null
         return buildingInfoMapper.of(building)
     }
 
-    override suspend fun searchBuildings(criteria: BuildingCriteria.SearchBuildingCriteria): List<BuildingInfo.Main> {
+    override fun searchBuildings(criteria: BuildingCriteria.SearchBuildingCriteria): List<BuildingInfo.Main> {
         val buildings = this.buildingReader.findBuildings(criteria)
         return buildingInfoMapper.of(buildings)
     }
 
-    override suspend fun createBuilding(command: BuildingCommand.CreateBuildingCommand): BuildingInfo.Main? {
+    override fun createBuilding(command: BuildingCommand.CreateBuildingCommand): BuildingInfo.Main? {
         val building = Building.create(
             address = command.address,
             location = command.location,

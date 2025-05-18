@@ -11,12 +11,12 @@ class BuildingRegisterServiceImpl(
 
     private val buildingRegisterInfoMapper = BuildingRegisterInfoMapper()
 
-    override suspend fun searchBuildingRegisters(criteria: BuildingRegisterCriteria.SearchBuildingRegisterCriteria): List<BuildingRegisterInfo.Main> {
+    override fun searchBuildingRegisters(criteria: BuildingRegisterCriteria.SearchBuildingRegisterCriteria): List<BuildingRegisterInfo.Main> {
         val buildingRegisters = this.buildingRegisterReader.findBuildingRegisters(criteria)
         return buildingRegisterInfoMapper.of(buildingRegisters)
     }
 
-    override suspend fun createBuildingRegister(command: BuildingRegisterCommand.CreateBuildingRegisterCommand): BuildingRegisterInfo.Main? {
+    override fun createBuildingRegister(command: BuildingRegisterCommand.CreateBuildingRegisterCommand): BuildingRegisterInfo.Main? {
         val buildingRegister = this.buildingRegisterStore.callAndSave(command) ?: return null
         return buildingRegisterInfoMapper.of(buildingRegister)
     }

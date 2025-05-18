@@ -4,8 +4,8 @@ import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
-import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.reactive.function.client.awaitBody
+import org.springframework.web.client.RestTemplate
+import org.springframework.http.HttpMethod
 
 private val logger = KotlinLogging.logger {}
 
@@ -15,34 +15,25 @@ private val logger = KotlinLogging.logger {}
  */
 @Component
 class AddressToAreaCodeApiCaller(
-    @Qualifier("vWorldOpenApiWebClient") private val webClient: WebClient,
+    @Qualifier("vWorldOpenApiRestTemplate") private val restTemplate: RestTemplate,
     @Value("\${openapi.v-world.key}") private val apiKey: String
 ) {
-    suspend fun fetchAreaCode(address: String): AreaCode? {
+    fun fetchAreaCode(address: String): AreaCode? {
         return try {
             logger.info { "Fetching area code for address: $address" }
-            val response = webClient.get()
-                .uri { builder ->
-                    builder
-                        .path("/req/search")
-                        .queryParam("service", "search")
-                        .queryParam("request", "search")
-                        .queryParam("version", "2.0")
-                        .queryParam("crs", "EPSG:900913")
-                        .queryParam("size", "10")
-                        .queryParam("page", "1")
-                        .queryParam("type", "address")
-                        .queryParam("category", "road")
-                        .queryParam("format", "json")
-                        .queryParam("errorformat", "json")
-                        .queryParam("key", apiKey)
-                        .queryParam("query", address)
-                        .build()
-                }
-                .retrieve()
-                .awaitBody<AddressToAreaCodeResponse>()
-
-            val code = response.response.result.items.firstOrNull()?.id
+            
+            val url = "/req/search?service=search&request=search&version=2.0&crs=EPSG:900913&size=10&page=1&type=address&category=road&format=json&errorformat=json&key={apiKey}&query={address}"
+            
+            val response = restTemplate.exchange(
+                url,
+                HttpMethod.GET,
+                null,
+                AddressToAreaCodeResponse::class.java,
+                apiKey,
+                address
+            )
+            
+            val code = response.body?.response?.result?.items?.firstOrNull()?.id
                 ?: throw IllegalStateException("결과가 없습니다.")
 
             AreaCode(

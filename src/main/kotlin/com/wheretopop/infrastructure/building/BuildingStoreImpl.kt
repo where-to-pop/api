@@ -13,18 +13,11 @@ class BuildingStoreImpl(
     private val buildingRepository: BuildingRepository
 ) : BuildingStore {
 
-    override suspend fun save(building: Building): Building {
+    override fun save(building: Building): Building {
         return buildingRepository.save(building)
     }
-    override suspend fun save(buildings: List<Building>): List<Building> {
+    override fun save(buildings: List<Building>): List<Building> {
         return buildingRepository.save(buildings)
     }
-    override suspend fun delete(building: Building) {
-        buildingRepository.deleteById(building.id)
-    }   
-    override suspend fun delete(buildings: List<Building>) {
-        buildings.forEach { building ->
-            buildingRepository.deleteById(building.id)
-        }
-    }
+
 } 

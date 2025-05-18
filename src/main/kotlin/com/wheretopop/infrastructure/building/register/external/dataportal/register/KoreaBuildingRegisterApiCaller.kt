@@ -5,8 +5,8 @@ import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
-import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.reactive.function.client.awaitBody
+import org.springframework.web.client.RestTemplate
+import org.springframework.http.HttpMethod
 
 private val logger = KotlinLogging.logger {}
 
@@ -16,31 +16,34 @@ private val logger = KotlinLogging.logger {}
  */
 @Component
 class KoreaBuildingRegisterApiCaller(
-    @Qualifier("koreaDataPortalApiWebClient") private val webClient: WebClient,
+    @Qualifier("koreaDataPortalApiRestTemplate") private val restTemplate: RestTemplate,
     @Value("\${openapi.korea.building-register.key}") private val apiKey: String
 ) {
-    suspend fun fetchBuildingRegisterData(sigunguCd: String, bjdongCd: String): KoreaBuildingRegisterResponse? {
+    fun fetchBuildingRegisterData(sigunguCd: String, bjdongCd: String): KoreaBuildingRegisterResponse? {
         return try {
             logger.info { "Fetching building register data for code: $sigunguCd $bjdongCd $apiKey" }
-            val rawResponse = webClient
-                .get()
-                .uri { builder ->
-                    builder
-                        .path("/1613000/BldRgstHubService/getBrTitleInfo")
-                        .queryParam("_type", "json")
-                        .queryParam("serviceKey", apiKey)
-                        .queryParam("sigunguCd", sigunguCd)
-                        .queryParam("bjdongCd", bjdongCd)
-                        .build(apiKey)
-                }
-                .retrieve()
-                .awaitBody<String>()
+            
+            val url = "/1613000/BldRgstHubService/getBrTitleInfo?_type=json&serviceKey={apiKey}&sigunguCd={sigunguCd}&bjdongCd={bjdongCd}"
+            
+            val response = restTemplate.exchange(
+                url,
+                HttpMethod.GET,
+                null,
+                String::class.java,
+                apiKey,
+                sigunguCd,
+                bjdongCd
+            )
+            
+            val rawResponse = response.body
 
-            logger.info { "Raw response for $sigunguCd $bjdongCd: $rawResponse" } // 찍는다
+            logger.info { "Raw response for $sigunguCd $bjdongCd: $rawResponse" }
 
-            JsonUtil.objectMapper.readValue(rawResponse, KoreaBuildingRegisterResponse::class.java)
+            rawResponse?.let {
+                JsonUtil.objectMapper.readValue(it, KoreaBuildingRegisterResponse::class.java)
+            }
         } catch (e: Exception) {
-            logger.error(e) { "Error fetching builing register data for $sigunguCd $bjdongCd: ${e.message}" }
+            logger.error(e) { "Error fetching building register data for $sigunguCd $bjdongCd: ${e.message}" }
             null
         }
     }

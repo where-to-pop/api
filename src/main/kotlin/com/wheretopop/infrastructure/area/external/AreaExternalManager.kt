@@ -12,7 +12,7 @@ class AreaExternalManager(
     private val areaExternalStore: AreaExternalStore,
     private val areaExternalReader: AreaExternalReader
 ): AreaOpenDataUseCase, AreaSnsUseCase, AreaInsightProvider {
-    override suspend fun callOpenDataApiAndSave() {
+    override fun callOpenDataApiAndSave() {
         return areaExternalStore.callOpenDataApiAndSave()
     }
 
