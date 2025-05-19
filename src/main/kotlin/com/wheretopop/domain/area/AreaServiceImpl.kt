@@ -14,18 +14,18 @@ class AreaServiceImpl(
     private val areaInfoMapper = AreaInfoMapper()
 
     override fun searchAreas(criteria: AreaCriteria.SearchAreaCriteria): List<AreaInfo.Main> {
-        val areas = this.areaReader.findAreas(criteria);
-        return areaInfoMapper.of(areas);
+        val areas = this.areaReader.findAreas(criteria)
+        return areaInfoMapper.of(areas)
     }
     override fun findAll(): List<AreaInfo.Main> {
-        val areas = this.areaReader.findAll();
-        return areaInfoMapper.of(areas);
+        val areas = this.areaReader.findAll()
+        return areaInfoMapper.of(areas)
     }
 
     override fun getAreaDetailById(id: AreaId): AreaInfo.Detail {
-        val area = this.areaReader.findById(id) ?: throw ErrorCode.COMMON_ENTITY_NOT_FOUND.toException();
-        val areaPopulationInsight = this.areaInsightProvider.findPopulationInsightByAreaId(id) ;
-        return areaInfoMapper.of(area, areaPopulationInsight);
+        val area = this.areaReader.findById(id) ?: throw ErrorCode.COMMON_ENTITY_NOT_FOUND.toException()
+        val areaPopulationInsight = this.areaInsightProvider.findPopulationInsightByAreaId(id)
+        return areaInfoMapper.of(area, areaPopulationInsight)
     }
 
     override fun searchNearest(latitude: Double, longitude: Double): AreaInfo.Main? {
