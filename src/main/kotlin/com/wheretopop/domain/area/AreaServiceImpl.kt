@@ -28,4 +28,10 @@ class AreaServiceImpl(
         return areaInfoMapper.of(area, areaPopulationInsight);
     }
 
+    override fun searchNearest(latitude: Double, longitude: Double): AreaInfo.Main? {
+        val area = this.areaReader.findByCoordinates(latitude, longitude)
+        if (area == null) return null
+        return areaInfoMapper.of(area)
+    }
+
 }

@@ -10,4 +10,5 @@ interface AreaReader {
     fun findAreas(criteria: AreaCriteria.SearchAreaCriteria): List<Area>
     fun findById(id: AreaId): Area?
     fun findByName(name: String): Area?
+    fun findByCoordinates(latitude: Double, longitude: Double): Area?
 }
