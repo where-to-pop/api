@@ -44,11 +44,11 @@ class PopupPopplyProcessor(
         popupPopplyRepository.save(popupPopplyEntity)
     }
 
-    override fun saveEmbeddings(popupInfos: List<PopupInfo>) {
-        popupVectorRepository.addPopupInfos(popupInfos)
+    override fun saveEmbeddings(popupInfo: PopupInfo.Detail) {
+        popupVectorRepository.addPopupInfo(popupInfo)
     }
 
-    override fun getAllPopups(): List<PopupInfo> {
+    override fun getAllPopups(): List<PopupInfo.Basic> {
         return popupPopplyRepository.findAll()
     }
 
@@ -65,18 +65,81 @@ class PopupPopplyProcessor(
         return popupDetailData
     }
 
-    override fun getSiliarPopups(query: String): List<PopupInfoWithScore> {
+    override fun getSimilarPopups(query: String): List<PopupInfo.WithScore> {
+//        val vectorSearchResults = popupVectorRepository.findSimilarPopups(query)
+//        return vectorSearchResults.mapNotNull { popup ->
+//            val metadataMap: Map<String, Any?> = popup.metadata
+//            val metadata = RetrievedPopupInfoMetadata.fromMap(metadataMap)
+//            val popupInfo: PopupInfo.Detail? = metadata.toDomain()
+//            if (popupInfo == null || popup.score == null) {
+//                null
+//            } else {
+//                PopupInfo.WithScore(popupInfo, popup.score)
+//            }
+//        }
+
+        logger.debug("getSimilarPopups 호출됨. 검색어: '{}'", query)
+
         val vectorSearchResults = popupVectorRepository.findSimilarPopups(query)
-        return vectorSearchResults.mapNotNull { popup ->
-            val metadataMap: Map<String, Any?> = popup.metadata
-            val metadata = RetrievedPopupInfoMetadata.fromMap(metadataMap)
-            val popupInfo: PopupInfo? = metadata.toDomain()
-            if (popupInfo == null || popup.score == null) {
-                null
-            } else {
-                PopupInfoWithScore(popupInfo, popup.score)
+        logger.debug("popupVectorRepository.findSimilarPopups 결과 수: {}", vectorSearchResults.size)
+
+        // TRACE 레벨 로그는 그대로 두거나 필요에 따라 주석 처리/제거 가능
+        if (logger.isTraceEnabled) {
+            vectorSearchResults.forEachIndexed { index, searchResult ->
+                logger.trace("  결과 [{}]: ID='{}', Score='{}', Metadata='{}'",
+                    index,
+                    searchResult.id,
+                    searchResult.score,
+                    searchResult.metadata
+                )
             }
         }
+
+        val mappedResults = vectorSearchResults.mapNotNull { popupDocument ->
+            logger.debug("문서 매핑 중: ID='{}', 원본 Score='{}'", popupDocument.id, popupDocument.score)
+            // 원본 메타데이터 로그 (필요하면 DEBUG 또는 INFO로 변경)
+            logger.trace("  문서 ID '{}'의 원본 메타데이터: {}", popupDocument.id, popupDocument.metadata)
+
+            val metadataMap: Map<String, Any?> = popupDocument.metadata
+            val metadataObjectAfterFromMap = RetrievedPopupInfoMetadata.fromMap(metadataMap) // fromMap 결과
+
+            // ***** 요청하신 INFO 레벨 로그 *****
+            // RetrievedPopupInfoMetadata.toString()이 호출되어 객체의 모든 필드와 값이 출력됩니다.
+            logger.info("  [INFO] 문서 ID '{}'에 대해 fromMap 결과 (RetrievedPopupInfoMetadata): {}", popupDocument.id, metadataObjectAfterFromMap)
+
+            // TRACE 레벨 로그는 그대로 두거나 필요에 따라 주석 처리/제거 가능
+            // logger.trace("  문서 ID '{}'의 파싱된 RetrievedPopupInfoMetadata: {}", popupDocument.id, metadataObjectAfterFromMap)
+
+            val popupInfo: PopupInfo.Detail? = metadataObjectAfterFromMap.toDomain()
+            logger.trace("  문서 ID '{}'의 변환된 PopupInfo.Detail: {}", popupDocument.id, popupInfo)
+
+            if (popupInfo == null || popupDocument.score == null) {
+                logger.warn(
+                    "  문서 ID '{}' 스킵됨: popupInfo is null -> {}, popupDocument.score is null -> {}",
+                    popupDocument.id,
+                    popupInfo == null,
+                    popupDocument.score == null
+                )
+                null
+            } else {
+                val resultWithScore = PopupInfo.WithScore(popupInfo, popupDocument.score!!)
+                logger.debug("  문서 ID '{}' 성공적으로 매핑됨: {}", popupDocument.id, resultWithScore)
+                resultWithScore
+            }
+        }
+
+        logger.debug("매핑 완료. 최종 반환되는 PopupInfo.WithScore 인스턴스 수: {}", mappedResults.size)
+        if (logger.isTraceEnabled && mappedResults.isNotEmpty()) {
+            mappedResults.forEachIndexed { index, finalItem ->
+                logger.trace("  최종 매핑된 항목 [{}]: {}", index, finalItem)
+            }
+        }
+
+        return mappedResults
+    }
+
+    override fun existsById(id: Long): Boolean {
+        return popupVectorRepository.findById(id) != null
     }
 
 

@@ -1,12 +1,15 @@
 package com.wheretopop.application.popup
 
 import com.wheretopop.application.building.BuildingFacade
+import com.wheretopop.domain.area.AreaService
 import com.wheretopop.domain.building.BuildingCommand
+import com.wheretopop.domain.building.BuildingService
 import com.wheretopop.domain.popup.Popup
-import com.wheretopop.domain.popup.PopupInfoWithScore
+import com.wheretopop.domain.popup.PopupInfo
 import com.wheretopop.domain.popup.PopupService
 import com.wheretopop.infrastructure.popup.external.popply.PopupDetail
 import com.wheretopop.shared.model.Location
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
 /**
@@ -19,7 +22,11 @@ class PopupFacade(
     private val buildingFacade: BuildingFacade,
     private val popplyUseCase: PopplyUseCase,
     private val xUseCase: XUseCase,
+    private val areaService: AreaService,
+    private val buildingService: BuildingService,
 ) {
+    val logger = LoggerFactory.getLogger(this::class.java)
+
     fun ingestPopupExternalData() {
         val popplyPopupDetails = popplyUseCase.crawlPopply()
         popplyPopupDetails.forEach{ popupDetail: PopupDetail ->
@@ -39,10 +46,26 @@ class PopupFacade(
 
     fun processPopupInfosForVectorSearch() {
         val popplyPopupInfos = popplyUseCase.getPopplyList()
-        popplyUseCase.saveEmbeddedPopply(popplyPopupInfos)
+        popplyPopupInfos.forEach { basicPopupInfo ->
+//            if (popplyUseCase.isPopupInfoPersisted(basicPopupInfo.id.value)) return@forEach
+
+            if (basicPopupInfo.latitude == null || basicPopupInfo.longitude == null) return@forEach
+            val areaFound = areaService.searchNearest(
+                basicPopupInfo.latitude,
+                basicPopupInfo.longitude,
+            )
+            if (areaFound == null) return@forEach
+            val buildingFound = buildingService.findBuildingByAddress(basicPopupInfo.address)
+            popplyUseCase.embedAndSavePopupInfo(
+                basicPopupInfo,
+                areaFound.id.toLong(),
+                areaFound.name,
+                buildingFound.id.toLong(),
+            )
+        }
     }
 
-    fun findSimilarPopupInfos(query: String): List<PopupInfoWithScore> {
+    fun findSimilarPopupInfos(query: String): List<PopupInfo.WithScore> {
         return popplyUseCase.getSimilarPopupInfos(query)
     }
 }

@@ -2,6 +2,7 @@ package com.wheretopop.shared.infrastructure.entity
 
 import com.wheretopop.domain.popup.PopupId
 import com.wheretopop.domain.popup.PopupInfo
+import com.wheretopop.domain.popup.PopupInfoMapper
 import com.wheretopop.infrastructure.popup.external.popply.PopupDetail
 import com.wheretopop.shared.domain.identifier.PopupPopplyId
 import jakarta.persistence.*
@@ -95,11 +96,13 @@ class PopupPopplyEntity(
             )
         }
 
-        fun toDomain(entity: PopupPopplyEntity): PopupInfo {
-            return PopupInfo(
+        fun toDomain(entity: PopupPopplyEntity): PopupInfo.Basic {
+            return PopupInfoMapper.toBasic(
                 id = PopupId.of(entity.popupId),
                 name = entity.popupName,
                 address = entity.address,
+                latitude = entity.latitude,
+                longitude = entity.longitude,
                 description = entity.description,
                 organizerName = entity.organizerName ?: ""
             )

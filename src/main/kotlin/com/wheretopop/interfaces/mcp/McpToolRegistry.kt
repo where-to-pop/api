@@ -1,7 +1,7 @@
 package com.wheretopop.interfaces.mcp
 
 import com.wheretopop.application.popup.PopupFacade
-import com.wheretopop.domain.popup.PopupInfoWithScore
+import com.wheretopop.domain.popup.PopupInfo
 import org.springframework.ai.tool.annotation.Tool
 import org.springframework.stereotype.Component
 
@@ -20,13 +20,13 @@ class McpToolRegistry(
             예를 들어, 특정 팝업의 더 자세한 정보를 얻거나 위치를 찾는 방법을 안내할 수 있습니다.
             쿼리에는 찾고 있는 팝업의 특징, 주제, 또는 관심 있는 팝업의 예시 등을 명시할 수 있습니다.""")
     suspend fun getSimilarPopupsByQuery(query: String): String {
-        val popupsWithScores: List<PopupInfoWithScore> = popupFacade.findSimilarPopupInfos(query)
+        val popupsWithScores: List<PopupInfo.WithScore> = popupFacade.findSimilarPopupInfos(query)
         if (popupsWithScores.isEmpty()) {
             return "입력하신 '${query}'와(과) 유사한 팝업 정보를 찾을 수 없었습니다. 다른 검색어를 사용해 보세요."
         }
 
         val popupsDetailsString = popupsWithScores.joinToString(separator = "\n\n====================\n\n") { item ->
-            val popup = item.popupInfo
+            val popup = item.popup
             """
             [팝업 정보]
             - 이름: ${popup.name} (ID: ${popup.id})

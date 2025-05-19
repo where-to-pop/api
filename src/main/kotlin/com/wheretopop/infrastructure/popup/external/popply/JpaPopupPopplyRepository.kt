@@ -34,7 +34,7 @@ class PopupPopplyRepositoryJpaAdapter(
     override fun save(entities: List<PopupPopplyEntity>): List<PopupPopplyEntity> =
         jpaRepository.saveAll(entities)
 
-    override fun findAll(): List<PopupInfo> =
+    override fun findAll(): List<PopupInfo.Basic> =
         jpaRepository.findAllOrderByCreatedAtDesc()
             .map { PopupPopplyEntity.toDomain(it) }
 
