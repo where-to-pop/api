@@ -28,7 +28,7 @@ class AreaQueryStrategy(
      */
     override fun getAdditionalSystemPrompt(): String {
 //        return SystemPrompt.AREA_QUERY_PROMPT
-        return ""
+        return SystemPrompt.AREA_QUERY_PROMPT
     }
     
     /**
