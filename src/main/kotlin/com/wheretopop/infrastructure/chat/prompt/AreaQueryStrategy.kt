@@ -3,7 +3,7 @@ package com.wheretopop.infrastructure.chat.prompt
 import com.wheretopop.interfaces.area.AreaToolRegistry
 import mu.KotlinLogging
 import org.springframework.ai.model.tool.ToolCallingChatOptions
-import org.springframework.ai.tool.ToolCallbacks
+import org.springframework.ai.support.ToolCallbacks
 import org.springframework.stereotype.Component
 
 /**

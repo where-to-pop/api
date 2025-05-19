@@ -30,7 +30,7 @@ class AreaServiceImpl(
 
     override fun findNearestArea(latitude: Double, longitude: Double): AreaInfo.Main? {
         val area = this.areaReader.findNearestArea(latitude, longitude);
-        return areaInfoMapper.of(area);
+        return area?. let { areaInfoMapper.of(it) };
     }
 
 }

@@ -15,8 +15,7 @@ import java.time.Instant
 class ChatServiceImpl(
     private val chatReader: ChatReader,
     private val chatStore: ChatStore,
-    private val generateChatTitle: GenerateChatTitle,
-    private val processUserMessage: ProcessUserMessage,
+    private val areaScenario: ChatScenario,
 ): ChatService {
 
     /**
@@ -34,8 +33,8 @@ class ChatServiceImpl(
             updatedAt = Instant.now(),
             deletedAt = null
         ))
-        val chatWithAssistantResponse = processUserMessage.execute(messageAddedChat)
-        val title = generateChatTitle.execute(command.initialMessage)
+        val chatWithAssistantResponse = areaScenario.processUserMessage(messageAddedChat)
+        val title = areaScenario.generateTitle(messageAddedChat)
         val updatedChat = chatWithAssistantResponse.update(title = title)
         val savedChat = chatStore.save(updatedChat)
         return ChatInfoMapper.toDetailInfo(savedChat)
@@ -83,7 +82,7 @@ class ChatServiceImpl(
             updatedAt = Instant.now(),
             deletedAt = null
         ))
-        val chatWithAssistantResponse = processUserMessage.execute(messageAddedChat)
+        val chatWithAssistantResponse = areaScenario.processUserMessage(messageAddedChat)
         val savedChat = chatStore.save(chatWithAssistantResponse)
         
         return ChatInfoMapper.toSimpleInfo(savedChat)
