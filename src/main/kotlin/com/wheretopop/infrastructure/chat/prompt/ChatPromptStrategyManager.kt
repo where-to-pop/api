@@ -50,16 +50,16 @@ class ChatPromptStrategyManager(
      */
     override fun processUserMessage(chat: Chat): Chat {
         // 전략 선택기를 사용하여 적합한 전략 ID 결정
-        val selectedStrategyId = selectStrategyId(chat)
-        logger.info("Selected strategy ID: $selectedStrategyId")
-        
-        // 선택된 전략으로 메시지 처리
-        val strategyType = StrategyType.findById(selectedStrategyId) ?: StrategyType.AREA_QUERY
-        val selectedStrategy = getStrategyByType(strategyType)
         val userMessage = chat.getLatestUserMessage()?.content
             ?: throw ErrorCode.COMMON_SYSTEM_ERROR.toException()
+
+        val selectedStrategyId = selectStrategyId(chat)
+        val strategyType = StrategyType.findById(selectedStrategyId) ?: StrategyType.AREA_QUERY
+        val selectedStrategy = getStrategyByType(strategyType)
         val response =  executeStrategy(chat.id.toString(),selectedStrategy, userMessage).result?.output?.text?.trim()
             ?: throw ErrorCode.CHAT_NULL_RESPONSE.toException()
+
+        logger.info("Selected strategy ID: $selectedStrategyId")
         logger.info("AI response: $response")
         val messageAddedChat = chat.addMessage(ChatMessage.create(
             chatId = chat.id,
