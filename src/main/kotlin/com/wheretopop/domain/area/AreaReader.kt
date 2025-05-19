@@ -11,4 +11,5 @@ interface AreaReader {
     fun findById(id: AreaId): Area?
     fun findByName(name: String): Area?
     fun findByCoordinates(latitude: Double, longitude: Double): Area?
+    fun findNearestArea(latitude: Double, longitude: Double): Area?
 }

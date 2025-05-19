@@ -2,8 +2,7 @@ package com.wheretopop.infrastructure.chat.prompt
 
 import com.wheretopop.domain.chat.Chat
 import com.wheretopop.domain.chat.ChatMessage
-import com.wheretopop.domain.chat.GenerateChatTitle
-import com.wheretopop.domain.chat.ProcessUserMessage
+import com.wheretopop.domain.chat.ChatScenario
 import com.wheretopop.infrastructure.chat.ChatAssistant
 import com.wheretopop.shared.enums.ChatMessageRole
 import com.wheretopop.shared.exception.toException
@@ -13,6 +12,8 @@ import org.springframework.ai.chat.model.ChatResponse
 import org.springframework.stereotype.Component
 import java.time.Instant
 
+
+
 /**
  * 사용자 메시지에 따라 적절한 전략을 선택하고 실행하는 관리자 클래스
  */
@@ -20,7 +21,7 @@ import java.time.Instant
 class ChatPromptStrategyManager(
     private val chatAssistant: ChatAssistant,
     private val strategies: List<ChatPromptStrategy>
-): GenerateChatTitle, ProcessUserMessage {
+): ChatScenario {
     private val logger = KotlinLogging.logger {}
     
     /**
@@ -29,10 +30,12 @@ class ChatPromptStrategyManager(
      * @param userMessage 사용자의 첫 메시지
      * @return 생성된 채팅 제목
      */
-    override fun execute(userMessage: String): String {
+    override fun generateTitle(chat: Chat): String {
+        val userMessage = chat.getLatestUserMessage()?.content
+            ?: throw ErrorCode.COMMON_SYSTEM_ERROR.toException()
         logger.info("Generating chat title for message: $userMessage")
         val titleStrategy = getStrategyByType(StrategyType.TITLE_GENERATION)
-        val response = executeStrategy(titleStrategy, userMessage)
+        val response = executeStrategy(chat.id.toString(), titleStrategy, userMessage)
         
         // 응답에서 제목만 추출
         return response.result.output.text?.trim() ?: throw ErrorCode.CHAT_NULL_RESPONSE.toException();
@@ -45,20 +48,17 @@ class ChatPromptStrategyManager(
      * @param userMessage 사용자 메시지
      * @return AI 응답
      */
-    override fun execute(chat: Chat): Chat {
-        val userMessage = chat.getLatestUserMessage()?.content
-            ?: throw ErrorCode.COMMON_SYSTEM_ERROR.toException()
-        logger.info("Processing user message: $userMessage")
-        
+    override fun processUserMessage(chat: Chat): Chat {
         // 전략 선택기를 사용하여 적합한 전략 ID 결정
-        val selectedStrategyId = selectStrategyId(userMessage)
+        val selectedStrategyId = selectStrategyId(chat)
         logger.info("Selected strategy ID: $selectedStrategyId")
         
         // 선택된 전략으로 메시지 처리
         val strategyType = StrategyType.findById(selectedStrategyId) ?: StrategyType.AREA_QUERY
         val selectedStrategy = getStrategyByType(strategyType)
-        
-        val response =  executeStrategy(selectedStrategy, userMessage).result?.output?.text?.trim()
+        val userMessage = chat.getLatestUserMessage()?.content
+            ?: throw ErrorCode.COMMON_SYSTEM_ERROR.toException()
+        val response =  executeStrategy(chat.id.toString(),selectedStrategy, userMessage).result?.output?.text?.trim()
             ?: throw ErrorCode.CHAT_NULL_RESPONSE.toException()
         logger.info("AI response: $response")
         val messageAddedChat = chat.addMessage(ChatMessage.create(
@@ -81,9 +81,11 @@ class ChatPromptStrategyManager(
      * @param userMessage 사용자 메시지
      * @return 선택된 전략 ID
      */
-    private fun selectStrategyId(userMessage: String): String {
+    private fun selectStrategyId(chat: Chat): String {
         val selectorStrategy = getStrategyByType(StrategyType.STRATEGY_SELECTOR)
-        val response = executeStrategy(selectorStrategy, userMessage)
+        val userMessage = chat.getLatestUserMessage()?.content
+            ?: throw ErrorCode.COMMON_SYSTEM_ERROR.toException()
+        val response = executeStrategy(chat.id.toString() ,selectorStrategy, userMessage)
         
         // 응답에서 전략 ID만 추출
         val strategyId = response.result.output.text?.trim() ?: throw ErrorCode.CHAT_NULL_RESPONSE.toException()
@@ -117,9 +119,9 @@ class ChatPromptStrategyManager(
      * @param userMessage 사용자 메시지
      * @return AI 응답
      */
-    private fun executeStrategy(strategy: ChatPromptStrategy, userMessage: String): ChatResponse {
+    private fun executeStrategy(conversationId: String, strategy: ChatPromptStrategy, userMessage: String): ChatResponse {
         val prompt = strategy.createPrompt(userMessage)
         val chatOptions = strategy.getToolCallingChatOptions()
-        return chatAssistant.call(prompt, chatOptions)
+        return chatAssistant.call(conversationId, prompt, chatOptions)
     }
 } 

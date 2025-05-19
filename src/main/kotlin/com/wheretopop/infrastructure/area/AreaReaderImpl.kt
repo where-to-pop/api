@@ -56,4 +56,8 @@ class AreaReaderImpl(
         }
         return closestArea
     }
+
+    override fun findNearestArea(latitude: Double, longitude: Double): Area? {
+        return areaRepository.findNearest(latitude, longitude)
+    }
 }

@@ -44,11 +44,12 @@ configurations {
 dependencies {
 	// Spring AI
 //	implementation(platform("org.springframework.ai:spring-ai-bom:1.0.0-SNAPSHOT"))
-	implementation(platform("org.springframework.ai:spring-ai-bom:1.0.0-M8"))
+	implementation(platform("org.springframework.ai:spring-ai-bom:1.0.0-RC1"))
 	implementation("org.springframework.ai:spring-ai-openai")
 	implementation("org.springframework.ai:spring-ai-starter-model-openai")
 	implementation("org.springframework.ai:spring-ai-starter-mcp-client")
 	implementation("org.springframework.ai:spring-ai-starter-vector-store-weaviate")
+	implementation("org.springframework.ai:spring-ai-starter-model-chat-memory-repository-jdbc")
 
 	// Spring MVC + JPA (WebFlux, R2DBC 대체)
 	implementation("org.springframework.boot:spring-boot-starter-web")

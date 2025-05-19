@@ -12,7 +12,7 @@ class PopupScheduler(
 ) {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    @Scheduled(cron = "* * * * * *")
+    @Scheduled(cron = "5 0 0 * * *")
     fun schedulePopupExternalDataIngestion() {
         logger.info("Start process popup data")
         try {
