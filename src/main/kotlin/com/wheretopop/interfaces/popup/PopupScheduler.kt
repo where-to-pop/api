@@ -12,7 +12,7 @@ class PopupScheduler(
 ) {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    @Scheduled(cron = "5 0 0 * * *")
+//    @Scheduled(cron = "5 0 0 * * *")
     fun schedulePopupExternalDataIngestion() {
         logger.info("Start process popup data")
         try {
@@ -25,7 +25,7 @@ class PopupScheduler(
 //                    logger.info(popup.name, popup.areaName, d.score)
 //                }
 
-                popupFacade.processPopupInfosForVectorSearch()
+//                popupFacade.processPopupInfosForVectorSearch()
             }
             logger.info("Popup data sync completed successfully")
         } catch (e: Exception) {
