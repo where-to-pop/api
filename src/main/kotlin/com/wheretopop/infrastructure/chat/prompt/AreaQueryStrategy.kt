@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component
  */
 @Component
 class AreaQueryStrategy(
-    private val areaToolRegistry: AreaToolRegistry
+    private val areaToolRegistry: AreaToolRegistry,
 ) : BaseChatPromptStrategy() {
 
     private val logger = KotlinLogging.logger {}

@@ -21,6 +21,11 @@ enum class StrategyType(val id: String, val description: String) {
     BUILDING_QUERY("building_query", "Provides detailed information about buildings, including specifications, facilities, and approval details"),
     
     /**
+     * 팝업 스토어 정보를 조회하는 전략
+     */
+    POPUP_QUERY("popup_query", "Provides information about popup stores and events, including details about location, duration, and themes"),
+    
+    /**
      * 적합한 전략을 선택하는 전략
      */
     STRATEGY_SELECTOR("strategy_selector", "Analyzes user message and suggests the most appropriate strategy to use");

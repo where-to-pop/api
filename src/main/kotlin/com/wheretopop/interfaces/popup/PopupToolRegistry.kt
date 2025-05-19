@@ -14,7 +14,7 @@ class PopupToolRegistry(
             이 정보를 바탕으로 사용자가 다음 단계로 활용할 수 있는 추천 Tool 사용법에 대한 가이드도 함께 제공됩니다.
             예를 들어, 특정 팝업의 더 자세한 정보를 얻거나 위치를 찾는 방법을 안내할 수 있습니다.
             쿼리에는 찾고 있는 팝업의 특징, 주제, 또는 관심 있는 팝업의 예시 등을 명시할 수 있습니다.""")
-    suspend fun getSimilarPopupsByQuery(query: String): String {
+    fun getSimilarPopupsByQuery(query: String): String {
         val popupsWithScores: List<PopupInfo.WithScore> = popupFacade.findSimilarPopupInfos(query)
         if (popupsWithScores.isEmpty()) {
             return "입력하신 '${query}'와(과) 유사한 팝업 정보를 찾을 수 없었습니다. 다른 검색어를 사용해 보세요."
