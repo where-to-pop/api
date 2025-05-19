@@ -85,7 +85,7 @@ object SystemPrompt {
     
         Requirements for the title:
         1. Write the title in Korean
-        2. Maximum length of 30 Korean characters (including spaces)
+        2. Maximum length of 20 Korean characters (including spaces)
         3. Capture the main topic or question
         4. Be descriptive but brief
         5. Don't use unnecessary prefixes like "Question about" or "Help with"

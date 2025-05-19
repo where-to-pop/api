@@ -38,7 +38,9 @@ class ChatPromptStrategyManager(
         val response = executeStrategy(chat.id.toString(), titleStrategy, userMessage)
         
         // 응답에서 제목만 추출
-        return response.result.output.text?.trim() ?: throw ErrorCode.CHAT_NULL_RESPONSE.toException();
+        return response.result.output.text?.trim()
+            ?.let { if (it.length > 50) it.take(47) + "…" else it }
+            ?: throw ErrorCode.CHAT_NULL_RESPONSE.toException();
     }
     
     /**
