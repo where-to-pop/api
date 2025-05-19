@@ -3,8 +3,10 @@ package com.wheretopop.infrastructure.area
 import com.wheretopop.domain.area.Area
 import com.wheretopop.domain.area.AreaCriteria
 import com.wheretopop.domain.area.AreaReader
+import com.wheretopop.infrastructure.area.bootstrap.AreaSeedData
 import com.wheretopop.shared.domain.identifier.AreaId
 import org.springframework.stereotype.Component
+import com.wheretopop.shared.util.CalculateUtil
 
 /**
  * AreaReader 인터페이스의 구현체
@@ -29,6 +31,30 @@ class AreaReaderImpl(
 
     override fun findAll(): List<Area> {
         return areaRepository.findAll()
+    }
+
+    override fun findByCoordinates(latitude: Double, longitude: Double): Area? {
+        val seedAreas = AreaSeedData.createDefaultAreas()
+        if (seedAreas.isEmpty()) {
+            return null
+        }
+        var closestArea: Area? = null
+        var minDistance = Double.MAX_VALUE
+
+        for (area in seedAreas) {
+            val distance = CalculateUtil.calculateDistance(
+                lat1 = latitude,
+                lon1 = longitude,
+                lat2 = area.location.latitude,
+                lon2 = area.location.longitude,
+            )
+
+            if (distance < minDistance) {
+                minDistance = distance
+                closestArea = area
+            }
+        }
+        return closestArea
     }
 
     override fun findNearestArea(latitude: Double, longitude: Double): Area? {

@@ -24,8 +24,8 @@ class PopupExternalStoreImpl(
         popplyProcessor.save(popupDetail, popupId)
     }
 
-    override fun saveEmbeddedPopply(popupInfos: List<PopupInfo>) {
-        popplyProcessor.saveEmbeddings(popupInfos)
+    override fun embedAndSaveDetailedPopupInfo(popupInfo: PopupInfo.Detail) {
+        popplyProcessor.saveEmbeddings(popupInfo)
     }
     override fun crawlXAndSave(popup: Popup) {
         xProcessor.crawlAndSaveByPopup(popup)

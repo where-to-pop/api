@@ -8,7 +8,7 @@ import com.wheretopop.shared.infrastructure.entity.PopupPopplyEntity
 interface PopupPopplyRepository {
     fun save(entity: PopupPopplyEntity): PopupPopplyEntity
     fun save(entities: List<PopupPopplyEntity>): List<PopupPopplyEntity>
-    fun findAll(): List<PopupInfo>
+    fun findAll(): List<PopupInfo.Basic>
     fun findByPopplyId(popplyId: PopupPopplyId): PopupPopplyEntity?
     fun findByPopupId(popupId: PopupId): PopupPopplyEntity?
 }

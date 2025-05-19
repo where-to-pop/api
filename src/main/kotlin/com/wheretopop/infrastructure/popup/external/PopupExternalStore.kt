@@ -9,6 +9,6 @@ interface PopupExternalStore {
     fun crawlPopplyAndSave()
     fun crawlPopply():List<PopupDetail>
     fun savePopply(popupDetail: PopupDetail, popupId: PopupId)
-    fun saveEmbeddedPopply(popupInfos: List<PopupInfo>)
-    fun crawlXAndSave(popupId: Popup)
+    fun embedAndSaveDetailedPopupInfo(popupInfo: PopupInfo.Detail)
+    fun crawlXAndSave(popup: Popup)
 }
