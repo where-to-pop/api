@@ -1,7 +1,11 @@
 package com.wheretopop.infrastructure.chat.prompt
 
 import com.wheretopop.interfaces.area.AreaToolRegistry
+import com.wheretopop.interfaces.building.BuildingToolRegistry
+import com.wheretopop.interfaces.popup.PopupToolRegistry
+import io.modelcontextprotocol.client.McpSyncClient
 import mu.KotlinLogging
+import org.springframework.ai.mcp.SyncMcpToolCallbackProvider
 import org.springframework.ai.model.tool.ToolCallingChatOptions
 import org.springframework.ai.support.ToolCallbacks
 import org.springframework.stereotype.Component
@@ -13,9 +17,14 @@ import org.springframework.stereotype.Component
 @Component
 class AreaQueryStrategy(
     private val areaToolRegistry: AreaToolRegistry,
-) : BaseChatPromptStrategy() {
+    private val popupToolRegistry: PopupToolRegistry,
+    private val buildingToolRegistry: BuildingToolRegistry,
+    private val mcpSyncClients: List<McpSyncClient>
+    ) : BaseChatPromptStrategy() {
 
     private val logger = KotlinLogging.logger {}
+    private val syncMcpToolCallbackProvider = SyncMcpToolCallbackProvider(mcpSyncClients)
+    private val mcpToolCallbacks = syncMcpToolCallbackProvider.toolCallbacks
     /**
      * 전략 타입을 반환합니다.
      */
@@ -36,8 +45,9 @@ class AreaQueryStrategy(
      * 지역 관련 도구들을 등록하고 AI가 이를 사용할 수 있도록 합니다.
      */
     override fun getToolCallingChatOptions(): ToolCallingChatOptions {
+        logger.info("mcpToolCallbacks: ${mcpToolCallbacks.contentToString()}")
         val toolCallbackChatOptions = ToolCallingChatOptions.builder()
-            .toolCallbacks(*ToolCallbacks.from(areaToolRegistry))
+            .toolCallbacks(*ToolCallbacks.from(areaToolRegistry, popupToolRegistry, buildingToolRegistry), *mcpToolCallbacks)
             .internalToolExecutionEnabled(false)
             .temperature(0.2)
             .build()

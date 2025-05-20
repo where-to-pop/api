@@ -35,7 +35,20 @@ spring:
         request-timeout: 30s
         toolcallback:
           enabled: true
-        type: async
+        type: sync
+        stdio:
+          connections:
+            naver-search-mcp:
+              command: npx
+              args:
+                - -y
+                - "@smithery/cli@latest"
+                - run
+                - "@isnow890/naver-search-mcp"
+                - --key
+                - ${SMITHERY_API_KEY}
+                - --profile
+                - jealous-orca-ZTyY94
 
     openai:
       api-key: ${OPENAI_API_KEY:your_openai_or_gcp_key}
