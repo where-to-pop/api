@@ -4,7 +4,6 @@ import com.wheretopop.shared.exception.toException
 import com.wheretopop.shared.response.ErrorCode
 import mu.KotlinLogging
 import org.springframework.ai.chat.memory.ChatMemory
-import org.springframework.ai.chat.memory.MessageWindowChatMemory
 import org.springframework.ai.chat.model.ChatModel
 import org.springframework.ai.chat.model.ChatResponse
 import org.springframework.ai.chat.prompt.Prompt
@@ -20,15 +19,9 @@ private val logger = KotlinLogging.logger {}
 class AiChatAssistant(
     private val chatModel: ChatModel,
     private val toolCallingManager: ToolCallingManager,
-//    private val chatMemory: ChatMemory
+    private val chatMemory: ChatMemory
 ) : ChatAssistant {
 
-    // NOTE: 현재 jdbcChatMemory 가 버그가 있어 인메모리 메모리 임시 사용
-    // https://github.com/spring-projects/spring-ai/pull/3177 머지됨 릴리즈 기다리는 중
-    // TODO: 릴리즈 후 메모리 변경
-    private val chatMemory: ChatMemory = MessageWindowChatMemory.builder()
-        .maxMessages(50)
-        .build()
     override fun call(conversationId: String, prompt: Prompt, toolCallingChatOption: ToolCallingChatOptions?): ChatResponse {
 
         val systemMessage = prompt.systemMessage
