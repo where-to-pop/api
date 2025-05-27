@@ -13,7 +13,7 @@ class AuthCommand {
             return AuthUser.create(
                 userId = userId,
                 identifier = identifier,
-                password = Password.of(rawPassword),
+                password = Password.fromRaw(rawPassword),
                 createdAt = Instant.now(),
                 updatedAt = Instant.now(),
                 deletedAt = null

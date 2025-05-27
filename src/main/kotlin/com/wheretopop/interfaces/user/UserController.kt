@@ -4,7 +4,9 @@ import com.wheretopop.application.user.UserFacade
 import com.wheretopop.application.user.UserInput
 import com.wheretopop.config.security.CurrentUser
 import com.wheretopop.config.security.UserPrincipal
+import com.wheretopop.shared.exception.toException
 import com.wheretopop.shared.response.CommonResponse
+import com.wheretopop.shared.response.ErrorCode
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -30,12 +32,15 @@ class UserController(private val userFacade: UserFacade) {
             profileImageUrl = signUpRequest.profileImageUrl,
         )
 
-        val userInfo = userFacade.signUp(input)
-        val response = UserDto.UserResponse.from(userInfo)
-        
-        return ResponseEntity.ok()
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(CommonResponse.success(response))
+        // NOTE: 회원가입 비활성화함
+        throw ErrorCode.COMMON_FORBIDDEN.toException()
+//        val userInfo = userFacade.signUp(input)
+//        val response = UserDto.UserResponse.from(userInfo)
+//
+//
+//        return ResponseEntity.ok()
+//            .contentType(MediaType.APPLICATION_JSON)
+//            .body(CommonResponse.success(response))
     }
     
     /**

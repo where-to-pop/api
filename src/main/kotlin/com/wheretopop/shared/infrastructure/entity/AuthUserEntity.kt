@@ -53,7 +53,7 @@ class AuthUserEntity(
                 id = authUser.id.toLong(),
                 userId = authUser.userId.toLong(),
                 identifier = authUser.identifier,
-                password = authUser.password.toString(),
+                password = authUser.password.hashed,
                 createdAt = authUser.createdAt,
                 updatedAt = authUser.updatedAt,
                 deletedAt = authUser.deletedAt
@@ -66,7 +66,7 @@ class AuthUserEntity(
             id = AuthUserId.of(id),
             userId = UserId.of(userId),
             identifier = identifier,
-            password = Password.of(password),
+            password = Password.fromHashed(password),
             createdAt = createdAt,
             updatedAt = updatedAt,
             deletedAt = deletedAt
