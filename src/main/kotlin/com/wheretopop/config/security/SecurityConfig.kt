@@ -42,6 +42,9 @@ class SecurityConfig(
         // CSRF 비활성화 (REST API는 CSRF가 필요 없음)
         http.csrf { it.disable() }
             
+        // CORS 활성화 (WebMvcConfig의 CORS 설정 사용)
+        http.cors { }
+            
         // 세션 관리 정책 설정 (STATELESS = 세션 사용 안함)
         http.sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             

@@ -22,14 +22,15 @@ class WebMvcConfig(private val userPrincipalResolver: UserPrincipalResolver) : W
      */
     override fun addCorsMappings(registry: CorsRegistry) {
         registry.addMapping("/**")
-            .allowedOrigins(
+            .allowedOriginPatterns(
                 // 로컬 개발 환경
-                "http://localhost:3000",
-                "http://localhost:5173",
+                "http://localhost:*",
+                "https://localhost:*",
                 "https://where-to-pop.devkor.club",
             )
-            .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-            .allowedHeaders("Origin", "Content-Type", "Accept", "Authorization")
+            .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD")
+            .allowedHeaders("*")
+            .exposedHeaders("Authorization", "Content-Type", "X-Requested-With")
             .allowCredentials(true)
             .maxAge(3600)
     }
