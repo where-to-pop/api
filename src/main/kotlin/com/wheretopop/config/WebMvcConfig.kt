@@ -26,7 +26,9 @@ class WebMvcConfig(private val userPrincipalResolver: UserPrincipalResolver) : W
                 // 로컬 개발 환경
                 "http://localhost:*",
                 "https://localhost:*",
+                // 프로덕션 환경
                 "https://where-to-pop.devkor.club",
+                "https://*.devkor.club"
             )
             .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD")
             .allowedHeaders("*")

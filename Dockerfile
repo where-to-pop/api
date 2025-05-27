@@ -29,6 +29,10 @@ WORKDIR /app
 RUN arch=$(dpkg --print-architecture) && \
     echo "Running on architecture: $arch"
 
+# Node.js 설치 (MCP를 위해 필요)
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y nodejs
+
 # 필수 시스템 패키지 설치 (headless Chromium 구동에 필요)
 RUN apt-get update && apt-get install -y \
     wget gnupg unzip curl \
@@ -37,6 +41,9 @@ RUN apt-get update && apt-get install -y \
     libxdamage1 libxfixes3 libxkbcommon0 libxrandr2 libxshmfence1 xdg-utils \
     chromium chromium-driver \
     && rm -rf /var/lib/apt/lists/*
+
+# Node.js 및 npm 버전 확인
+RUN node --version && npm --version
 
 # 크로미움 및 크롬드라이버 버전 확인
 RUN chromium --version && chromedriver --version
