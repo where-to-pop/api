@@ -56,6 +56,15 @@ enum class StrategyType(
         StrategyExecutionType.DATA_COLLECTION
     ),
     
+    /**
+     * Online search strategy using web search MCP tools
+     */
+    ONLINE_SEARCH(
+        "online_search",
+        "Performs comprehensive online search for real-time information",
+        StrategyExecutionType.DATA_COLLECTION
+    ),
+    
     // ============ DATA PROCESSING STRATEGIES ============
     /**
      * Data aggregation strategy

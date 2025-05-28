@@ -257,12 +257,16 @@ class ChatPromptStrategyManager(
             }
         }
         
-        // 최종 결과 반환 (마지막 단계가 response_synthesis인 경우 그 결과, 아니면 모든 결과 조합)
-        val lastStep = executionPlan.actions.maxByOrNull { it.step }
-        return if (lastStep?.strategy == "response_synthesis") {
-            stepResults[lastStep.step] ?: accumulatedContext
+        // 최종 결과 반환 (응답 생성 전략이 있으면 그 결과, 아니면 마지막 단계 결과)
+        val responseGenerationStep = executionPlan.actions.find { 
+            StrategyType.findById(it.strategy)?.executionType == StrategyExecutionType.RESPONSE_GENERATION 
+        }
+        
+        return if (responseGenerationStep != null) {
+            stepResults[responseGenerationStep.step] ?: accumulatedContext
         } else {
-            // response_synthesis가 없는 경우 마지막 단계 결과 반환
+            // 응답 생성 전략이 없는 경우 마지막 단계 결과 반환
+            val lastStep = executionPlan.actions.maxByOrNull { it.step }
             stepResults[lastStep?.step ?: 1] ?: "No results available"
         }
     }
@@ -384,6 +388,10 @@ class ChatPromptStrategyManager(
             
             responseText.contains("팝업", ignoreCase = true) || 
             responseText.contains("popup", ignoreCase = true) -> StrategyType.POPUP_QUERY.id
+            
+            responseText.contains("검색", ignoreCase = true) || 
+            responseText.contains("search", ignoreCase = true) ||
+            responseText.contains("온라인", ignoreCase = true) -> StrategyType.ONLINE_SEARCH.id
             
             else -> StrategyType.GENERAL_RESPONSE.id // 폴백을 GENERAL_RESPONSE로 변경
         }
@@ -510,10 +518,15 @@ class ChatPromptStrategyManager(
         }
         
         // 최종 결과 반환
-        val lastStep = executionPlan.actions.maxByOrNull { it.step }
-        return@runBlocking if (lastStep?.strategy == "response_synthesis") {
-            stepResults[lastStep.step] ?: "No synthesis result available"
+        val responseGenerationStep = executionPlan.actions.find { 
+            StrategyType.findById(it.strategy)?.executionType == StrategyExecutionType.RESPONSE_GENERATION 
+        }
+        
+        return@runBlocking if (responseGenerationStep != null) {
+            stepResults[responseGenerationStep.step] ?: "No response generation result available"
         } else {
+            // 응답 생성 전략이 없는 경우 마지막 단계 결과 반환
+            val lastStep = executionPlan.actions.maxByOrNull { it.step }
             stepResults[lastStep?.step ?: 1] ?: "No results available"
         }
     }

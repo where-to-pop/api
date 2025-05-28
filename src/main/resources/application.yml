@@ -49,7 +49,17 @@ spring:
                 - ${SMITHERY_API_KEY}
                 - --profile
                 - jealous-orca-ZTyY94
-
+#            google-search-mcp:
+#              command: npx
+#              args:
+#                - -y
+#                - "@smithery/cli@latest"
+#                - run
+#                - "@gradusnikov/google-search-mcp-server"
+#                - --key
+#                - ${SMITHERY_API_KEY}
+#                - --profile
+#                - jealous-orca-ZTyY94
     openai:
       api-key: ${OPENAI_API_KEY:your_openai_or_gcp_key}
       base-url: ${OPENAI_BASE_URL:https://api.openai.com/v1}
@@ -58,7 +68,7 @@ spring:
         completions-path: /chat/completions
         options:
           model: ${OPENAI_MODEL:gpt-4o}
-#          model: gemini-2.0-flash
+      #          model: gemini-2.0-flash
       #        NOTE: gemini에서 api-key를 통한 인증을 java client에서 지원하지 않음. gcp를 통한 인증을 해야함
       #        따라서 https://ai.google.dev/gemini-api/docs/openai?hl=ko openai 호환을 활용해 호출
       #        https://github.com/spring-projects/spring-ai/issues/1252
