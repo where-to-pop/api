@@ -75,7 +75,9 @@ spring:
         scheme: ${VECTOR_DB_SCHEME:http}
         host: ${VECTOR_DB_HOST:localhost}
         port: ${VECTOR_DB_PORT:8081}
-        object-class: PopupStore
+        object-class:
+          popup: PopupStore
+          long-term-memory: LongTermMemory
 
 openapi:
   seoul:
