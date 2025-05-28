@@ -1,5 +1,7 @@
-package com.wheretopop.infrastructure.chat.prompt
+package com.wheretopop.infrastructure.chat.prompt.strategy
 
+import com.wheretopop.infrastructure.chat.prompt.ChatPromptStrategy
+import com.wheretopop.infrastructure.chat.prompt.SystemPrompt
 import org.springframework.ai.chat.messages.Message
 import org.springframework.ai.chat.messages.SystemMessage
 import org.springframework.ai.chat.messages.UserMessage
