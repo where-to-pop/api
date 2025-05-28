@@ -3,7 +3,7 @@ package com.wheretopop.infrastructure.chat
 import com.wheretopop.shared.exception.toException
 import com.wheretopop.shared.response.ErrorCode
 import mu.KotlinLogging
-import org.springframework.ai.chat.memory.ChatMemory
+import org.springframework.ai.chat.memory.MessageWindowChatMemory
 import org.springframework.ai.chat.model.ChatModel
 import org.springframework.ai.chat.model.ChatResponse
 import org.springframework.ai.chat.prompt.Prompt
@@ -19,25 +19,26 @@ private val logger = KotlinLogging.logger {}
 class AiChatAssistant(
     private val chatModel: ChatModel,
     private val toolCallingManager: ToolCallingManager,
-    private val chatMemory: ChatMemory
+//    private val chatMemory: ChatMemory
 ) : ChatAssistant {
 
     override fun call(conversationId: String, prompt: Prompt, toolCallingChatOption: ToolCallingChatOptions?): ChatResponse {
+        val chatMemory = MessageWindowChatMemory.builder()
+            .maxMessages(30)
+            .build()
 
         val systemMessage = prompt.systemMessage
         chatMemory.add(conversationId, prompt.userMessage)
-        
+
         // 메모리에서 대화 이력을 가져오고 system 메시지를 추가하여 프롬프트 생성
         val promptWithMemory = Prompt(chatMemory.get(conversationId) + prompt.systemMessage, toolCallingChatOption)
-        
-        logger.info { "available tools: ${toolCallingChatOption?.toolCallbacks}" }
-        
         // 모델 호출
         var chatResponse = chatModel.call(promptWithMemory) ?: throw ErrorCode.CHAT_NULL_RESPONSE.toException()
-        
+        logger.info("chatResponse-output: ${chatResponse.result.output}")
+        logger.info("chatResponse-text: ${chatResponse.result.output.text}")
         // 응답을 메모리에 추가
         chatMemory.add(conversationId, chatResponse.result.output)
-        
+
         // 도구 호출이 있는 경우 처리
         while (chatResponse.hasToolCalls()) {
             logger.info("Tool calls detected in chat response. ${chatResponse.result.output.toolCalls}")
@@ -51,12 +52,13 @@ class AiChatAssistant(
             // 도구 실행 결과를 메모리에 추가
             val conversationHistory = toolExecutionResult.conversationHistory()
             if (conversationHistory.isNotEmpty()) {
+                logger.info("Tool calls: ${conversationHistory[conversationHistory.size - 1]}")
                 chatMemory.add(conversationId, conversationHistory[conversationHistory.size - 1])
             }
             
             // 업데이트된 대화 이력으로 새 프롬프트 생성
             val updatedPromptWithMemory = Prompt(chatMemory.get(conversationId) + systemMessage, toolCallingChatOption)
-            
+            logger.info { "chatMemory: ${chatMemory.get(conversationId)}" }
             logger.info("Tool execution result: ${toolExecutionResult.conversationHistory()}")
             
             // 새로운 응답 생성
