@@ -1,5 +1,6 @@
 package com.wheretopop.infrastructure.chat.prompt
 
+import com.wheretopop.infrastructure.chat.prompt.strategy.StrategyType
 import org.springframework.ai.chat.prompt.Prompt
 import org.springframework.ai.model.tool.ToolCallingChatOptions
 
