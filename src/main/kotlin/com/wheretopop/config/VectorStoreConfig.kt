@@ -23,8 +23,11 @@ class VectorStoreConfig(
     @Value("\${spring.ai.vectorstore.weaviate.port:8081}")
     private var port: Int = 0
 
-    @Value("\${spring.ai.vectorstore.weaviate.object-class:PopupStore}")
-    private lateinit var objectClass: String
+    @Value("\${spring.ai.vectorstore.weaviate.object-class.popup:PopupStore}")
+    private lateinit var popupObjectClass: String
+
+    @Value("\${spring.ai.vectorstore.weaviate.object-class.long-term-memory:LongTermMemory}")
+    private lateinit var longTermMemoryObjectClass: String
 
     @Bean
     fun weaviateClient(): WeaviateClient {
@@ -32,14 +35,25 @@ class VectorStoreConfig(
         return WeaviateClient(Config(scheme, fullHost))
     }
 
-    @Bean(name = ["customVectorStore"])
-    fun vectorStore(
+    @Bean(name = ["popupVectorStore"])
+    fun popupVectorStore(
         weaviateClient: WeaviateClient,
         embeddingModel: EmbeddingModel,
     ): VectorStore {
         return WeaviateVectorStore
             .builder(weaviateClient, embeddingModel)
-            .objectClass(objectClass)
+            .objectClass(popupObjectClass)
+            .build()
+    }
+
+    @Bean(name = ["longTermMemoryVectorStore"])
+    fun longTermMemoryVectorStore(
+        weaviateClient: WeaviateClient,
+        embeddingModel: EmbeddingModel,
+    ): VectorStore {
+        return WeaviateVectorStore
+            .builder(weaviateClient, embeddingModel)
+            .objectClass(longTermMemoryObjectClass)
             .build()
     }
 }

@@ -7,6 +7,7 @@ import mu.KotlinLogging
 import org.springframework.ai.document.Document
 import org.springframework.ai.vectorstore.SearchRequest
 import org.springframework.ai.vectorstore.VectorStore
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Repository
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import java.util.concurrent.TimeUnit
@@ -15,6 +16,7 @@ private val logger = KotlinLogging.logger {}
 
 @Repository
 class PopupVectorRepositoryImpl(
+    @Qualifier("popupVectorStore")
     private val vectorStore: VectorStore
 ): PopupVectorRepository {
     override fun addPopupInfo(popupInfo: PopupInfo.Detail) {
