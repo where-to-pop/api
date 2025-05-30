@@ -50,7 +50,7 @@ class PopupFacade(
 //            if (popplyUseCase.isPopupInfoPersisted(basicPopupInfo.id.value)) return@forEach
 
             if (basicPopupInfo.latitude == null || basicPopupInfo.longitude == null) return@forEach
-            val areaFound = areaService.searchNearest(
+            val areaFound = areaService.findNearestArea(
                 basicPopupInfo.latitude,
                 basicPopupInfo.longitude,
             )
