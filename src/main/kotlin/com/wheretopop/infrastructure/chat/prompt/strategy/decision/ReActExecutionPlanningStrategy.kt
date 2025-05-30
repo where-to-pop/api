@@ -62,16 +62,12 @@ class ReActExecutionPlanningStrategy(
             
             ## Available Strategy Categories:
             
-            ### Data Collection Strategies:
             $dataCollectionStrategies
             
-            ### Data Processing Strategies:
             $dataProcessingStrategies
             
-            ### Decision Making Strategies:
             $decisionMakingStrategies
             
-            ### Response Generation Strategies:
             $responseGenerationStrategies
             
             ## ReAct Framework for Multi-Step Planning:
@@ -136,13 +132,33 @@ class ReActExecutionPlanningStrategy(
                 "actions": [
                     {
                         "step": 1,
-                        "strategy": "strategy_id_from_available_list",
+                        "strategy": "area_query",
                         "purpose": "What this step aims to achieve",
                         "reasoning": "Why this strategy was chosen for this step",
                         "recommended_tools": ["tool1", "tool2"],
                         "tool_sequence": "Step-by-step tool execution plan",
                         "expected_output": "What information this step should produce",
                         "dependencies": []
+                    },
+                    {
+                        "step": 2,
+                        "strategy": "online_search",
+                        "purpose": "What this step aims to achieve",
+                        "reasoning": "Why this strategy was chosen for this step",
+                        "recommended_tools": ["tool1", "tool2"],
+                        "tool_sequence": "Step-by-step tool execution plan",
+                        "expected_output": "What information this step should produce",
+                        "dependencies": [1]
+                    },
+                    {
+                        "step": 3,
+                        "strategy": "general_response",
+                        "purpose": "What this step aims to achieve",
+                        "reasoning": "Why this strategy was chosen for this step",
+                        "recommended_tools": ["tool1", "tool2"],
+                        "tool_sequence": "Step-by-step tool execution plan",
+                        "expected_output": "What information this step should produce",
+                        "dependencies": [1, 2]
                     }
                 ],
                 "observation": "Plan validation including completeness, efficiency, dependency validation, and goal alignment assessment"

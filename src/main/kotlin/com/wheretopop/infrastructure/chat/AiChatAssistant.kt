@@ -25,7 +25,6 @@ class AiChatAssistant(
 
 
     override fun call(conversationId: String, prompt: Prompt, toolCallingChatOption: ToolCallingChatOptions?): ChatResponse {
-
         val systemMessage = prompt.systemMessage
         // 한번의 호출에서 context 를 저장하기 위한 MessageWindowChatMemory 사용
         val chatMemory: MessageWindowChatMemory = MessageWindowChatMemory.builder()
@@ -35,7 +34,8 @@ class AiChatAssistant(
 
         // 메모리에서 대화 이력을 가져오고 system 메시지를 추가하여 프롬프트 생성
         val promptWithMemory = Prompt(chatMemory.get(conversationId) + prompt.systemMessage, toolCallingChatOption)
-        
+        logger.info("system prompt length: ${promptWithMemory.systemMessage.text.length}")
+        logger.info("User message length: ${promptWithMemory.userMessage.text.length}")
         // 모델 호출 (타임아웃 설정 고려)
         var chatResponse = chatModel.call(promptWithMemory) ?: throw ErrorCode.CHAT_NULL_RESPONSE.toException()
         logger.info("Initial response received for conversation: $conversationId")
@@ -74,7 +74,8 @@ class AiChatAssistant(
             
             // 업데이트된 대화 이력으로 새 프롬프트 생성
             val updatedPromptWithMemory = Prompt(chatMemory.get(conversationId) + systemMessage, toolCallingChatOption)
-            
+            logger.info("system prompt length: ${updatedPromptWithMemory.systemMessage.text.length}")
+            logger.info("User message length: ${updatedPromptWithMemory.userMessage.text.length}")
             // 새로운 응답 생성
             chatResponse = chatModel.call(updatedPromptWithMemory) ?: throw ErrorCode.CHAT_NULL_RESPONSE.toException()
             
