@@ -22,7 +22,7 @@ class AreaQueryStrategy(
     private val popupToolRegistry: PopupToolRegistry,
     private val buildingToolRegistry: BuildingToolRegistry,
     private val mcpSyncClients: List<McpSyncClient>
-) : BaseChatPromptStrategy() {
+    ) : BaseChatPromptStrategy() {
 
     private val logger = KotlinLogging.logger {}
     private val syncMcpToolCallbackProvider = SyncMcpToolCallbackProvider(mcpSyncClients)

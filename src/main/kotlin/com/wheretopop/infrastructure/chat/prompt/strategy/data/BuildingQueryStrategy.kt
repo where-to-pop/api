@@ -90,7 +90,7 @@ class BuildingQueryStrategy(
             Your primary goal is to collect accurate, comprehensive building data that supports location assessment and decision-making.
         """.trimIndent()
     }
-
+    
     /**
      * Configures tool calling options for building queries
      */
