@@ -4,8 +4,20 @@ import com.wheretopop.domain.user.UserId
 import com.wheretopop.shared.enums.ChatMessageRole
 import com.wheretopop.shared.exception.toException
 import com.wheretopop.shared.response.ErrorCode
+import com.wheretopop.infrastructure.chat.prompt.ChatPromptStrategyManager
 import org.springframework.stereotype.Service
 import java.time.Instant
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * ChatService 인터페이스 구현체
@@ -16,7 +28,17 @@ class ChatServiceImpl(
     private val chatReader: ChatReader,
     private val chatStore: ChatStore,
     private val areaScenario: ChatScenario,
+    private val chatPromptStrategyManager: ChatPromptStrategyManager
 ): ChatService {
+    
+    private val objectMapper: ObjectMapper = jacksonObjectMapper().apply {
+        registerModule(JavaTimeModule())
+        // ISO 8601 형식으로 날짜 직렬화
+        disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+    }
+    
+    // 진행 중인 ReAct 실행 스트림을 캐시
+    private val activeExecutions = ConcurrentHashMap<String, Flow<String>>()
 
     /**
      * 새 채팅을 초기화합니다.
@@ -68,10 +90,13 @@ class ChatServiceImpl(
     }
     
     /**
-     * 채팅에 사용자 메시지를 추가하고 AI 응답을 반환합니다.
+     * 채팅에 사용자 메시지를 추가하고 백그라운드에서 ReAct 실행을 시작합니다.
+     * 즉시 Simple 정보를 반환하고, 실행 상태는 getChatExecutionStatusStream으로 모니터링 가능합니다.
      */
     override fun sendMessage(chatId: ChatId, message: String): ChatInfo.Simple {
         val chat = chatReader.findById(chatId) ?: throw ErrorCode.COMMON_ENTITY_NOT_FOUND.toException()
+        
+        // 사용자 메시지를 채팅에 추가
         val messageAddedChat = chat.addMessage(ChatMessage.create(
             chatId = chat.id,
             role = ChatMessageRole.USER,
@@ -82,10 +107,114 @@ class ChatServiceImpl(
             updatedAt = Instant.now(),
             deletedAt = null
         ))
-        val chatWithAssistantResponse = areaScenario.processUserMessage(messageAddedChat)
-        val savedChat = chatStore.save(chatWithAssistantResponse)
         
-        return ChatInfoMapper.toSimpleInfo(savedChat)
+        // 즉시 Simple 정보 생성
+        val simpleInfo = ChatInfoMapper.toSimpleInfo(messageAddedChat)
+        
+        // 백그라운드에서 ReAct 실행 시작
+        val executionKey = "${chatId.value}_${System.currentTimeMillis()}"
+        val executionFlow = sendMessageStream(chatId, message)
+            .onCompletion { 
+                // 실행 완료 시 캐시에서 제거
+                activeExecutions.remove(executionKey)
+            }
+        
+        // 실행 스트림을 캐시에 저장
+        activeExecutions[executionKey] = executionFlow
+        
+        // 백그라운드에서 실행 시작 (결과는 저장)
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                var finalResult: String? = null
+                executionFlow.collect { streamData ->
+                    // 최종 결과가 있으면 채팅에 저장
+                    val responseData = objectMapper.readTree(streamData)
+                    if (responseData.has("isComplete") && responseData.get("isComplete").asBoolean()) {
+                        finalResult = responseData.get("finalResult")?.asText()
+                    }
+                }
+                
+                // 최종 결과를 채팅에 AI 응답으로 저장
+                finalResult?.let { result ->
+                    val updatedChat = messageAddedChat.addMessage(ChatMessage.create(
+                        chatId = chatId,
+                        role = ChatMessageRole.ASSISTANT,
+                        content = result,
+                        finishReason = null,
+                        latencyMs = 0L,
+                        createdAt = Instant.now(),
+                        updatedAt = Instant.now(),
+                        deletedAt = null
+                    ))
+                    chatStore.save(updatedChat)
+                }
+            } catch (e: Exception) {
+                // 실행 실패 시 에러 메시지를 채팅에 저장
+                val errorMessage = "처리 중 오류가 발생했습니다: ${e.message}"
+                val updatedChat = messageAddedChat.addMessage(ChatMessage.create(
+                    chatId = chatId,
+                    role = ChatMessageRole.ASSISTANT,
+                    content = errorMessage,
+                    finishReason = null,
+                    latencyMs = 0L,
+                    createdAt = Instant.now(),
+                    updatedAt = Instant.now(),
+                    deletedAt = null
+                ))
+                chatStore.save(updatedChat)
+            }
+        }
+        
+        return simpleInfo
+    }
+    
+    /**
+     * 채팅 메시지를 스트림으로 전송하고 ReAct 실행 과정을 실시간으로 반환합니다.
+     */
+    override fun sendMessageStream(chatId: ChatId, message: String): Flow<String> {
+        val chat = chatReader.findById(chatId) ?: throw ErrorCode.COMMON_ENTITY_NOT_FOUND.toException()
+        
+        // 사용자 메시지를 채팅에 추가
+        val messageAddedChat = chat.addMessage(ChatMessage.create(
+            chatId = chat.id,
+            role = ChatMessageRole.USER,
+            content = message,
+            finishReason = null,
+            latencyMs = 0L,
+            createdAt = Instant.now(),
+            updatedAt = Instant.now(),
+            deletedAt = null
+        ))
+        
+        // ChatPromptStrategyManager의 스트림 메서드를 사용하여 ReAct 실행 과정을 스트림으로 반환
+        return chatPromptStrategyManager.processUserMessageStream(messageAddedChat).map { reActStreamResponse ->
+            // ReActStreamResponse를 JSON 문자열로 변환
+            objectMapper.writeValueAsString(reActStreamResponse)
+        }
+    }
+    
+    /**
+     * 특정 채팅의 ReAct 실행 상태를 스트림으로 조회합니다.
+     */
+    override fun getChatExecutionStatusStream(chatId: ChatId, userId: UserId, executionId: String?): Flow<String> {
+        val chat = chatReader.findById(chatId) ?: throw ErrorCode.COMMON_ENTITY_NOT_FOUND.toException()
+        
+        // 해당 채팅의 활성 실행을 찾기
+        val chatKey = chatId.value.toString()
+        val activeExecution = activeExecutions.entries.find { (key, _) -> 
+            key.startsWith(chatKey) 
+        }?.value
+        
+        return activeExecution ?: flowOf(
+            objectMapper.writeValueAsString(mapOf(
+                "chatId" to chatId.value,
+                "userId" to userId.value,
+                "executionId" to executionId,
+                "status" to "NO_ACTIVE_EXECUTION",
+                "message" to "현재 진행 중인 실행이 없습니다",
+                "timestamp" to Instant.now()
+            ))
+        )
     }
     
     /**

@@ -14,9 +14,11 @@ import java.time.Instant
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.wheretopop.infrastructure.chat.prompt.strategy.StrategyExecutionType
 import com.wheretopop.infrastructure.chat.prompt.strategy.StrategyType
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 
@@ -47,6 +49,38 @@ data class ExecutionPlan(
 )
 
 /**
+ * ReAct 실행 상태 및 스트림 응답을 위한 데이터 클래스들
+ */
+data class ReActExecutionStatus(
+    val chatId: String,
+    val executionId: String,
+    val phase: ExecutionPhase,
+    val currentStep: Int?,
+    val totalSteps: Int,
+    val progress: Double, // 0.0 ~ 1.0
+    val message: String,
+    val stepResult: String? = null,
+    val error: String? = null,
+    val timestamp: Instant = Instant.now()
+)
+
+enum class ExecutionPhase {
+    PLANNING,           // 실행 계획 생성 중
+    STEP_EXECUTING,     // 개별 단계 실행 중
+    STEP_COMPLETED,     // 개별 단계 완료
+    STEP_FAILED,        // 개별 단계 실패
+    AGGREGATING,        // 결과 통합 중
+    COMPLETED,          // 전체 실행 완료
+    FAILED              // 전체 실행 실패
+}
+
+data class ReActStreamResponse(
+    val status: ReActExecutionStatus,
+    val isComplete: Boolean = false,
+    val finalResult: String? = null
+)
+
+/**
  * 사용자 메시지에 따라 적절한 전략을 선택하고 실행하는 관리자 클래스
  * ReAct 패턴을 지원하여 더 지능적인 전략 선택을 수행합니다.
  * 성능 최적화를 위한 병렬 처리, 캐싱, 조기 종료 등을 지원합니다.
@@ -57,7 +91,11 @@ class ChatPromptStrategyManager(
     private val strategies: List<ChatPromptStrategy>
 ): ChatScenario {
     private val logger = KotlinLogging.logger {}
-    private val objectMapper: ObjectMapper = jacksonObjectMapper()
+    private val objectMapper: ObjectMapper = jacksonObjectMapper().apply {
+        registerModule(JavaTimeModule())
+        // ISO 8601 형식으로 날짜 직렬화
+        disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+    }
     
     // 실행 계획 캐시 (동일한 쿼리 패턴에 대한 최적화)
     private val executionPlanCache = ConcurrentHashMap<String, ReActResponse>()
@@ -644,5 +682,322 @@ class ChatPromptStrategyManager(
             userMessage.contains("지역") || userMessage.contains("역") -> "area_query"
             else -> "general_query"
         }
+    }
+
+    /**
+     * 사용자 메시지를 스트림으로 처리하고 ReAct 실행 과정을 실시간으로 반환합니다.
+     * 
+     * @param chat 채팅 객체
+     * @return ReAct 실행 상태 스트림
+     */
+    fun processUserMessageStream(chat: Chat): Flow<ReActStreamResponse> = flow {
+        val chatId = chat.id.toString()
+        val executionId = java.util.UUID.randomUUID().toString()
+        val userMessage = chat.getLatestUserMessage()?.content
+            ?: throw ErrorCode.COMMON_SYSTEM_ERROR.toException()
+
+        try {
+            // 단순한 쿼리는 직접 처리
+            if (isSimpleQuery(userMessage)) {
+                emit(ReActStreamResponse(
+                    status = ReActExecutionStatus(
+                        chatId = chatId,
+                        executionId = executionId,
+                        phase = ExecutionPhase.PLANNING,
+                        currentStep = null,
+                        totalSteps = 1,
+                        progress = 0.2,
+                        message = "간단한 쿼리로 인식, 직접 처리합니다"
+                    )
+                ))
+                
+                val result = processSimpleQuery(chat, userMessage)
+                val finalMessage = result.getLatestAssistantMessage()?.content ?: "응답을 생성할 수 없습니다"
+                
+                emit(ReActStreamResponse(
+                    status = ReActExecutionStatus(
+                        chatId = chatId,
+                        executionId = executionId,
+                        phase = ExecutionPhase.COMPLETED,
+                        currentStep = 1,
+                        totalSteps = 1,
+                        progress = 1.0,
+                        message = "처리 완료"
+                    ),
+                    isComplete = true,
+                    finalResult = finalMessage
+                ))
+                return@flow
+            }
+
+            // 실행 계획 생성 시작
+            emit(ReActStreamResponse(
+                status = ReActExecutionStatus(
+                    chatId = chatId,
+                    executionId = executionId,
+                    phase = ExecutionPhase.PLANNING,
+                    currentStep = null,
+                    totalSteps = 0,
+                    progress = 0.1,
+                    message = "ReAct 실행 계획을 생성하고 있습니다..."
+                )
+            ))
+
+            // 캐시된 실행 계획 확인 또는 새로 생성
+            val cacheKey = generateAdvancedCacheKey(userMessage)
+            val executionPlan = executionPlanCache[cacheKey] ?: run {
+                val plan = createExecutionPlan(chat)
+                val optimizedPlan = optimizeExecutionPlan(plan)
+                executionPlanCache[cacheKey] = optimizedPlan
+                optimizedPlan
+            }
+
+            // 실행 계획 완료
+            emit(ReActStreamResponse(
+                status = ReActExecutionStatus(
+                    chatId = chatId,
+                    executionId = executionId,
+                    phase = ExecutionPhase.PLANNING,
+                    currentStep = null,
+                    totalSteps = executionPlan.actions.size,
+                    progress = 0.2,
+                    message = "실행 계획이 생성되었습니다 (총 ${executionPlan.actions.size}단계)"
+                )
+            ))
+
+            // 다단계 실행 스트림
+            val finalResult = executeMultiStepPlanStream(chat, executionPlan, userMessage, chatId, executionId)
+                .collect { streamResponse ->
+                    emit(streamResponse)
+                }
+
+        } catch (e: Exception) {
+            logger.error("스트림 처리 중 오류 발생", e)
+            emit(ReActStreamResponse(
+                status = ReActExecutionStatus(
+                    chatId = chatId,
+                    executionId = executionId,
+                    phase = ExecutionPhase.FAILED,
+                    currentStep = null,
+                    totalSteps = 0,
+                    progress = 0.0,
+                    message = "처리 중 오류가 발생했습니다",
+                    error = e.message
+                ),
+                isComplete = true
+            ))
+        }
+    }
+
+    /**
+     * 다단계 실행 계획을 스트림으로 실행합니다.
+     */
+    private fun executeMultiStepPlanStream(
+        chat: Chat, 
+        executionPlan: ReActResponse, 
+        originalUserMessage: String,
+        chatId: String,
+        executionId: String
+    ): Flow<ReActStreamResponse> = flow {
+        val stepResults = ConcurrentHashMap<Int, String>()
+        val completedSteps = mutableSetOf<Int>()
+        val totalSteps = executionPlan.actions.size
+        
+        logger.info("스트림 기반 다단계 실행 시작: 총 ${totalSteps}단계")
+        
+        // 단계별 의존성 그래프 생성
+        val dependencyGraph = executionPlan.actions.associateBy { it.step }
+        val readySteps = mutableSetOf<ActionStep>()
+        
+        // 의존성이 없는 첫 번째 단계들 찾기
+        executionPlan.actions.filter { it.dependencies.isEmpty() }.forEach { readySteps.add(it) }
+        
+        while (readySteps.isNotEmpty() || completedSteps.size < totalSteps) {
+            // 준비된 단계들을 병렬로 실행
+            val currentBatch = readySteps.toList()
+            readySteps.clear()
+            
+            if (currentBatch.isNotEmpty()) {
+                logger.info("병렬 실행 배치: ${currentBatch.map { it.step }}")
+                
+                // 각 단계 실행 시작 알림
+                currentBatch.forEach { step ->
+                    emit(ReActStreamResponse(
+                        status = ReActExecutionStatus(
+                            chatId = chatId,
+                            executionId = executionId,
+                            phase = ExecutionPhase.STEP_EXECUTING,
+                            currentStep = step.step,
+                            totalSteps = totalSteps,
+                            progress = completedSteps.size.toDouble() / totalSteps,
+                            message = "단계 ${step.step} 실행 중: ${step.purpose}"
+                        )
+                    ))
+                }
+                
+                // 병렬 실행
+                val batchResults = runBlocking {
+                    currentBatch.map { step ->
+                        async(Dispatchers.IO) {
+                            try {
+                                logger.info("단계 ${step.step} 실행: ${step.strategy}")
+                                
+                                // 의존성 결과 수집
+                                val dependencyResults = step.dependencies.mapNotNull { depStep ->
+                                    stepResults[depStep]?.let { "Step $depStep result: $it" }
+                                }.joinToString("\n")
+                                
+                                // 컨텍스트 최적화
+                                val optimizedContext = buildOptimizedContext(originalUserMessage, step, stepResults)
+                                
+                                // 단계별 실행
+                                val stepResult = executeStepOptimized(chat, step, optimizedContext, dependencyResults)
+                                
+                                logger.info("단계 ${step.step} 완료")
+                                step.step to stepResult
+                                
+                            } catch (e: Exception) {
+                                logger.error("단계 ${step.step} 실패: ${e.message}", e)
+                                step.step to "단계 ${step.step} 실패: ${e.message}"
+                            }
+                        }
+                    }.awaitAll()
+                }
+                
+                // 결과 저장 및 완료 알림
+                batchResults.forEach { (stepNum, result) ->
+                    stepResults[stepNum] = result
+                    completedSteps.add(stepNum)
+                    
+                    val step = executionPlan.actions.find { it.step == stepNum }
+                    val isError = result.contains("실패")
+                    
+                    emit(ReActStreamResponse(
+                        status = ReActExecutionStatus(
+                            chatId = chatId,
+                            executionId = executionId,
+                            phase = if (isError) ExecutionPhase.STEP_FAILED else ExecutionPhase.STEP_COMPLETED,
+                            currentStep = stepNum,
+                            totalSteps = totalSteps,
+                            progress = completedSteps.size.toDouble() / totalSteps,
+                            message = if (isError) "단계 $stepNum 실패" else "단계 $stepNum 완료: ${step?.purpose ?: ""}",
+                            stepResult = result.take(200), // 너무 긴 결과는 잘라서 전송
+                            error = if (isError) result else null
+                        )
+                    ))
+                }
+                
+                // 다음 실행 가능한 단계들 찾기
+                executionPlan.actions.forEach { step ->
+                    if (step.step !in completedSteps && 
+                        step.dependencies.all { it in completedSteps }) {
+                        readySteps.add(step)
+                    }
+                }
+            } else {
+                // 데드락 방지: 남은 단계가 있지만 실행 가능한 단계가 없는 경우
+                val remainingSteps = executionPlan.actions.filter { it.step !in completedSteps }
+                if (remainingSteps.isNotEmpty()) {
+                    logger.warn("잠재적 데드락 감지. 순차 실행으로 전환.")
+                    remainingSteps.forEach { step ->
+                        emit(ReActStreamResponse(
+                            status = ReActExecutionStatus(
+                                chatId = chatId,
+                                executionId = executionId,
+                                phase = ExecutionPhase.STEP_EXECUTING,
+                                currentStep = step.step,
+                                totalSteps = totalSteps,
+                                progress = completedSteps.size.toDouble() / totalSteps,
+                                message = "단계 ${step.step} 순차 실행 중: ${step.purpose}"
+                            )
+                        ))
+                        
+                        try {
+                            val dependencyResults = step.dependencies.mapNotNull { depStep ->
+                                stepResults[depStep]?.let { "Step $depStep result: $it" }
+                            }.joinToString("\n")
+                            
+                            val optimizedContext = buildOptimizedContext(originalUserMessage, step, stepResults)
+                            val stepResult = executeStepOptimized(chat, step, optimizedContext, dependencyResults)
+                            
+                            stepResults[step.step] = stepResult
+                            completedSteps.add(step.step)
+                            
+                            emit(ReActStreamResponse(
+                                status = ReActExecutionStatus(
+                                    chatId = chatId,
+                                    executionId = executionId,
+                                    phase = ExecutionPhase.STEP_COMPLETED,
+                                    currentStep = step.step,
+                                    totalSteps = totalSteps,
+                                    progress = completedSteps.size.toDouble() / totalSteps,
+                                    message = "단계 ${step.step} 완료: ${step.purpose}",
+                                    stepResult = stepResult.take(200)
+                                )
+                            ))
+                        } catch (e: Exception) {
+                            logger.error("단계 ${step.step} 실패: ${e.message}", e)
+                            val errorResult = "단계 ${step.step} 실패: ${e.message}"
+                            stepResults[step.step] = errorResult
+                            completedSteps.add(step.step)
+                            
+                            emit(ReActStreamResponse(
+                                status = ReActExecutionStatus(
+                                    chatId = chatId,
+                                    executionId = executionId,
+                                    phase = ExecutionPhase.STEP_FAILED,
+                                    currentStep = step.step,
+                                    totalSteps = totalSteps,
+                                    progress = completedSteps.size.toDouble() / totalSteps,
+                                    message = "단계 ${step.step} 실패",
+                                    error = errorResult
+                                )
+                            ))
+                        }
+                    }
+                }
+                break
+            }
+        }
+        
+        // 결과 통합 시작
+        emit(ReActStreamResponse(
+            status = ReActExecutionStatus(
+                chatId = chatId,
+                executionId = executionId,
+                phase = ExecutionPhase.AGGREGATING,
+                currentStep = null,
+                totalSteps = totalSteps,
+                progress = 0.95,
+                message = "결과를 통합하고 있습니다..."
+            )
+        ))
+        
+        // 최종 결과 생성
+        val responseGenerationStep = executionPlan.actions.find { 
+            StrategyType.findById(it.strategy)?.executionType == StrategyExecutionType.RESPONSE_GENERATION 
+        }
+        
+        val finalResult = if (responseGenerationStep != null) {
+            stepResults[responseGenerationStep.step] ?: "응답 생성 결과를 찾을 수 없습니다"
+        } else {
+            val lastStep = executionPlan.actions.maxByOrNull { it.step }
+            stepResults[lastStep?.step ?: 1] ?: "결과를 생성할 수 없습니다"
+        }
+        
+        // 최종 완료
+        emit(ReActStreamResponse(
+            status = ReActExecutionStatus(
+                chatId = chatId,
+                executionId = executionId,
+                phase = ExecutionPhase.COMPLETED,
+                currentStep = null,
+                totalSteps = totalSteps,
+                progress = 1.0,
+                message = "모든 단계가 완료되었습니다"
+            ),
+            isComplete = true,
+            finalResult = finalResult
+        ))
     }
 } 

@@ -16,11 +16,11 @@ data class CommonResponse<T>(
             CommonResponse(Result.SUCCESS, data, message)
 
         @JvmStatic
-        fun fail(message: String?, errorCode: String?): CommonResponse<Nothing> =
+        fun fail(message: String?, errorCode: String?): CommonResponse<Any> =
             CommonResponse(Result.FAIL, null, message, errorCode)
 
         @JvmStatic
-        fun fail(errorCode: ErrorCode): CommonResponse<Nothing> =
+        fun fail(errorCode: ErrorCode): CommonResponse<Any> =
             CommonResponse(Result.FAIL, null, errorCode.getErrorMsg(), errorCode.name)
     }
 }

@@ -3,6 +3,7 @@ package com.wheretopop.application.chat
 import com.wheretopop.domain.chat.ChatId
 import com.wheretopop.domain.chat.ChatInfo
 import com.wheretopop.domain.user.UserId
+import kotlinx.coroutines.flow.Flow
 
 interface ChatFacade {
     /**
@@ -24,6 +25,16 @@ interface ChatFacade {
      * 채팅 메시지를 전송합니다.
      */
     fun sendMessage(input: ChatInput.SendMessage): ChatInfo.Simple
+
+    /**
+     * 특정 채팅의 ReAct 실행 상태를 스트림으로 조회합니다.
+     * 
+     * @param chatId 채팅 ID
+     * @param userId 사용자 ID
+     * @param executionId 실행 ID (선택적)
+     * @return ReAct 실행 상태 JSON 스트림
+     */
+    fun getChatExecutionStatusStream(chatId: ChatId, userId: UserId, executionId: String?): Flow<String>
 
     /**
      * 채팅의 상세 정보를 조회합니다.

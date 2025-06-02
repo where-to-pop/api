@@ -4,6 +4,7 @@ import com.wheretopop.domain.chat.ChatId
 import com.wheretopop.domain.chat.ChatInfo
 import com.wheretopop.domain.chat.ChatService
 import com.wheretopop.domain.user.UserId
+import kotlinx.coroutines.flow.Flow
 import org.springframework.stereotype.Service
 
 @Service
@@ -25,6 +26,10 @@ class ChatFacadeImpl(
 
     override fun sendMessage(input: ChatInput.SendMessage): ChatInfo.Simple {
         return chatService.sendMessage(input.chatId, input.message)
+    }
+
+    override fun getChatExecutionStatusStream(chatId: ChatId, userId: UserId, executionId: String?): Flow<String> {
+        return chatService.getChatExecutionStatusStream(chatId, userId, executionId)
     }
 
     override fun getDetail(chatId: ChatId): ChatInfo.Detail {

@@ -61,6 +61,7 @@ dependencies {
 	implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.7.3")
 	implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
 	implementation("io.github.microutils:kotlin-logging:3.0.5")
 
