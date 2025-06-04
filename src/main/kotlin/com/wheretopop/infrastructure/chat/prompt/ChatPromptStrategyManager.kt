@@ -127,7 +127,84 @@ class ChatPromptStrategyManager(
     }
     
     /**
-     * 사용자 메시지를 스트림으로 처리하고 ReAct 실행 과정을 실시간으로 반환합니다.
+     * 사용자 메시지를 스트림으로 처리하고 ReAct 실행 과정을 실시간으로 반환합니다. (새로운 모델)
+     */
+    fun processUserMessageStreamV2(chat: Chat): Flow<ChatStreamResponse> = flow {
+        val chatId = chat.id.toString()
+        val executionId = java.util.UUID.randomUUID().toString()
+        val userMessage = chat.getLatestUserMessage()?.content
+            ?: throw ErrorCode.COMMON_SYSTEM_ERROR.toException()
+
+        try {
+            // 단순한 쿼리는 직접 처리
+            if (isSimpleQuery(userMessage)) {
+                emit(ChatStreamResponse(
+                    chatId = chatId,
+                    executionId = executionId,
+                    type = StreamMessageType.THINKING,
+                    thinkingMessage = "간단한 질문이네요! 바로 답변드릴게요."
+                ))
+                
+                val result = processSimpleQuery(chat, userMessage)
+                val finalMessage = result.getLatestAssistantMessage()?.content ?: "응답을 생성할 수 없습니다"
+                
+                // 응답을 글자별로 스트림
+                finalMessage.chunked(1).forEachIndexed { index, chunk ->
+                    kotlinx.coroutines.delay(25) // 타이핑 효과
+                    emit(ChatStreamResponse(
+                        chatId = chatId,
+                        executionId = executionId,
+                        type = StreamMessageType.RESPONSE_CHUNK,
+                        responseChunk = chunk,
+                        progress = index.toDouble() / finalMessage.length
+                    ))
+                }
+                
+                emit(ChatStreamResponse(
+                    chatId = chatId,
+                    executionId = executionId,
+                    type = StreamMessageType.COMPLETED,
+                    isComplete = true,
+                    finalResponse = finalMessage,
+                    progress = 1.0
+                ))
+                return@flow
+            }
+
+            // 실행 계획 생성 스트림 (사고 과정 포함)
+            reActExecutionPlanner.createExecutionPlanStream(chat, chatId, executionId)
+                .collect { planningResponse ->
+                    emit(planningResponse)
+                }
+
+            // 캐시된 실행 계획 확인 또는 새로 생성
+            val cacheKey = executionCacheManager.generateCacheKey(userMessage)
+            val executionPlan = executionCacheManager.getExecutionPlan(cacheKey) ?: run {
+                val plan = reActExecutionPlanner.createExecutionPlan(chat)
+                executionCacheManager.putExecutionPlan(cacheKey, plan)
+                plan
+            }
+
+            // 다단계 실행 스트림 (도구 실행 및 응답 생성 포함)
+            reActStreamProcessor.executeMultiStepPlanStreamV2(chat, executionPlan, userMessage, chatId, executionId)
+                .collect { streamResponse ->
+                    emit(streamResponse)
+                }
+
+        } catch (e: Exception) {
+            logger.error("스트림 처리 중 오류 발생", e)
+            emit(ChatStreamResponse(
+                chatId = chatId,
+                executionId = executionId,
+                type = StreamMessageType.ERROR,
+                errorMessage = "처리 중 오류가 발생했습니다: ${e.message}",
+                errorCode = "STREAM_ERROR"
+            ))
+        }
+    }
+    
+    /**
+     * 사용자 메시지를 스트림으로 처리하고 ReAct 실행 과정을 실시간으로 반환합니다. (기존 호환성)
      */
     fun processUserMessageStream(chat: Chat): Flow<ReActStreamResponse> = flow {
         val chatId = chat.id.toString()
@@ -183,7 +260,7 @@ class ChatPromptStrategyManager(
      */
     private fun isSimpleQuery(userMessage: String): Boolean {
         val simplePatterns = listOf(
-            "안녕", "hello", "hi", "감사", "고마워", "도움말", "help"
+             "감사", "고마워", "도움말", "help"
         )
         return simplePatterns.any { userMessage.contains(it, ignoreCase = true) } ||
                userMessage.length < 10

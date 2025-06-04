@@ -1,6 +1,8 @@
 package com.wheretopop.infrastructure.chat.prompt
 
 import com.wheretopop.domain.chat.Chat
+import com.wheretopop.infrastructure.chat.AiChatAssistant
+import com.wheretopop.infrastructure.chat.ChatAssistant
 import com.wheretopop.infrastructure.chat.prompt.strategy.StrategyExecutionType
 import com.wheretopop.infrastructure.chat.prompt.strategy.StrategyType
 import com.wheretopop.shared.exception.toException
@@ -17,12 +19,29 @@ import java.util.concurrent.ConcurrentHashMap
 @Component
 class ReActStreamProcessor(
     private val multiStepExecutor: MultiStepExecutor,
-    private val contextOptimizer: ContextOptimizer
+    private val contextOptimizer: ContextOptimizer,
+    private val chatAssistant: ChatAssistant,
+    private val strategies: List<ChatPromptStrategy>
 ) {
     private val logger = KotlinLogging.logger {}
     
     /**
-     * 다단계 실행 계획을 스트림으로 실행합니다.
+     * 다단계 실행 계획을 스트림으로 실행합니다. (새로운 ChatStreamResponse 사용)
+     */
+    fun executeMultiStepPlanStreamV2(
+        chat: Chat, 
+        executionPlan: ReActResponse, 
+        originalUserMessage: String,
+        chatId: String,
+        executionId: String
+    ): Flow<ChatStreamResponse> {
+        return multiStepExecutor.executeMultiStepPlanStream(
+            chat, executionPlan, originalUserMessage, chatId, executionId
+        )
+    }
+    
+    /**
+     * 다단계 실행 계획을 스트림으로 실행합니다. (기존 호환성 유지)
      */
     fun executeMultiStepPlanStream(
         chat: Chat, 
@@ -136,6 +155,96 @@ class ReActStreamProcessor(
         // 최종 결과 생성
         val finalResult = generateFinalResult(executionPlan, stepResults)
         
+        // 응답 생성 시작 알림
+        emit(ReActStreamResponse(
+            status = ReActExecutionStatus(
+                chatId = chatId,
+                executionId = executionId,
+                phase = ExecutionPhase.AGGREGATING,
+                currentStep = null,
+                totalSteps = totalSteps,
+                progress = 0.98,
+                message = "최종 응답을 생성하고 있습니다..."
+            )
+        ))
+        
+        // 최종 응답을 AI 스트림으로 생성
+        val responseGenerationStep = executionPlan.actions.find { 
+            StrategyType.findById(it.strategy)?.executionType == StrategyExecutionType.RESPONSE_GENERATION 
+        }
+        
+        if (responseGenerationStep != null) {
+            // 응답 생성 전략이 있는 경우 실시간 스트림으로 생성
+            val allStepResults = stepResults.entries.joinToString("\n") { (stepNum, result) ->
+                "Step $stepNum: $result"
+            }
+            
+            executeStepInternalStream(
+                chat, responseGenerationStep, allStepResults, "", chatId, executionId, totalSteps, 0.98
+            ).collect { chunk ->
+                // 실시간 AI 응답 청크를 그대로 전달
+                emit(ReActStreamResponse(
+                    status = ReActExecutionStatus(
+                        chatId = chatId,
+                        executionId = executionId,
+                        phase = ExecutionPhase.AGGREGATING,
+                        currentStep = null,
+                        totalSteps = totalSteps,
+                        progress = 0.99,
+                        message = "응답 생성 중..."
+                    ),
+                    isComplete = false,
+                    finalResult = chunk // 실시간 AI 청크
+                ))
+            }
+        } else {
+            // 응답 생성 전략이 없는 경우 마지막 단계를 스트림으로 재실행
+            val lastStep = executionPlan.actions.maxByOrNull { it.step }
+            if (lastStep != null) {
+                // 모든 이전 단계 결과를 컨텍스트로 사용
+                val allStepResults = stepResults.entries.filter { it.key != lastStep.step }
+                    .joinToString("\n") { (stepNum, result) -> "Step $stepNum: $result" }
+                
+                // 마지막 단계를 스트림으로 재실행
+                executeStepInternalStream(
+                    chat, lastStep, allStepResults, "", chatId, executionId, totalSteps, 0.98
+                ).collect { chunk ->
+                    // 실시간 AI 응답 청크를 그대로 전달
+                    emit(ReActStreamResponse(
+                        status = ReActExecutionStatus(
+                            chatId = chatId,
+                            executionId = executionId,
+                            phase = ExecutionPhase.AGGREGATING,
+                            currentStep = null,
+                            totalSteps = totalSteps,
+                            progress = 0.99,
+                            message = "최종 응답 생성 중..."
+                        ),
+                        isComplete = false,
+                        finalResult = chunk // 실시간 AI 청크
+                    ))
+                }
+            } else {
+                // 폴백: 기존 방식 (글자별 스트림)
+                finalResult.chunked(1).forEachIndexed { index, chunk ->
+                    delay(30) // 타이핑 효과
+                    emit(ReActStreamResponse(
+                        status = ReActExecutionStatus(
+                            chatId = chatId,
+                            executionId = executionId,
+                            phase = ExecutionPhase.AGGREGATING,
+                            currentStep = null,
+                            totalSteps = totalSteps,
+                            progress = 0.98 + (index.toDouble() / finalResult.length) * 0.02,
+                            message = "응답 생성 중..."
+                        ),
+                        isComplete = false,
+                        finalResult = chunk // 글자별로 전송
+                    ))
+                }
+            }
+        }
+        
         // 최종 완료
         emit(ReActStreamResponse(
             status = ReActExecutionStatus(
@@ -148,8 +257,57 @@ class ReActStreamProcessor(
                 message = "모든 단계가 완료되었습니다"
             ),
             isComplete = true,
-            finalResult = finalResult
+            finalResult = null // 전체 결과는 이미 청크로 전송했으므로 null
         ))
+    }
+    
+    /**
+     * 개별 단계 실행 (스트림 버전) - AI 실시간 응답 스트림
+     */
+    private fun executeStepInternalStream(
+        chat: Chat, 
+        step: ActionStep, 
+        optimizedContext: String, 
+        dependencyResults: String,
+        chatId: String,
+        executionId: String,
+        totalSteps: Int,
+        currentProgress: Double
+    ): Flow<String> = flow {
+        try {
+            val strategyType = StrategyType.findById(step.strategy)
+                ?: throw IllegalArgumentException("Unknown strategy: ${step.strategy}")
+            
+            val strategy = strategies.find { it.getType() == strategyType }
+                ?: throw IllegalStateException("No strategy found for type: ${strategyType.id}")
+            
+            // 최적화된 프롬프트 생성
+            val stepPrompt = """
+                Execute: ${step.purpose}
+                
+                Context: $optimizedContext
+                ${if (dependencyResults.isNotBlank()) "\nDependencies: $dependencyResults" else ""}
+                
+                Provide a focused response for: ${step.expected_output}
+            """.trimIndent()
+            
+            // 실제 AI 스트림 호출 - 실시간 청크를 그대로 전달
+            chatAssistant.callStream(
+                chat.id.toString(), 
+                strategy.createPrompt(stepPrompt), 
+                strategy.getToolCallingChatOptions()
+            ).collect { chatResponse ->
+                val textChunk = chatResponse.result.output.text ?: ""
+                if (textChunk.isNotEmpty()) {
+                    logger.debug("Streaming chunk: '$textChunk'")
+                    emit(textChunk) // 실시간 AI 응답 청크
+                }
+            }
+                
+        } catch (e: Exception) {
+            logger.error("Step ${step.step} stream execution failed", e)
+            throw e
+        }
     }
     
     /**
@@ -179,7 +337,7 @@ class ReActStreamProcessor(
                         // 컨텍스트 최적화
                         val optimizedContext = contextOptimizer.buildOptimizedContext(originalUserMessage, step, stepResults)
                         
-                        // 단계별 실행 (MultiStepExecutor를 통해)
+                        // 단계별 실행 (일반 버전 - 결과만 필요)
                         val stepResult = executeStepInternal(chat, step, optimizedContext, dependencyResults)
                         
                         logger.info("단계 ${step.step} 완료")
@@ -268,7 +426,7 @@ class ReActStreamProcessor(
     }
     
     /**
-     * 개별 단계 실행 (내부용)
+     * 개별 단계 실행 (일반 버전) - 결과만 필요한 경우
      */
     private suspend fun executeStepInternal(
         chat: Chat, 
@@ -276,10 +434,33 @@ class ReActStreamProcessor(
         optimizedContext: String, 
         dependencyResults: String
     ): String {
-        // MultiStepExecutor의 executeStep 메소드를 호출하는 방식으로 구현
-        // 실제로는 직접 실행하지 않고 MultiStepExecutor에 위임
         return withContext(Dispatchers.IO) {
-            "Step ${step.step} result: ${step.expected_output}" // 임시 구현
+            try {
+                val strategyType = StrategyType.findById(step.strategy)
+                    ?: throw IllegalArgumentException("Unknown strategy: ${step.strategy}")
+                
+                val strategy = strategies.find { it.getType() == strategyType }
+                    ?: throw IllegalStateException("No strategy found for type: ${strategyType.id}")
+                
+                // 최적화된 프롬프트 생성
+                val stepPrompt = """
+                    Execute: ${step.purpose}
+                    
+                    Context: $optimizedContext
+                    ${if (dependencyResults.isNotBlank()) "\nDependencies: $dependencyResults" else ""}
+                    
+                    Provide a focused response for: ${step.expected_output}
+                """.trimIndent()
+                
+                // 일반 AI 호출 (결과만 필요)
+                val response = chatAssistant.call(chat.id.toString(), strategy.createPrompt(stepPrompt), strategy.getToolCallingChatOptions())
+                return@withContext response.result.output.text?.trim() 
+                    ?: throw ErrorCode.CHAT_NULL_RESPONSE.toException()
+                    
+            } catch (e: Exception) {
+                logger.error("Step ${step.step} execution failed", e)
+                throw e
+            }
         }
     }
     

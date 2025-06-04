@@ -10,6 +10,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import mu.KotlinLogging
 import org.springframework.stereotype.Component
 import java.util.concurrent.ConcurrentHashMap
@@ -87,6 +90,186 @@ class MultiStepExecutor(
         
         // 최종 결과 반환
         return getFinalResult(optimizedPlan, stepResults)
+    }
+    
+    /**
+     * 스트림과 함께 다단계 실행을 진행합니다.
+     */
+    fun executeMultiStepPlanStream(
+        chat: Chat,
+        executionPlan: ReActResponse,
+        originalUserMessage: String,
+        chatId: String,
+        executionId: String
+    ): Flow<ChatStreamResponse> = flow {
+        val stepResults = ConcurrentHashMap<Int, String>()
+        val completedSteps = mutableSetOf<Int>()
+        
+        try {
+            // 단계별 의존성 그래프 생성
+            val readySteps = mutableSetOf<ActionStep>()
+            executionPlan.actions.filter { it.dependencies.isEmpty() }.forEach { step ->
+                readySteps.add(step)
+            }
+            
+            while (readySteps.isNotEmpty() || completedSteps.size < executionPlan.actions.size) {
+                val currentBatch = readySteps.toList()
+                readySteps.clear()
+                
+                if (currentBatch.isNotEmpty()) {
+                    // 각 단계별 실행 스트림
+                    for (step in currentBatch) {
+                        // 도구 실행 시작 알림
+                        emit(ChatStreamResponse(
+                            chatId = chatId,
+                            executionId = executionId,
+                            type = StreamMessageType.TOOL_EXECUTING,
+                            currentStep = step.step,
+                            totalSteps = executionPlan.actions.size,
+                            progress = completedSteps.size.toDouble() / executionPlan.actions.size,
+                            toolName = step.strategy,
+                            actionDescription = "${step.purpose} 실행 중..."
+                        ))
+                        
+                        // 구체적인 진행 메시지들
+                        val progressMessages = getProgressMessages(step)
+                        progressMessages.forEach { message ->
+                            delay(300)
+                            emit(ChatStreamResponse(
+                                chatId = chatId,
+                                executionId = executionId,
+                                type = StreamMessageType.TOOL_EXECUTING,
+                                currentStep = step.step,
+                                totalSteps = executionPlan.actions.size,
+                                actionDescription = message
+                            ))
+                        }
+                        
+                        // 실제 단계 실행
+                        val stepResult = executeStepWithProgress(chat, step, originalUserMessage, stepResults)
+                        stepResults[step.step] = stepResult
+                        completedSteps.add(step.step)
+                        
+                        // 완료 알림
+                        emit(ChatStreamResponse(
+                            chatId = chatId,
+                            executionId = executionId,
+                            type = StreamMessageType.STATUS_UPDATE,
+                            currentStep = step.step,
+                            totalSteps = executionPlan.actions.size,
+                            progress = completedSteps.size.toDouble() / executionPlan.actions.size,
+                            statusMessage = "단계 ${step.step} 완료: ${step.purpose}"
+                        ))
+                    }
+                    
+                    // 다음 실행 가능한 단계들 찾기
+                    executionPlan.actions.forEach { step ->
+                        if (step.step !in completedSteps && 
+                            step.dependencies.all { it in completedSteps }) {
+                            readySteps.add(step)
+                        }
+                    }
+                } else {
+                    break
+                }
+            }
+            
+            // 최종 응답 생성 시작
+            emit(ChatStreamResponse(
+                chatId = chatId,
+                executionId = executionId,
+                type = StreamMessageType.RESPONSE_GENERATING,
+                progress = 0.9,
+                statusMessage = "최종 응답을 생성하고 있습니다..."
+            ))
+            
+            val finalResult = getFinalResult(executionPlan, stepResults)
+            
+            // 응답을 글자별로 스트림
+            finalResult.chunked(1).forEachIndexed { index, chunk ->
+                delay(30) // 타이핑 효과
+                emit(ChatStreamResponse(
+                    chatId = chatId,
+                    executionId = executionId,
+                    type = StreamMessageType.RESPONSE_CHUNK,
+                    responseChunk = chunk,
+                    progress = 0.9 + (index.toDouble() / finalResult.length) * 0.1
+                ))
+            }
+            
+            // 완료
+            emit(ChatStreamResponse(
+                chatId = chatId,
+                executionId = executionId,
+                type = StreamMessageType.COMPLETED,
+                isComplete = true,
+                finalResponse = finalResult,
+                progress = 1.0,
+                statusMessage = "응답 생성이 완료되었습니다"
+            ))
+            
+        } catch (e: Exception) {
+            logger.error("Multi-step execution stream failed", e)
+            emit(ChatStreamResponse(
+                chatId = chatId,
+                executionId = executionId,
+                type = StreamMessageType.ERROR,
+                errorMessage = "실행 중 오류가 발생했습니다: ${e.message}",
+                errorCode = "EXECUTION_ERROR"
+            ))
+        }
+    }
+    
+    /**
+     * 단계별 진행 메시지를 생성합니다.
+     */
+    private fun getProgressMessages(step: ActionStep): List<String> {
+        return when (StrategyType.findById(step.strategy)) {
+            StrategyType.AREA_QUERY -> listOf(
+                "지역 정보를 조회하고 있습니다...",
+                "혼잡도 데이터를 분석하고 있습니다...",
+                "인구 통계를 확인하고 있습니다..."
+            )
+            StrategyType.BUILDING_QUERY -> listOf(
+                "건물 정보를 검색하고 있습니다...",
+                "시설 데이터를 수집하고 있습니다...",
+                "상세 정보를 조회하고 있습니다..."
+            )
+            StrategyType.POPUP_QUERY -> listOf(
+                "팝업스토어 정보를 조회하고 있습니다...",
+                "이벤트 데이터를 확인하고 있습니다..."
+            )
+            StrategyType.ONLINE_SEARCH -> listOf(
+                "온라인에서 관련 정보를 검색하고 있습니다...",
+                "최신 데이터를 수집하고 있습니다...",
+                "검색 결과를 분석하고 있습니다..."
+            )
+            else -> listOf(
+                "${step.purpose} 처리 중...",
+                "데이터를 분석하고 있습니다..."
+            )
+        }
+    }
+    
+    /**
+     * 진행 상황과 함께 단계를 실행합니다.
+     */
+    private suspend fun executeStepWithProgress(
+        chat: Chat,
+        step: ActionStep,
+        originalUserMessage: String,
+        stepResults: ConcurrentHashMap<Int, String>
+    ): String {
+        // 의존성 결과 수집
+        val dependencyResults = step.dependencies.mapNotNull { depStep ->
+            stepResults[depStep]?.let { "Step $depStep result: $it" }
+        }.joinToString("\n")
+        
+        // 컨텍스트 최적화
+        val optimizedContext = contextOptimizer.buildOptimizedContext(originalUserMessage, step, stepResults)
+        
+        // 단계별 실행
+        return executeStep(chat, step, optimizedContext, dependencyResults)
     }
     
     /**
