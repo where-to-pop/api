@@ -26,7 +26,8 @@ class MultiStepExecutor(
     private val strategies: List<ChatPromptStrategy>,
     private val contextOptimizer: ContextOptimizer,
     private val executionPlanOptimizer: ExecutionPlanOptimizer,
-    private val performanceMonitor: PerformanceMonitor
+    private val performanceMonitor: PerformanceMonitor,
+    private val tokenUsageTracker: TokenUsageTracker
 ) {
     private val logger = KotlinLogging.logger {}
     
@@ -384,6 +385,12 @@ class MultiStepExecutor(
             ?: throw IllegalStateException("No strategy found for type: ${type.id}")
     }
     
-    private fun executeStrategy(conversationId: String, strategy: ChatPromptStrategy, userMessage: String) =
-        chatAssistant.call(conversationId, strategy.createPrompt(userMessage), strategy.getToolCallingChatOptions())
+    private fun executeStrategy(conversationId: String, strategy: ChatPromptStrategy, userMessage: String): org.springframework.ai.chat.model.ChatResponse {
+        val response = chatAssistant.call(conversationId, strategy.createPrompt(userMessage), strategy.getToolCallingChatOptions())
+        
+        // 토큰 사용량 추적
+        tokenUsageTracker.trackAndLogTokenUsage(response, "MultiStep 실행 - ${strategy.getType().id}")
+        
+        return response
+    }
 } 

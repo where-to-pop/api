@@ -49,13 +49,13 @@ spring:
                 - ${SMITHERY_API_KEY}
                 - --profile
                 - jealous-orca-ZTyY94
-#            google-search-mcp:
+#            exa:
 #              command: npx
 #              args:
 #                - -y
 #                - "@smithery/cli@latest"
 #                - run
-#                - "@gradusnikov/google-search-mcp-server"
+#                - "@exa-ai/exa-mcp"
 #                - --key
 #                - ${SMITHERY_API_KEY}
 #                - --profile

@@ -11,9 +11,10 @@ import com.wheretopop.shared.response.ErrorCode
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import mu.KotlinLogging
+import org.springframework.ai.chat.model.ChatResponse
 import org.springframework.stereotype.Component
 import java.time.Instant
-
+import java.util.concurrent.atomic.AtomicLong
 
 /**
  * 사용자 메시지에 따라 적절한 전략을 선택하고 실행하는 관리자 클래스
@@ -27,7 +28,8 @@ class ChatPromptStrategyManager(
     private val executionCacheManager: ExecutionCacheManager,
     private val multiStepExecutor: MultiStepExecutor,
     private val reActStreamProcessor: ReActStreamProcessor,
-    private val performanceMonitor: PerformanceMonitor
+    private val performanceMonitor: PerformanceMonitor,
+    private val tokenUsageTracker: TokenUsageTracker
 ): ChatScenario {
     private val logger = KotlinLogging.logger {}
     
@@ -42,7 +44,7 @@ class ChatPromptStrategyManager(
         
         return performanceMonitor.measureTimeSync("Title generation") {
             val titleStrategy = getStrategyByType(StrategyType.TITLE_GENERATION)
-            val response = executeStrategy(chat.id.toString(), titleStrategy, userMessage)
+            val response = executeStrategyWithTracking(chat.id.toString(), titleStrategy, userMessage, "제목 생성")
             
             // 응답에서 제목만 추출
             response.result.output.text?.trim()
@@ -109,7 +111,7 @@ class ChatPromptStrategyManager(
     private fun processSimpleQuery(chat: Chat, userMessage: String): Chat {
         return performanceMonitor.measureTimeSync("Simple query processing") {
             val strategy = getStrategyByType(StrategyType.GENERAL_RESPONSE) // 폴백 전략 사용
-            val response = executeStrategy(chat.id.toString(), strategy, userMessage)
+            val response = executeStrategyWithTracking(chat.id.toString(), strategy, userMessage, "단순 쿼리 처리")
             val responseText = response.result.output.text?.trim() 
                 ?: throw ErrorCode.CHAT_NULL_RESPONSE.toException()
             
@@ -125,82 +127,22 @@ class ChatPromptStrategyManager(
             ))
         }
     }
-    
+
     /**
-     * 사용자 메시지를 스트림으로 처리하고 ReAct 실행 과정을 실시간으로 반환합니다. (새로운 모델)
+     * 토큰 사용량 추적과 함께 전략을 실행합니다.
      */
-    fun processUserMessageStreamV2(chat: Chat): Flow<ChatStreamResponse> = flow {
-        val chatId = chat.id.toString()
-        val executionId = java.util.UUID.randomUUID().toString()
-        val userMessage = chat.getLatestUserMessage()?.content
-            ?: throw ErrorCode.COMMON_SYSTEM_ERROR.toException()
-
-        try {
-            // 단순한 쿼리는 직접 처리
-            if (isSimpleQuery(userMessage)) {
-                emit(ChatStreamResponse(
-                    chatId = chatId,
-                    executionId = executionId,
-                    type = StreamMessageType.THINKING,
-                    thinkingMessage = "간단한 질문이네요! 바로 답변드릴게요."
-                ))
-                
-                val result = processSimpleQuery(chat, userMessage)
-                val finalMessage = result.getLatestAssistantMessage()?.content ?: "응답을 생성할 수 없습니다"
-                
-                // 응답을 글자별로 스트림
-                finalMessage.chunked(1).forEachIndexed { index, chunk ->
-                    kotlinx.coroutines.delay(25) // 타이핑 효과
-                    emit(ChatStreamResponse(
-                        chatId = chatId,
-                        executionId = executionId,
-                        type = StreamMessageType.RESPONSE_CHUNK,
-                        responseChunk = chunk,
-                        progress = index.toDouble() / finalMessage.length
-                    ))
-                }
-                
-                emit(ChatStreamResponse(
-                    chatId = chatId,
-                    executionId = executionId,
-                    type = StreamMessageType.COMPLETED,
-                    isComplete = true,
-                    finalResponse = finalMessage,
-                    progress = 1.0
-                ))
-                return@flow
-            }
-
-            // 실행 계획 생성 스트림 (사고 과정 포함)
-            reActExecutionPlanner.createExecutionPlanStream(chat, chatId, executionId)
-                .collect { planningResponse ->
-                    emit(planningResponse)
-                }
-
-            // 캐시된 실행 계획 확인 또는 새로 생성
-            val cacheKey = executionCacheManager.generateCacheKey(userMessage)
-            val executionPlan = executionCacheManager.getExecutionPlan(cacheKey) ?: run {
-                val plan = reActExecutionPlanner.createExecutionPlan(chat)
-                executionCacheManager.putExecutionPlan(cacheKey, plan)
-                plan
-            }
-
-            // 다단계 실행 스트림 (도구 실행 및 응답 생성 포함)
-            reActStreamProcessor.executeMultiStepPlanStreamV2(chat, executionPlan, userMessage, chatId, executionId)
-                .collect { streamResponse ->
-                    emit(streamResponse)
-                }
-
-        } catch (e: Exception) {
-            logger.error("스트림 처리 중 오류 발생", e)
-            emit(ChatStreamResponse(
-                chatId = chatId,
-                executionId = executionId,
-                type = StreamMessageType.ERROR,
-                errorMessage = "처리 중 오류가 발생했습니다: ${e.message}",
-                errorCode = "STREAM_ERROR"
-            ))
-        }
+    private fun executeStrategyWithTracking(
+        conversationId: String, 
+        strategy: ChatPromptStrategy, 
+        userMessage: String,
+        context: String
+    ): ChatResponse {
+        val response = chatAssistant.call(conversationId, strategy.createPrompt(userMessage), strategy.getToolCallingChatOptions())
+        
+        // 토큰 사용량 추적
+        tokenUsageTracker.trackAndLogTokenUsage(response, context)
+        
+        return response
     }
     
     /**
@@ -256,6 +198,26 @@ class ChatPromptStrategyManager(
     }
     
     /**
+     * 현재까지의 누적 토큰 사용량을 조회합니다.
+     */
+    fun getTokenUsageStats(): Map<String, Any> {
+        val (promptTokens, completionTokens, totalTokens) = tokenUsageTracker.getCumulativeUsage()
+        return mapOf(
+            "totalPromptTokens" to promptTokens,
+            "totalCompletionTokens" to completionTokens,
+            "totalTokens" to totalTokens,
+            "timestamp" to Instant.now()
+        )
+    }
+    
+    /**
+     * 토큰 사용량 통계를 초기화합니다.
+     */
+    fun resetTokenUsageStats() {
+        tokenUsageTracker.resetUsage()
+    }
+    
+    /**
      * 단순한 쿼리인지 판단합니다.
      */
     private fun isSimpleQuery(userMessage: String): Boolean {
@@ -277,8 +239,14 @@ class ChatPromptStrategyManager(
     /**
      * 주어진 전략을 사용자 메시지로 실행합니다.
      */
-    private fun executeStrategy(conversationId: String, strategy: ChatPromptStrategy, userMessage: String) =
-        chatAssistant.call(conversationId, strategy.createPrompt(userMessage), strategy.getToolCallingChatOptions())
+    private fun executeStrategy(conversationId: String, strategy: ChatPromptStrategy, userMessage: String): ChatResponse {
+        val response = chatAssistant.call(conversationId, strategy.createPrompt(userMessage), strategy.getToolCallingChatOptions())
+        
+        // 토큰 사용량 추적
+        tokenUsageTracker.trackAndLogTokenUsage(response, "${strategy.getType().id} 전략 실행")
+        
+        return response
+    }
     
     // Stream Response 생성 헬퍼 메서드들
     private fun createSimpleQueryStreamResponse(chatId: String, executionId: String, message: String, progress: Double) =

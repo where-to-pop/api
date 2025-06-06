@@ -21,7 +21,8 @@ class ReActStreamProcessor(
     private val multiStepExecutor: MultiStepExecutor,
     private val contextOptimizer: ContextOptimizer,
     private val chatAssistant: ChatAssistant,
-    private val strategies: List<ChatPromptStrategy>
+    private val strategies: List<ChatPromptStrategy>,
+    private val tokenUsageTracker: TokenUsageTracker
 ) {
     private val logger = KotlinLogging.logger {}
     
@@ -454,6 +455,10 @@ class ReActStreamProcessor(
                 
                 // 일반 AI 호출 (결과만 필요)
                 val response = chatAssistant.call(chat.id.toString(), strategy.createPrompt(stepPrompt), strategy.getToolCallingChatOptions())
+                
+                // 토큰 사용량 추적
+                tokenUsageTracker.trackAndLogTokenUsage(response, "ReActStream 단계 ${step.step} - ${strategy.getType().id}")
+                
                 return@withContext response.result.output.text?.trim() 
                     ?: throw ErrorCode.CHAT_NULL_RESPONSE.toException()
                     

@@ -21,7 +21,8 @@ import org.springframework.stereotype.Component
 @Component
 class ReActExecutionPlanner(
     private val chatAssistant: ChatAssistant,
-    private val strategies: List<ChatPromptStrategy>
+    private val strategies: List<ChatPromptStrategy>,
+    private val tokenUsageTracker: TokenUsageTracker
 ) {
     private val logger = KotlinLogging.logger {}
     private val objectMapper: ObjectMapper = jacksonObjectMapper().apply {
@@ -229,6 +230,12 @@ class ReActExecutionPlanner(
             ?: throw IllegalStateException("No strategy found for type: ${type.id}")
     }
     
-    private fun executeStrategy(conversationId: String, strategy: ChatPromptStrategy, userMessage: String) =
-        chatAssistant.call(conversationId, strategy.createPrompt(userMessage), strategy.getToolCallingChatOptions())
+    private fun executeStrategy(conversationId: String, strategy: ChatPromptStrategy, userMessage: String): org.springframework.ai.chat.model.ChatResponse {
+        val response = chatAssistant.call(conversationId, strategy.createPrompt(userMessage), strategy.getToolCallingChatOptions())
+        
+        // 토큰 사용량 추적
+        tokenUsageTracker.trackAndLogTokenUsage(response, "ReAct 계획 생성 - ${strategy.getType().id}")
+        
+        return response
+    }
 } 
