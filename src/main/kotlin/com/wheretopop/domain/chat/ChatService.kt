@@ -15,11 +15,6 @@ interface ChatService {
     fun sendMessage(chatId: ChatId, message: String): ChatInfo.Simple
     
     /**
-     * 채팅 메시지를 스트림으로 처리하여 ReAct 실행 과정을 반환합니다 (내부용)
-     */
-    fun sendMessageStream(chatId: ChatId, message: String): Flow<String>
-    
-    /**
      * 특정 채팅의 ReAct 실행 상태를 스트림으로 조회합니다.
      */
     fun getChatExecutionStatusStream(chatId: ChatId, userId: UserId, executionId: String?): Flow<String>

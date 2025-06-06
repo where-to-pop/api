@@ -1,22 +1,20 @@
 package com.wheretopop.domain.chat
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.wheretopop.domain.user.UserId
 import com.wheretopop.shared.enums.ChatMessageRole
 import com.wheretopop.shared.exception.toException
 import com.wheretopop.shared.response.ErrorCode
-
-import org.springframework.stereotype.Service
-import java.time.Instant
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.launch
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import org.springframework.stereotype.Service
+import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -60,10 +58,10 @@ class ChatServiceImpl(
         val chatWithTitle = messageAddedChat.update(title = title)
         
         // 즉시 제목과 사용자 메시지가 포함된 채팅 저장
-        val savedChat: Chat = chatStore.save(chatWithTitle)
+        val savedChat = chatStore.save(chatWithTitle)
         
         // 백그라운드에서 스트림 방식으로 AI 응답 처리
-        processMessageInBackground(savedChat.id, command.initialMessage)
+        processMessageInBackground(savedChat)
         
         return ChatInfoMapper.toDetailInfo(savedChat)
     }
@@ -115,40 +113,15 @@ class ChatServiceImpl(
         ))
         
         // 사용자 메시지가 추가된 채팅 저장
-        val savedChat: Chat = chatStore.save(messageAddedChat)
+        val savedChat = chatStore.save(messageAddedChat)
         
         // 즉시 Simple 정보 생성
         val simpleInfo = ChatInfoMapper.toSimpleInfo(savedChat)
         
         // 백그라운드에서 스트림 방식으로 AI 응답 처리
-        processMessageInBackground(chatId, message)
+        processMessageInBackground(savedChat)
         
         return simpleInfo
-    }
-    
-    /**
-     * 채팅 메시지를 스트림으로 전송하고 ReAct 실행 과정을 실시간으로 반환합니다.
-     */
-    override fun sendMessageStream(chatId: ChatId, message: String): Flow<String> {
-        val chat = chatReader.findById(chatId) ?: throw ErrorCode.COMMON_ENTITY_NOT_FOUND.toException()
-        
-        // 사용자 메시지를 채팅에 추가
-        val messageAddedChat = chat.addMessage(ChatMessage.create(
-            chatId = chat.id,
-            role = ChatMessageRole.USER,
-            content = message,
-            finishReason = null,
-            latencyMs = 0L,
-            createdAt = Instant.now(),
-            updatedAt = Instant.now(),
-            deletedAt = null
-        ))
-        
-        // ChatScenario의 스트림 메서드를 사용하여 ReAct 실행 과정을 스트림으로 반환
-        return chatScenario.processUserMessageStream(messageAddedChat).map { reActStreamResponse ->
-            // ReActStreamResponse를 JSON 문자열로 변환
-            objectMapper.writeValueAsString(reActStreamResponse)
-        }
     }
     
     /**
@@ -185,9 +158,14 @@ class ChatServiceImpl(
     /**
      * 백그라운드에서 메시지를 처리하고 결과를 저장합니다.
      */
-    private fun processMessageInBackground(chatId: ChatId, message: String) {
-        val executionKey = "${chatId.value}_${System.currentTimeMillis()}"
-        val executionFlow = sendMessageStream(chatId, message)
+    private fun processMessageInBackground(chat: Chat) {
+        val executionKey = "${chat.id.value}_${System.currentTimeMillis()}"
+        
+        // chatScenario를 직접 호출해서 JSON 변환
+        val executionFlow = chatScenario.processUserMessageStream(chat)
+            .map { reActStreamResponse ->
+                objectMapper.writeValueAsString(reActStreamResponse)
+            }
             .onCompletion { 
                 // 실행 완료 시 캐시에서 제거
                 activeExecutions.remove(executionKey)
@@ -212,9 +190,9 @@ class ChatServiceImpl(
                 
                 // 완료된 경우 전체 결과를 채팅에 저장
                 finalCompleteResult?.let { result ->
-                    val chat = chatReader.findById(chatId) ?: return@launch
-                    val updatedChat = chat.addMessage(ChatMessage.create(
-                        chatId = chatId,
+                    val latestChat = chatReader.findById(chat.id) ?: return@launch
+                    val updatedChat = latestChat.addMessage(ChatMessage.create(
+                        chatId = chat.id,
                         role = ChatMessageRole.ASSISTANT,
                         content = result,
                         finishReason = null,
@@ -228,9 +206,9 @@ class ChatServiceImpl(
             } catch (e: Exception) {
                 // 실행 실패 시 사용자 친화적인 에러 메시지를 채팅에 저장
                 val errorMessage = "죄송해요, 일시적인 문제가 발생했어요. 다시 시도해 주세요."
-                val chat = chatReader.findById(chatId) ?: return@launch
-                val updatedChat = chat.addMessage(ChatMessage.create(
-                    chatId = chatId,
+                val latestChat = chatReader.findById(chat.id) ?: return@launch
+                val updatedChat = latestChat.addMessage(ChatMessage.create(
+                    chatId = chat.id,
                     role = ChatMessageRole.ASSISTANT,
                     content = errorMessage,
                     finishReason = null,
