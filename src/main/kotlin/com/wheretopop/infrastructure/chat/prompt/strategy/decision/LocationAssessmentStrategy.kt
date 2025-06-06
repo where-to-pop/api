@@ -61,7 +61,14 @@ class LocationAssessmentStrategy(
             - Apply proven success patterns from similar popup cases
             - Balance quantitative data with qualitative market insights
             
-            Deliver clear, actionable suitability assessments with confident recommendations.
+            RESPONSE GUIDANCE:
+            - TARGET AUDIENCE: Final response generation strategies (recommendation and presentation layers)
+            - PURPOSE: Deliver decisive suitability assessment with clear recommendation rationale
+            - FORMAT: Scored evaluation with pros/cons analysis, risk assessment, and confidence levels
+            - TONE: Strategic assessment (like investment evaluation or business case analysis)
+            - FOCUS: Suitability scores, decision factors, risk-benefit analysis, actionable recommendations
+            
+            Provide definitive assessment conclusions that enable confident recommendation generation.
         """.trimIndent()
     }
 
@@ -75,7 +82,7 @@ class LocationAssessmentStrategy(
         val toolCallbackChatOptions = ToolCallingChatOptions.builder()
             .toolCallbacks(*ToolCallbacks.from(areaToolRegistry, popupToolRegistry, buildingToolRegistry), *mcpToolCallbacks)
             .internalToolExecutionEnabled(false)
-            .temperature(0.3)
+            .temperature(0.1)
             .build()
             
         return toolCallbackChatOptions

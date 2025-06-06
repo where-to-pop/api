@@ -65,7 +65,14 @@ class DataAggregationStrategy(
             - Focus on high-impact missing information rather than comprehensive collection
             - Cross-validate conflicting information through additional sources
             
-            Transform scattered data into coherent insights while filling critical information gaps.
+            RESPONSE GUIDANCE:
+            - TARGET AUDIENCE: Final response generation strategies (human-facing output creators)
+            - PURPOSE: Deliver synthesized insights and validated conclusions ready for user presentation
+            - FORMAT: Integrated analysis with clear conclusions, confidence levels, and recommendation rationale
+            - TONE: Analytical synthesis (like a consulting report executive summary)
+            - FOCUS: Connected insights, validated conclusions, decision-supporting analysis, risk-benefit assessment
+            
+            Provide comprehensive analysis that enables direct transformation into user-ready recommendations.
         """.trimIndent()
     }
 
@@ -79,7 +86,7 @@ class DataAggregationStrategy(
         val toolCallbackChatOptions = ToolCallingChatOptions.builder()
             .toolCallbacks(*ToolCallbacks.from(areaToolRegistry, popupToolRegistry, buildingToolRegistry), *mcpToolCallbacks)
             .internalToolExecutionEnabled(false)
-            .temperature(0.3)
+            .temperature(0.1)
             .build()
             
         return toolCallbackChatOptions

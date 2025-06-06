@@ -58,7 +58,14 @@ class AreaQueryStrategy(
             - Cross-reference with building availability and popup history
             - Maintain focus on quantitative, factual data collection
             
-            Collect raw data systematically without analysis - prepare foundation for next steps.
+            RESPONSE GUIDANCE:
+            - TARGET AUDIENCE: Next ReAct step strategies (Data Aggregation, Analysis, Response Generation)
+            - PURPOSE: Provide structured area intelligence for downstream decision-making analysis
+            - FORMAT: Organize findings into clear sections with quantifiable metrics
+            - TONE: Factual, data-driven, analytical (not conversational)
+            - FOCUS: Raw data and measurable insights, avoid subjective interpretations
+            
+            Your output will be consumed by analysis algorithms - prioritize structure and precision over readability.
         """.trimIndent()
     }
     
@@ -72,7 +79,7 @@ class AreaQueryStrategy(
         val toolCallbackChatOptions = ToolCallingChatOptions.builder()
             .toolCallbacks(*ToolCallbacks.from(areaToolRegistry, popupToolRegistry, buildingToolRegistry), *mcpToolCallbacks)
             .internalToolExecutionEnabled(false)
-            .temperature(0.2)
+            .temperature(0.1)
             .build()
             
         return toolCallbackChatOptions

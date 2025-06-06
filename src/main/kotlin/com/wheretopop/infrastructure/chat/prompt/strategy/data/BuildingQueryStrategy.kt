@@ -58,7 +58,14 @@ class BuildingQueryStrategy(
             - Cross-reference with location area characteristics
             - Include historical popup usage patterns if available
             
-            Focus on measurable building attributes and practical facility constraints.
+            RESPONSE GUIDANCE:
+            - TARGET AUDIENCE: Subsequent ReAct analysis and recommendation strategies
+            - PURPOSE: Deliver actionable building intelligence for location feasibility assessment
+            - FORMAT: Structure data into facility specs, commercial viability, and operational constraints
+            - TONE: Technical, specification-focused (like a building inspection report)
+            - FOCUS: Measurable attributes, compliance status, practical limitations and opportunities
+            
+            Output structured building data that enables precise suitability calculations in next steps.
         """.trimIndent()
     }
     
@@ -72,7 +79,7 @@ class BuildingQueryStrategy(
         val toolCallbackChatOptions = ToolCallingChatOptions.builder()
             .toolCallbacks(*ToolCallbacks.from(areaToolRegistry, popupToolRegistry, buildingToolRegistry), *mcpToolCallbacks)
             .internalToolExecutionEnabled(false)
-            .temperature(0.2)
+            .temperature(0.1)
             .build()
             
         return toolCallbackChatOptions

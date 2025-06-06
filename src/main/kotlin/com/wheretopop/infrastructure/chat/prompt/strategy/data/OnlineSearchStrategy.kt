@@ -52,7 +52,14 @@ class OnlineSearchStrategy(
             - Extract quantifiable metrics and specific examples
             - Identify emerging opportunities and market gaps
             
-            Collect fresh, actionable market intelligence to complement internal data sources.
+            RESPONSE GUIDANCE:
+            - TARGET AUDIENCE: Data aggregation and trend analysis strategies
+            - PURPOSE: Inject current market intelligence and real-time trends into analysis pipeline
+            - FORMAT: Timestamped findings with source credibility, trend indicators, competitive intelligence
+            - TONE: Market intelligence briefing (like industry research reports)
+            - FOCUS: Current trends, competitive moves, market opportunities, timing factors, fresh data points
+            
+            Deliver real-time market context that updates and validates existing internal data analysis.
         """.trimIndent()
     }
     
@@ -66,7 +73,7 @@ class OnlineSearchStrategy(
         val toolCallbackChatOptions = ToolCallingChatOptions.builder()
             .toolCallbacks(*mcpToolCallbacks)
             .internalToolExecutionEnabled(false)
-            .temperature(0.3)
+            .temperature(0.1)
             .build()
             
         return toolCallbackChatOptions
