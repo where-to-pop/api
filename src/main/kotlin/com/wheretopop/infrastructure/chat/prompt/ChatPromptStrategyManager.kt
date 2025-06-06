@@ -52,52 +52,7 @@ class ChatPromptStrategyManager(
         }
     }
     
-    /**
-     * 사용자 메시지를 처리하고 적절한 응답을 생성합니다.
-     * ReAct 다단계 실행 계획을 순차적으로 실행합니다.
-     */
-    override fun processUserMessage(chat: Chat): Chat = performanceMonitor.measureTimeSync("Total message processing") {
-        val userMessage = chat.getLatestUserMessage()?.content
-            ?: throw ErrorCode.COMMON_SYSTEM_ERROR.toException()
 
-
-        // 캐시된 실행 계획 확인 또는 새로 생성  
-        val finalResponse = performanceMonitor.measureTimeSync("Multi-step execution with caching") {
-            // suspend 함수를 일반 함수에서 호출하기 위해 runBlocking 사용
-            kotlinx.coroutines.runBlocking {
-                executeWithCaching(chat, userMessage)
-            }
-        }
-
-        logger.info("Final AI response length: ${finalResponse.length} characters")
-        chat.addMessage(ChatMessage.create(
-            chatId = chat.id,
-            role = ChatMessageRole.ASSISTANT,
-            content = finalResponse,
-            finishReason = null,
-            latencyMs = 0L,
-            createdAt = Instant.now(),
-            updatedAt = Instant.now(),
-            deletedAt = null
-        ))
-    }
-    
-    /**
-     * 캐싱을 사용한 실행 계획 처리
-     */
-    private suspend fun executeWithCaching(chat: Chat, userMessage: String): String {
-        val cacheKey = executionCacheManager.generateCacheKey(userMessage)
-        val executionPlan = executionCacheManager.getExecutionPlan(cacheKey) ?: run {
-            val plan = performanceMonitor.measureTimeSync("Execution plan creation") {
-                reActExecutionPlanner.createExecutionPlan(chat) 
-            }
-            executionCacheManager.putExecutionPlan(cacheKey, plan)
-            plan
-        }
-        
-        // 최적화된 다단계 실행
-        return multiStepExecutor.executeMultiStepPlan(chat, executionPlan, userMessage)
-    }
 
     /**
      * 토큰 사용량 추적과 함께 전략을 실행합니다.
@@ -117,9 +72,9 @@ class ChatPromptStrategyManager(
     }
     
     /**
-     * 사용자 메시지를 스트림으로 처리하고 ReAct 실행 과정을 실시간으로 반환합니다. (기존 호환성)
+     * 사용자 메시지를 스트림으로 처리하고 ReAct 실행 과정을 실시간으로 반환합니다.
      */
-    fun processUserMessageStream(chat: Chat): Flow<ReActStreamResponse> = flow {
+    override fun processUserMessageStream(chat: Chat): Flow<ReActStreamResponse> = flow {
         val chatId = chat.id.toString()
         val executionId = java.util.UUID.randomUUID().toString()
         val userMessage = chat.getLatestUserMessage()?.content
