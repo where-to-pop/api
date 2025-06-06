@@ -38,6 +38,9 @@ class AiChatAssistant(
         val promptWithMemory = Prompt(chatMemory.get(conversationId) + prompt.systemMessage, toolCallingChatOption)
         logger.info("system prompt length: ${promptWithMemory.systemMessage.text.length}")
         logger.info("User message length: ${promptWithMemory.userMessage.text.length}")
+        logger.info("system prompt: ${promptWithMemory.systemMessage.text}")
+        logger.info("User message: ${promptWithMemory.userMessage.text}")
+
         // 모델 호출 (타임아웃 설정 고려)
         var chatResponse = chatModel.call(promptWithMemory) ?: throw ErrorCode.CHAT_NULL_RESPONSE.toException()
         logger.info("Initial response received for conversation: $conversationId")
@@ -106,9 +109,10 @@ class AiChatAssistant(
 
         // 메모리에서 대화 이력을 가져오고 system 메시지를 추가하여 프롬프트 생성
         val promptWithMemory = Prompt(chatMemory.get(conversationId) + prompt.systemMessage, toolCallingChatOption)
-        logger.info("[스트림] system prompt length: ${promptWithMemory.systemMessage.text.length}")
-        logger.info("[스트림] User message length: ${promptWithMemory.userMessage.text.length}")
-        
+        logger.info("[STREAM] system prompt length: ${promptWithMemory.systemMessage.text.length}")
+        logger.info("[STREAM] User message length: ${promptWithMemory.userMessage.text.length}")
+        logger.info("[STREAM] system prompt: ${promptWithMemory.systemMessage.text}")
+        logger.info("[STREAM] User message: ${promptWithMemory.userMessage.text}")
         try {
             // ChatModel.stream()을 사용해 실제 텍스트 생성 스트림 받기
             val streamFlux = chatModel.stream(promptWithMemory)

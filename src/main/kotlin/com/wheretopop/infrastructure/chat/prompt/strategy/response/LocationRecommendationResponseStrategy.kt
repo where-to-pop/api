@@ -46,6 +46,12 @@ class LocationRecommendationResponseStrategy : BaseChatPromptStrategy() {
      * Location recommendation responses work with processed data and don't require additional tool calls
      */
     override fun getToolCallingChatOptions(): ToolCallingChatOptions? {
-        return null
+
+        val toolCallbackChatOptions = ToolCallingChatOptions.builder()
+            .internalToolExecutionEnabled(false)
+            .temperature(0.3)
+            .build()
+
+        return toolCallbackChatOptions
     }
 } 

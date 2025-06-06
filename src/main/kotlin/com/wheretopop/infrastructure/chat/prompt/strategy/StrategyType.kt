@@ -84,6 +84,16 @@ enum class StrategyType(
     
     // ============ DECISION MAKING STRATEGIES ============
     /**
+     * User requirement analysis strategy - 사용자 요구사항 분석 및 복잡도 평가
+     */
+    REQUIREMENT_ANALYSIS(
+        "requirement_analysis",
+        "Analyzes user requirements and conversation context to determine complexity level",
+        StrategyExecutionType.DECISION_MAKING,
+        StrategyDisplayInfo("요구사항 분석", "질문을 분석하고 있어요", "요구사항을 파악했어요")
+    ),
+    
+    /**
      * Location suitability assessment strategy
      */
     LOCATION_ASSESSMENT(
