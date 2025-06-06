@@ -24,66 +24,44 @@ class TitleGenerationStrategy : BaseChatPromptStrategy() {
      */
     override fun getAdditionalSystemPrompt(): String {
         return """
-            You are a chat title generation specialist responsible for creating concise, descriptive titles for conversations.
+            Generate ONLY a short Korean title. MAXIMUM 6 words. NO explanations.
             
-            Your role is to:
-            1. **Analyze User Intent**: Understand the main purpose of the user's query
-            2. **Extract Key Topics**: Identify the most important topics and keywords
-            3. **Create Concise Titles**: Generate short, descriptive titles (5-8 words)
-            4. **Maintain Clarity**: Ensure titles clearly represent the conversation topic
-            5. **Use Appropriate Language**: Create titles in Korean that are professional yet accessible
+            STRICT FORMAT: <title>[제목]</title>
             
-            ## Title Generation Guidelines:
+            EXAMPLES:
+            User: "강남역 근처에 팝업스토어 열기 좋은 곳이 어디에요?"
+            <title>강남역 팝업스토어 위치</title>
             
-            **Content Analysis:**
-            - Identify the main subject (area, building, popup, general inquiry)
-            - Extract key location names or specific topics
-            - Determine the type of request (analysis, recommendation, information)
-            - Note any specific requirements or constraints mentioned
+            User: "홍대 상권 분석해주세요"
+            <title>홍대 상권 분석</title>
             
-            **Title Structure:**
-            - Start with the main topic or location
-            - Include the type of inquiry or analysis
-            - Keep within 5-8 words for readability
-            - Use clear, descriptive language
+            User: "건대입구 어디에 있니?"
+            <title>건대입구 위치 문의</title>
             
-            **Title Examples:**
-            - "강남역 팝업스토어 위치 추천"
-            - "홍대 지역 상권 분석"
-            - "건물 임대 조건 문의"
-            - "브랜드 팝업 사례 분석"
-            - "지역 범위 정의 요청"
+            User: "건물 임대 조건이 어떻게 되나요?"
+            <title>건물 임대 조건</title>
             
-            ## Response Format:
+            User: "이 지역 브랜드 팝업 성공 사례 있나요?"
+            <title>브랜드 팝업 사례</title>
             
-            **For Location-Based Queries:**
-            - "[지역명] [분석/추천/문의 타입]"
-            - Example: "강남역 팝업스토어 추천"
+            RULES:
+            - MAXIMUM 6 Korean words
+            - Use <title></title> tags
+            - NO explanations outside tags
+            - NO long sentences
+            - Nouns only
             
-            **For General Analysis:**
-            - "[주제] [분석 타입]"
-            - Example: "상권 분석 요청"
-            
-            **For Specific Inquiries:**
-            - "[구체적 주제] [문의 타입]"
-            - Example: "건물 시설 문의"
-            
-            ## Title Guidelines:
-            - Always respond with ONLY the title in Korean
-            - Keep titles between 5-8 words
-            - Use clear, professional language
-            - Avoid unnecessary words or filler
-            - Focus on the main topic and intent
-            - Make titles descriptive but concise
-            
-            Your primary goal is to create clear, concise titles that accurately represent the conversation topic and help users identify their chats easily.
+            OUTPUT EXACTLY: <title>[제목]</title>
         """.trimIndent()
     }
 
     /**
-     * Title generation doesn't require tool calls
+     * Title generation with strict token limits
      */
     override fun getToolCallingChatOptions(): ToolCallingChatOptions? {
-        return null
+        return ToolCallingChatOptions.builder()
+            .maxTokens(50) // 최대 50토큰으로 제한
+            .temperature(0.1) // 창의성 최소화
+            .build()
     }
 } 

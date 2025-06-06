@@ -124,4 +124,27 @@ class Chat private constructor(
     fun getSystemMessages(): List<ChatMessage> {
         return messages.filter { it.role == ChatMessageRole.SYSTEM }
     }
+    
+    /**
+     * 최근 N개의 메시지를 반환합니다 (최신 순).
+     * 전체 메시지 수가 N보다 적으면 모든 메시지를 반환합니다.
+     */
+    fun getRecentMessages(count: Int): List<ChatMessage> {
+        if (count <= 0) return emptyList()
+        return if (messages.size <= count) {
+            messages
+        } else {
+            messages.takeLast(count)
+        }
+    }
+    
+    /**
+     * 최근 N개의 메시지를 하나의 컨텍스트 문자열로 결합하여 반환합니다.
+     * 형식: "USER: 메시지내용\nASSISTANT: 응답내용\n..."
+     */
+    fun getRecentMessagesAsContext(count: Int): String {
+        return getRecentMessages(count).joinToString("\n") { message ->
+            "${message.role.name}: ${message.content}"
+        }
+    }
 }

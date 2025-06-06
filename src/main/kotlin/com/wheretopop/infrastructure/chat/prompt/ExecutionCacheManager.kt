@@ -66,22 +66,4 @@ class ExecutionCacheManager {
         logger.info("Cached execution plan for key: $cacheKey with ${executionPlan.actions.size} steps")
     }
     
-    /**
-     * 캐시를 클리어합니다.
-     */
-    fun clearCache() {
-        val size = executionPlanCache.size
-        executionPlanCache.clear()
-        logger.info("Cleared execution plan cache ($size entries)")
-    }
-    
-    /**
-     * 캐시 통계를 반환합니다.
-     */
-    fun getCacheStats(): Map<String, Any> {
-        return mapOf(
-            "size" to executionPlanCache.size,
-            "keys" to executionPlanCache.keys.toList()
-        )
-    }
 } 

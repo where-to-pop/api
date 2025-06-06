@@ -16,8 +16,7 @@ import org.springframework.ai.support.ToolCallbacks
 import org.springframework.stereotype.Component
 
 /**
- * ReAct execution planner implementation
- * Creates comprehensive multi-step execution plans using ReAct framework and divide & conquer approach
+ * ReAct execution planner - multi-step planning using ReAct framework
  */
 @Component
 class ReActExecutionPlanningStrategy(
@@ -29,17 +28,12 @@ class ReActExecutionPlanningStrategy(
     private val syncMcpToolCallbackProvider = SyncMcpToolCallbackProvider(mcpSyncClients)
     private val mcpToolCallbacks = syncMcpToolCallbackProvider.toolCallbacks
     
-    /**
-     * Returns the strategy type
-     */
+
     override fun getType(): StrategyType {
         return StrategyType.REACT_PLANNER
     }
 
-    /**
-     * ReAct pattern-based multi-step execution planning system prompt
-     * Guides optimal multi-step execution plan creation through divide & conquer approach
-     */
+
     override fun getSystemPrompt(): String {
         val dataCollectionStrategies = StrategyType.getDataCollectionStrategies()
             .filter { it != StrategyType.REACT_PLANNER }
@@ -56,9 +50,11 @@ class ReActExecutionPlanningStrategy(
             .joinToString("\n") { "- ${it.id}: ${it.description}" }
         
         return """
-            You are an intelligent multi-step execution planner for the WhereToPop chatbot using the ReAct (Reasoning + Acting) framework.
+            You are a RAG-based execution planner for WhereToPop using ReAct framework.
             
-            Your mission is to analyze complex user queries and create comprehensive execution plans using a true divide & conquer approach, breaking down complex tasks into manageable, sequential steps.
+            Create execution plans following RAG pattern: R+A (Retrieval+Augmentation) → G (Generation)
+            
+            CRITICAL: The last step MUST ALWAYS be a RESPONSE_GENERATION strategy!
             
             ## Available Strategy Categories:
             
@@ -71,129 +67,96 @@ class ReActExecutionPlanningStrategy(
             $responseGenerationStrategies
             
             ## ReAct Framework for Multi-Step Planning:
-            Apply this systematic approach for every user query:
             
-            ### 1. THOUGHT (Comprehensive Analysis Phase)
-            Perform deep analysis of the user's query:
-            - **Intent Decomposition**: Break down the user's request into sub-goals
-            - **Entity Extraction**: Identify all relevant entities (locations, buildings, popup stores, addresses, etc.)
-            - **Context Understanding**: Consider implicit requirements, user expectations, and conversation history
-            - **Complexity Assessment**: Determine if the query requires single or multiple information sources
-            - **Dependency Analysis**: Identify which information depends on other information
-            - **Goal Hierarchy**: Establish primary and secondary objectives
+            ### 1. THOUGHT (Analysis)
+            - Break down user request into sub-goals
+            - Extract entities (locations, buildings, popup stores, addresses)
+            - Assess complexity and information dependencies
             
-            ### 2. ACTIONS (Multi-Step Execution Planning)
-            Create a comprehensive execution plan using divide & conquer:
-            - **Step Decomposition**: Break the complex task into sequential, manageable steps
-            - **Strategy Assignment**: Assign the most appropriate strategy to each step based on strategy categories
-            - **Dependency Mapping**: Define which steps depend on outputs from previous steps
-            - **Tool Orchestration**: Plan optimal tool usage for each step
-            - **Output Specification**: Define expected outputs for each step
-            - **Integration Planning**: Plan how step outputs will be combined
+            ### 2. ACTIONS (Execution Planning)
+            - Decompose into sequential steps
+            - Assign appropriate strategy to each step
+            - Map dependencies between steps
+            - Define expected outputs and integration plan
             
-            ### 3. OBSERVATION (Plan Validation Phase)
-            Validate your execution plan:
-            - **Completeness Check**: Does the plan address all aspects of the user's query?
-            - **Efficiency Evaluation**: Is this the most efficient sequence of operations?
-            - **Dependency Validation**: Are step dependencies correctly identified?
-            - **Goal Alignment**: Will this plan achieve the user's ultimate objective?
-            - **Fallback Consideration**: Are there alternative paths if steps fail?
+            ### 3. OBSERVATION (Validation)
+            - Check completeness and efficiency
+            - Validate dependencies and goal alignment
             
-            ## Strategy Selection Guidelines:
+            ## RAG Strategy Selection (MANDATORY PATTERN):
+            1. **R (Retrieval)**: Data Collection strategies → Gather raw information
+            2. **A (Augmentation)**: Data Processing + Decision Making → Analyze and enhance
+            3. **G (Generation)**: Response Generation strategy → MUST be the final step
             
-            **Information Gathering Phase**: Start with data collection strategies for gathering raw information
-            **Processing Phase**: Use data processing strategies to analyze and combine collected information  
-            **Decision Phase**: Apply decision making strategies for analysis and recommendations
-            **Output Phase**: Use response generation strategies to create final user-friendly responses
-            
-            ## Multi-Step Execution Patterns:
-            
-            **Simple Query Pattern:**
-            1. Single data collection strategy
-            2. General response generation
-            
-            **Complex Analysis Pattern:**
-            1. Multiple data collection strategies (parallel if possible)
-            2. Data processing for aggregation/filtering
-            3. Decision making for analysis/assessment
-            4. Response generation for final output
-            
-            **Comparison Pattern:**
-            1. Multiple parallel data collection
-            2. Data aggregation and processing
-            3. Response generation with comparison results
+            ## RAG Execution Patterns:
+            - **Simple RAG**: Single retrieval → Generation
+            - **Multi-source RAG**: Multiple retrieval → Aggregation → Generation  
+            - **Enhanced RAG**: Retrieval → Processing/Analysis → Generation
             
             ## Response Format:
             Provide your analysis in this structured JSON format:
             
             ```json
             {
-                "thought": "Comprehensive analysis including intent decomposition, entity extraction, complexity assessment, and dependency analysis",
+                "thought": "Analysis including intent, entities, complexity, and dependencies",
                 "actions": [
                     {
                         "step": 1,
                         "strategy": "area_query",
-                        "purpose": "What this step aims to achieve",
-                        "reasoning": "Why this strategy was chosen for this step",
+                        "purpose": "Step objective",
+                        "reasoning": "Strategy selection reason",
                         "recommended_tools": ["tool1", "tool2"],
-                        "tool_sequence": "Step-by-step tool execution plan",
-                        "expected_output": "What information this step should produce",
+                        "tool_sequence": "Tool execution plan",
+                        "expected_output": "Expected information output",
                         "dependencies": []
                     },
                     {
                         "step": 2,
                         "strategy": "online_search",
-                        "purpose": "What this step aims to achieve",
-                        "reasoning": "Why this strategy was chosen for this step",
+                        "purpose": "Step objective",
+                        "reasoning": "Strategy selection reason",
                         "recommended_tools": ["tool1", "tool2"],
-                        "tool_sequence": "Step-by-step tool execution plan",
-                        "expected_output": "What information this step should produce",
+                        "tool_sequence": "Tool execution plan",
+                        "expected_output": "Expected information output",
                         "dependencies": [1]
                     },
                     {
                         "step": 3,
                         "strategy": "general_response",
-                        "purpose": "What this step aims to achieve",
-                        "reasoning": "Why this strategy was chosen for this step",
+                        "purpose": "Step objective",
+                        "reasoning": "Strategy selection reason",
                         "recommended_tools": ["tool1", "tool2"],
-                        "tool_sequence": "Step-by-step tool execution plan",
-                        "expected_output": "What information this step should produce",
+                        "tool_sequence": "Tool execution plan",
+                        "expected_output": "Expected information output",
                         "dependencies": [1, 2]
                     }
                 ],
-                "observation": "Plan validation including completeness, efficiency, dependency validation, and goal alignment assessment"
+                "observation": "Plan validation: completeness, efficiency, dependencies, goal alignment"
             }
             ```
             
-            ## Critical Guidelines:
-            - **Strategy-based Planning**: Select strategies based on their execution types and purposes
-            - **True Divide & Conquer**: Always break complex queries into 2+ logical steps when beneficial
-            - **Dependency Awareness**: Clearly identify which steps depend on previous outputs
-            - **Efficiency Focus**: Minimize redundant operations while ensuring completeness
-            - **User-Centric**: Every step should contribute to the final user value
-            - **Flexibility**: Design plans that can adapt if individual steps fail
-            - **Clarity**: Each step should have a clear, measurable objective
-            
-            Remember: Your role is strategic planning and orchestration. Create comprehensive, efficient execution plans that leverage the available strategy types and their specific capabilities.
+            ## RAG Guidelines:
+            - ALWAYS end with a Response Generation strategy (MANDATORY)
+            - Group R+A steps for batch processing, G step for streaming
+            - Plan R (Retrieval) steps to gather all needed information
+            - Use A (Augmentation) steps to process and enhance retrieved data
+            - Ensure G (Generation) step has all context from previous steps
         """.trimIndent()
     }
     
-    /**
-     * Creates ReAct-based multi-step execution planning prompt
-     */
+
     override fun createPrompt(userMessage: String): Prompt {
         val messages: MutableList<Message> = mutableListOf()
         
         // Add ReAct system prompt
         messages.add(SystemMessage(getSystemPrompt()))
         
-        // Request ReAct framework analysis of user message
         val analysisPrompt = """
-            Analyze the following user message using the ReAct framework and divide & conquer approach:
+            Analyze using ReAct framework:
             
             User Message: "$userMessage"
             
-            Apply the ReAct process (THOUGHT → ACTION → OBSERVATION) systematically and provide your analysis in the specified JSON format. Focus on breaking down the query into manageable components and selecting the optimal strategy with detailed reasoning.
+            Apply THOUGHT → ACTION → OBSERVATION process and provide JSON analysis.
         """.trimIndent()
         
         messages.add(UserMessage(analysisPrompt))
@@ -201,9 +164,7 @@ class ReActExecutionPlanningStrategy(
         return Prompt(messages)
     }
     
-    /**
-     * ReAct execution planning may use tools for context analysis and validation
-     */
+
     override fun getToolCallingChatOptions(): ToolCallingChatOptions {
         val toolCallbackChatOptions = ToolCallingChatOptions.builder()
             .toolCallbacks(*ToolCallbacks.from(areaToolRegistry, popupToolRegistry, buildingToolRegistry), *mcpToolCallbacks)

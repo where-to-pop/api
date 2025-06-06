@@ -59,26 +59,27 @@ class PopupQueryStrategy(
                - Use `findPopupInfosByAreaName(areaName, k)` if only name is provided
                - Use `findPopupInfosByBuildingId(buildingId, k)` for building-specific search
             
-            3. **Target Age Group Analysis**:
-               - Use `findPopupInfosByTargetAgeGroup(ageGroup, query, k)`
-               - Combine with keyword query if provided
+            2. For brand-specific analysis:
+               - Use `findPopupByBrand` with specific brand names
+               - Collect multiple cases for pattern analysis
             
-            4. **Category-based Analysis**:
-               - Use `findPopupInfosByCategory(category, k)`
-               - Only exact enum values accepted (see Enum 사용 가이드)
+            3. For location-based research:
+               - Use `findPopupByArea` with area names or IDs
+               - Cross-reference with area characteristics
             
-            ## Enum 제한:
-            - category: `FASHION`, `FOOD_AND_BEVERAGE`, `BEAUTY`, `ART`, `CHARACTER`, `MEDIA`, `OTHER`
-            - ageGroup: `TEEN_AND_UNDER`, `TWENTIES`, `THIRTIES`, `FORTIES`, `FIFTY_AND_OVER`
+            4. For detailed case studies:
+               - Use `findPopupById` for specific popup analysis
+               - Gather comprehensive details for in-depth study
             
-            ## Response Tips:
-            - 항상 한국어로 응답
-            - 결과 개수는 k 값에 맞추기
-            - 트렌드/위치/타겟 분석에 활용 가능한 방식으로 정리
-            - 계절성, 이벤트성 등도 포착 가능하면 언급
+            ## Response Guidelines:
+            - Always respond in Korean to users
+            - Focus on factual popup data collection
+            - Include quantitative metrics when available
+            - Highlight successful patterns and trends
+            - Prepare data for trend analysis and recommendations
+            - Note any seasonal or temporal patterns
             
-            Your primary goal is to collect and summarize high-quality popup information that supports strategic planning, market insight, and trend discovery.
-
+            Your primary goal is to collect comprehensive popup data that supports trend analysis, location assessment, and strategic planning.
         """.trimIndent()
     }
 
