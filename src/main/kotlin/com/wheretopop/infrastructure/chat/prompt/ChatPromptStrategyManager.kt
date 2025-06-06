@@ -60,11 +60,6 @@ class ChatPromptStrategyManager(
         val userMessage = chat.getLatestUserMessage()?.content
             ?: throw ErrorCode.COMMON_SYSTEM_ERROR.toException()
 
-        // 단순한 쿼리는 직접 처리 (다단계 실행 생략)
-        if (isSimpleQuery(userMessage)) {
-            logger.info("Processing simple query directly")
-            return@measureTimeSync processSimpleQuery(chat, userMessage)
-        }
 
         // 캐시된 실행 계획 확인 또는 새로 생성  
         val finalResponse = performanceMonitor.measureTimeSync("Multi-step execution with caching") {
@@ -103,29 +98,6 @@ class ChatPromptStrategyManager(
         // 최적화된 다단계 실행
         return multiStepExecutor.executeMultiStepPlan(chat, executionPlan, userMessage)
     }
-    
-    /**
-     * 단순한 쿼리를 직접 처리합니다.
-     */
-    private fun processSimpleQuery(chat: Chat, userMessage: String): Chat {
-        return performanceMonitor.measureTimeSync("Simple query processing") {
-            val strategy = getStrategyByType(StrategyType.GENERAL_RESPONSE) // 폴백 전략 사용
-            val response = executeStrategyWithTracking(chat.id.toString(), strategy, userMessage, "단순 쿼리 처리")
-            val responseText = response.result.output.text?.trim() 
-                ?: throw ErrorCode.CHAT_NULL_RESPONSE.toException()
-            
-            chat.addMessage(ChatMessage.create(
-                chatId = chat.id,
-                role = ChatMessageRole.ASSISTANT,
-                content = responseText,
-                finishReason = null,
-                latencyMs = 0L,
-                createdAt = Instant.now(),
-                updatedAt = Instant.now(),
-                deletedAt = null
-            ))
-        }
-    }
 
     /**
      * 토큰 사용량 추적과 함께 전략을 실행합니다.
@@ -154,17 +126,6 @@ class ChatPromptStrategyManager(
             ?: throw ErrorCode.COMMON_SYSTEM_ERROR.toException()
 
         try {
-            // 단순한 쿼리는 직접 처리
-            if (isSimpleQuery(userMessage)) {
-                emit(createSimpleQueryStreamResponse(chatId, executionId, "간단한 쿼리로 인식, 직접 처리합니다", 0.2))
-                
-                val result = processSimpleQuery(chat, userMessage)
-                val finalMessage = result.getLatestAssistantMessage()?.content ?: "응답을 생성할 수 없습니다"
-                
-                emit(createCompletedStreamResponse(chatId, executionId, finalMessage))
-                return@flow
-            }
-
             // 실행 계획 생성 시작
             emit(createPlanningStreamResponse(chatId, executionId, "ReAct 실행 계획을 생성하고 있습니다...", 0.1))
 
@@ -196,18 +157,6 @@ class ChatPromptStrategyManager(
         }
     }
 
-    
-    /**
-     * 단순한 쿼리인지 판단합니다.
-     */
-    private fun isSimpleQuery(userMessage: String): Boolean {
-        val simplePatterns = listOf(
-             "감사", "고마워", "도움말", "help"
-        )
-        return simplePatterns.any { userMessage.contains(it, ignoreCase = true) } ||
-               userMessage.length < 5
-    }
-    
     /**
      * 주어진 전략 타입의 전략을 찾아 반환합니다.
      */
@@ -216,36 +165,7 @@ class ChatPromptStrategyManager(
             ?: throw IllegalStateException("No strategy found for type: ${type.id}")
     }
 
-    
-    // Stream Response 생성 헬퍼 메서드들
-    private fun createSimpleQueryStreamResponse(chatId: String, executionId: String, message: String, progress: Double) =
-        ReActStreamResponse(
-            status = ReActExecutionStatus(
-                chatId = chatId,
-                executionId = executionId,
-                phase = ExecutionPhase.PLANNING,
-                currentStep = null,
-                totalSteps = 1,
-                progress = progress,
-                message = message
-            )
-        )
-    
-    private fun createCompletedStreamResponse(chatId: String, executionId: String, finalMessage: String) =
-        ReActStreamResponse(
-            status = ReActExecutionStatus(
-                chatId = chatId,
-                executionId = executionId,
-                phase = ExecutionPhase.COMPLETED,
-                currentStep = 1,
-                totalSteps = 1,
-                progress = 1.0,
-                message = "처리 완료"
-            ),
-            isComplete = true,
-            finalResult = finalMessage
-        )
-    
+
     private fun createPlanningStreamResponse(
         chatId: String, 
         executionId: String, 
