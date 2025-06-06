@@ -1,5 +1,7 @@
 package com.wheretopop.domain.popup
 
+import com.wheretopop.shared.enums.AgeGroup
+import com.wheretopop.shared.enums.PopUpCategory
 import java.util.*
 
 class PopupInfo {
@@ -16,7 +18,15 @@ class PopupInfo {
         val longitude: Double?,
         val description: String,
         val organizerName: String,
-    )
+    ) {
+        fun getContent(): String {
+            return listOfNotNull(
+                "팝업 제목: $name",
+                "브랜드: $organizerName",
+                "설명: $description",
+            ).joinToString(separator = "\n")
+        }
+    }
 
     /**
      * 팝업의 상세 정보를 담는 DTO입니다.
@@ -34,6 +44,11 @@ class PopupInfo {
         val areaId: Long,
         val areaName: String,
         val buildingId: Long,
+
+        val keywords: List<String>,
+        val category: PopUpCategory,
+        val targetAgeGroups: List<AgeGroup>,
+        val brandKeywords: List<String>,
     ) {
         fun generateVectorId(): String {
             return UUID.nameUUIDFromBytes(id.toString().toByteArray()).toString()
@@ -41,10 +56,13 @@ class PopupInfo {
 
         fun getContentForEmbedding(): String {
             return listOfNotNull(
-                name,
+                "Title: $name",
+                "Keywords: ${keywords.toString()}",
+                "Target Age Group: ${targetAgeGroups.toString()}",
                 "Area: $areaName",
-                address,
-                organizerName,
+                "Building: $address",
+                "Brand: $organizerName",
+                "BrandKeywords: ${brandKeywords.toString()}",
                 description,
             ).joinToString(separator = "\n")
         }
@@ -61,6 +79,10 @@ class PopupInfo {
                 "area_id" to areaId,
                 "area_name" to areaName,
                 "building_id" to buildingId,
+                "keywords" to keywords,
+                "category" to category,
+                "target_age_groups" to targetAgeGroups,
+                "brand_keywords" to brandKeywords,
             )
 
             return metadata.toMap()
@@ -70,5 +92,12 @@ class PopupInfo {
     data class WithScore(
         val popup: Detail,
         val score: Double,
+    )
+
+    data class Augmented(
+        val keywords: List<String>,
+        val category: PopUpCategory,
+        val targetAgeGroups: List<AgeGroup>,
+        val brandKeywords: List<String>,
     )
 }

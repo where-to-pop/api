@@ -1,5 +1,6 @@
 package com.wheretopop.application.popup
 
+import com.google.gson.Gson
 import com.wheretopop.application.building.BuildingFacade
 import com.wheretopop.domain.area.AreaService
 import com.wheretopop.domain.building.BuildingCommand
@@ -8,8 +9,13 @@ import com.wheretopop.domain.popup.Popup
 import com.wheretopop.domain.popup.PopupInfo
 import com.wheretopop.domain.popup.PopupService
 import com.wheretopop.infrastructure.popup.external.popply.PopupDetail
+import com.wheretopop.shared.exception.toException
 import com.wheretopop.shared.model.Location
+import com.wheretopop.shared.response.ErrorCode
 import org.slf4j.LoggerFactory
+import org.springframework.ai.chat.model.ChatModel
+import org.springframework.ai.chat.prompt.ChatOptions
+import org.springframework.ai.chat.prompt.Prompt
 import org.springframework.stereotype.Service
 
 /**
@@ -24,6 +30,7 @@ class PopupFacade(
     private val xUseCase: XUseCase,
     private val areaService: AreaService,
     private val buildingService: BuildingService,
+    private val chatModel: ChatModel,
 ) {
     val logger = LoggerFactory.getLogger(this::class.java)
 
@@ -56,16 +63,48 @@ class PopupFacade(
             )
             if (areaFound == null) return@forEach
             val buildingFound = buildingService.findBuildingByAddress(basicPopupInfo.address)
+
+            // popup data pumping
+            val inputText = PopupPrompt.getAdditionalSystemPrompt(basicPopupInfo.getContent())
+            val chatOption = ChatOptions.builder().temperature(0.2).build()
+            val prompt = Prompt(inputText, chatOption)
+            val chatResponse = chatModel.call(prompt) ?: throw ErrorCode.CHAT_NULL_RESPONSE.toException()
+            val augmentedPopupJson = chatResponse.result.output.text
+
+            logger.info(augmentedPopupJson)
+            val augmentedPopupInfo = Gson().fromJson(augmentedPopupJson, PopupInfo.Augmented::class.java)
+
             popplyUseCase.embedAndSavePopupInfo(
                 basicPopupInfo,
                 areaFound.id.toLong(),
                 areaFound.name,
                 buildingFound.id.toLong(),
+                augmentedPopupInfo,
             )
         }
     }
 
     fun findSimilarPopupInfos(query: String): List<PopupInfo.WithScore> {
         return popplyUseCase.getSimilarPopupInfos(query)
+    }
+
+    fun findPopupInfosByAreaId(areaId: Long, k: Int): List<PopupInfo.WithScore> {
+        return popplyUseCase.getPopupsByAreaId(areaId, k)
+    }
+
+    fun findPopupInfosByBuildingId(buildingId: Long, k: Int): List<PopupInfo.WithScore> {
+        return popplyUseCase.getPopupsByBuildingId(buildingId, k)
+    }
+
+    fun findPopupInfosByAreaName(areaName: String, k: Int): List<PopupInfo.WithScore> {
+        return popplyUseCase.getPopupsByAreaName(areaName, k)
+    }
+
+    fun findPopupInfosByTargetAgeGroup(ageGroup: String, query: String, k: Int): List<PopupInfo.WithScore> {
+        return popplyUseCase.getPopupsByTargetAgeGroup(ageGroup, query, k)
+    }
+
+    fun findPopupInfosByCategory(category: String, k: Int): List<PopupInfo.WithScore> {
+        return popplyUseCase.getPopupsByCategory(category, k)
     }
 }

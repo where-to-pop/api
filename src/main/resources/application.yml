@@ -49,17 +49,17 @@ spring:
                 - ${SMITHERY_API_KEY}
                 - --profile
                 - jealous-orca-ZTyY94
-#            exa:
-#              command: npx
-#              args:
-#                - -y
-#                - "@smithery/cli@latest"
-#                - run
-#                - "@exa-ai/exa-mcp"
-#                - --key
-#                - ${SMITHERY_API_KEY}
-#                - --profile
-#                - jealous-orca-ZTyY94
+    #            exa:
+    #              command: npx
+    #              args:
+    #                - -y
+    #                - "@smithery/cli@latest"
+    #                - run
+    #                - "@exa-ai/exa-mcp"
+    #                - --key
+    #                - ${SMITHERY_API_KEY}
+    #                - --profile
+    #                - jealous-orca-ZTyY94
     openai:
       api-key: ${OPENAI_API_KEY:your_openai_or_gcp_key}
       base-url: ${OPENAI_BASE_URL:https://api.openai.com/v1}
