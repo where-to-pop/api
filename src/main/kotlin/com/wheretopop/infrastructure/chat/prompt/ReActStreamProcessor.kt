@@ -26,11 +26,8 @@ class ReActStreamProcessor(
 ) {
     private val logger = KotlinLogging.logger {}
     
-    /**
-     * 다단계 실행 계획을 스트림으로 실행합니다. (기존 호환성 유지)
-     */
     fun executeMultiStepPlanStream(
-        chat: Chat, 
+        chat: Chat,
         executionPlan: ReActResponse, 
         originalUserMessage: String,
         chatId: String,
@@ -298,8 +295,8 @@ class ReActStreamProcessor(
                     results[depStep]?.let { "Step $depStep result: $it" }
                 }.joinToString("\n")
                 
-                // 컨텍스트 최적화
-                val optimizedContext = contextOptimizer.buildOptimizedContext(originalUserMessage, step, stepResults)
+                // 컨텍스트 최적화 (Chat 객체 활용)
+                val optimizedContext = contextOptimizer.buildOptimizedContextWithChat(chat, step, stepResults)
                 
                 // 단계 실행
                 val stepResult = executeStepInternal(chat, step, optimizedContext, dependencyResults)

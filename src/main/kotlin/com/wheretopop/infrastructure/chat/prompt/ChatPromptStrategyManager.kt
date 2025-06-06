@@ -28,18 +28,38 @@ class ChatPromptStrategyManager(
 ): ChatScenario {
     private val logger = KotlinLogging.logger {}
     
+    companion object {
+        /**
+         * 제목 생성에 사용할 최근 메시지 개수
+         */
+        private const val TITLE_CONTEXT_MESSAGE_COUNT = 3
+    }
+    
     /**
      * 사용자 메시지를 기반으로 채팅 제목을 생성합니다.
      */
     override fun generateTitle(chat: Chat): String {
-        val userMessage = chat.getLatestUserMessage()?.content
+        val latestUserMessage = chat.getLatestUserMessage()?.content
             ?: throw ErrorCode.COMMON_SYSTEM_ERROR.toException()
         
-        logger.info("Generating chat title for message: $userMessage")
+        // 최근 메시지들을 컨텍스트로 활용
+        val recentContext = chat.getRecentMessagesAsContext(TITLE_CONTEXT_MESSAGE_COUNT)
+        val contextualMessage = if (recentContext.isNotBlank()) {
+            """
+            Recent conversation:
+            $recentContext
+            
+            Generate a title based on this conversation context.
+            """.trimIndent()
+        } else {
+            latestUserMessage
+        }
+        
+        logger.info("Generating chat title with context for message: $latestUserMessage")
         
         return performanceMonitor.measureTimeSync("Title generation") {
             val titleStrategy = getStrategyByType(StrategyType.TITLE_GENERATION)
-            val response = executeStrategyWithTracking(chat.id.toString(), titleStrategy, userMessage, "제목 생성")
+            val response = executeStrategyWithTracking(chat.id.toString(), titleStrategy, contextualMessage, "제목 생성")
             
             // XML 태그에서 제목만 추출
             val fullResponse = response.result.output.text?.trim()
@@ -92,6 +112,7 @@ class ChatPromptStrategyManager(
             emit(createPlanningStreamResponse(chatId, executionId, StrategyType.buildPhaseMessage(ExecutionPhase.PLANNING), 0.1))
 
             // 캐시된 실행 계획 확인 또는 새로 생성
+            // 캐시 키는 최신 사용자 메시지만으로 생성 (기존 방식 유지)
             val cacheKey = executionCacheManager.generateCacheKey(userMessage)
             val executionPlan = executionCacheManager.getExecutionPlan(cacheKey) ?: run {
                 val plan = reActExecutionPlanner.createExecutionPlan(chat)

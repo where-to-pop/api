@@ -27,15 +27,39 @@ class ReActExecutionPlanner(
         disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
     }
     
+    companion object {
+        /**
+         * ReAct 실행 계획 생성에 사용할 최근 메시지 개수
+         * ChatConfig의 maxMessages(50)와 일치하도록 설정
+         */
+        private const val CONTEXT_MESSAGE_COUNT = 10
+    }
+    
     /**
      * ReAct 실행 계획을 생성합니다.
      */
     fun createExecutionPlan(chat: Chat): ReActResponse {
         val reActPlanner = getStrategyByType(StrategyType.REACT_PLANNER)
-        val userMessage = chat.getLatestUserMessage()?.content
+        
+        // 최근 메시지들을 컨텍스트로 구성
+        val recentContext = chat.getRecentMessagesAsContext(CONTEXT_MESSAGE_COUNT)
+        val latestUserMessage = chat.getLatestUserMessage()?.content
             ?: throw ErrorCode.COMMON_SYSTEM_ERROR.toException()
         
-        val response = executeStrategy(chat.id.toString(), reActPlanner, userMessage)
+        // 컨텍스트를 포함한 프롬프트 구성
+        val contextualMessage = if (recentContext.isNotBlank()) {
+            """
+            Recent conversation context:
+            $recentContext
+            
+            Current user message to process:
+            $latestUserMessage
+            """.trimIndent()
+        } else {
+            latestUserMessage
+        }
+        
+        val response = executeStrategy(chat.id.toString(), reActPlanner, contextualMessage)
         val responseText = response.result.output.text?.trim() 
             ?: throw ErrorCode.CHAT_NULL_RESPONSE.toException()
         
