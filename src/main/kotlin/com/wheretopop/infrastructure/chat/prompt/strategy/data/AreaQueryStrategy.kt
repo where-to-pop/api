@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component
  * Collects comprehensive area information including congestion, demographics, and characteristics
  */
 @Component
-class AreaQueryStrategy(
+class xAreaQueryStrategy(
     private val areaToolRegistry: AreaToolRegistry,
     private val popupToolRegistry: PopupToolRegistry,
     private val buildingToolRegistry: BuildingToolRegistry,

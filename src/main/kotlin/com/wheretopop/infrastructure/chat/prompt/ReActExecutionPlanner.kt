@@ -27,8 +27,7 @@ enum class ComplexityLevel {
 data class RequirementAnalysis(
     val userIntent: String,           // 사용자 의도
     val processedQuery: String,       // 가공된 쿼리
-    val complexityLevel: ComplexityLevel, // 복잡도
-    val requiredDataSources: List<String>, // 필요한 데이터 소스
+    val complexityLevel: ComplexityLevel, // 복잡도s
     val contextSummary: String,       // 컨텍스트 요약
     val reasoning: String             // 분석 근거
 )
@@ -108,7 +107,6 @@ class ReActExecutionPlanner(
                 userIntent = latestUserMessage,
                 processedQuery = latestUserMessage,
                 complexityLevel = ComplexityLevel.SIMPLE,
-                requiredDataSources = listOf("general_knowledge"),
                 contextSummary = "요구사항 분석 실패로 단순 처리",
                 reasoning = "분석 실패로 인한 폴백"
             )
@@ -128,8 +126,6 @@ class ReActExecutionPlanner(
                     strategy = StrategyType.GENERAL_RESPONSE.id,
                     purpose = analysis.userIntent,
                     reasoning = "단순한 요구사항으로 추가 데이터 수집 불필요",
-                    recommended_tools = emptyList(),
-                    tool_sequence = "Direct general response",
                     expected_output = "사용자 질문에 대한 포괄적인 답변",
                     dependencies = emptyList()
                 )
@@ -167,7 +163,6 @@ class ReActExecutionPlanner(
             Complexity Level: $complexityLevel
             Processed user requirement: ${analysis.processedQuery}
             User intent: ${analysis.userIntent}
-            Required data sources: ${analysis.requiredDataSources.joinToString(", ")}
             Context summary: ${analysis.contextSummary}
             Analysis reasoning: ${analysis.reasoning}
             
@@ -225,8 +220,6 @@ class ReActExecutionPlanner(
                     strategy = strategyId,
                     purpose = "Execute fallback strategy",
                     reasoning = "Using fallback strategy due to plan parsing failure",
-                    recommended_tools = emptyList(),
-                    tool_sequence = "Direct strategy execution",
                     expected_output = "Strategy-specific response",
                     dependencies = emptyList()
                 )
@@ -303,7 +296,6 @@ class ReActExecutionPlanner(
             logger.info("    - Strategy: ${step.strategy}")
             logger.info("    - Purpose: ${step.purpose}")
             logger.info("    - Reasoning: ${step.reasoning}")
-            logger.info("    - Tools: ${step.recommended_tools}")
             logger.info("    - Expected Output: ${step.expected_output}")
             logger.info("    - Dependencies: ${step.dependencies}")
         }

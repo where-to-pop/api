@@ -26,8 +26,7 @@ class RequirementAnalysisStrategy : BaseChatPromptStrategy() {
             Your role is to analyze user requirements and conversation context to determine:
             1. User intent and processed query
             2. Complexity level (SIMPLE/MODERATE/COMPLEX)
-            3. Required data sources
-            4. Context summary and reasoning
+            3. Context summary and reasoning
             
             ## Complexity Level Guidelines:
             
@@ -77,18 +76,11 @@ class RequirementAnalysisStrategy : BaseChatPromptStrategy() {
                 "userIntent": "사용자의 핵심 의도",
                 "processedQuery": "분석을 위해 가공된 명확한 쿼리",
                 "complexityLevel": "SIMPLE|MODERATE|COMPLEX",
-                "requiredDataSources": ["data_source1", "data_source2"],
                 "contextSummary": "대화 컨텍스트 요약",
                 "reasoning": "복잡도 판단 근거"
             }
             ```
             
-            ## Data Sources Available:
-            - area_query: 지역 정보 (인구, 혼잡도, 특성)
-            - building_query: 건물 정보 (상세 스펙, 시설)
-            - popup_query: 팝업스토어 사례 및 트렌드
-            - online_search: 실시간 온라인 정보
-            - general_knowledge: 일반적인 지식 기반 답변
         """.trimIndent()
     }
 
