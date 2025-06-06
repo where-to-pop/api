@@ -100,3 +100,11 @@ data class ReActStreamResponse(
     val isComplete: Boolean = false,
     val finalResult: String? = null
 )
+
+/**
+ * RAG 패턴을 위한 단계 분리 데이터 클래스
+ */
+data class RAGSteps(
+    val retrievalAugmentationSteps: List<ActionStep>, // R+A 단계들 (배치 실행)
+    val generationStep: ActionStep                    // G 단계 (스트리밍 실행)
+)

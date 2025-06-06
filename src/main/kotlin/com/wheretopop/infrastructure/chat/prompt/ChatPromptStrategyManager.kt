@@ -127,7 +127,7 @@ class ChatPromptStrategyManager(
 
         try {
             // 실행 계획 생성 시작
-            emit(createPlanningStreamResponse(chatId, executionId, "ReAct 실행 계획을 생성하고 있습니다...", 0.1))
+            emit(createPlanningStreamResponse(chatId, executionId, StrategyType.buildPhaseMessage(ExecutionPhase.PLANNING), 0.1))
 
             // 캐시된 실행 계획 확인 또는 새로 생성
             val cacheKey = executionCacheManager.generateCacheKey(userMessage)
@@ -137,15 +137,6 @@ class ChatPromptStrategyManager(
                 plan
             }
 
-            // 실행 계획 완료
-            emit(createPlanningStreamResponse(
-                chatId, executionId, 
-                "실행 계획이 생성되었습니다 (총 ${executionPlan.actions.size}단계)", 
-                0.2, 
-                executionPlan.actions.size
-            ))
-
-            // 다단계 실행 스트림
             reActStreamProcessor.executeMultiStepPlanStream(chat, executionPlan, userMessage, chatId, executionId)
                 .collect { streamResponse ->
                     emit(streamResponse)
@@ -193,7 +184,7 @@ class ChatPromptStrategyManager(
                 currentStep = null,
                 totalSteps = 0,
                 progress = 0.0,
-                message = "처리 중 오류가 발생했습니다",
+                message = StrategyType.buildPhaseMessage(ExecutionPhase.FAILED),
                 error = errorMessage
             ),
             isComplete = true

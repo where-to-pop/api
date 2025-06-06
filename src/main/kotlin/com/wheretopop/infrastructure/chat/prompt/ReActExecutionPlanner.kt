@@ -9,9 +9,6 @@ import com.wheretopop.infrastructure.chat.ChatAssistant
 import com.wheretopop.infrastructure.chat.prompt.strategy.StrategyType
 import com.wheretopop.shared.exception.toException
 import com.wheretopop.shared.response.ErrorCode
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
 import mu.KotlinLogging
 import org.springframework.stereotype.Component
 
@@ -46,98 +43,16 @@ class ReActExecutionPlanner(
         
         return try {
             val reActResponse = parseReActResponse(responseText)
+            
+            // RAG 패턴 검증: 마지막 단계가 Response Generation인지 확인
+            validateRAGPattern(reActResponse)
+            
             logExecutionPlan(reActResponse)
             reActResponse
         } catch (e: Exception) {
             logger.error("Failed to parse ReAct response: $responseText", e)
             val fallbackStrategyId = extractStrategyIdFallback(responseText)
             createFallbackExecutionPlan(fallbackStrategyId)
-        }
-    }
-    
-    /**
-     * 실시간 사고 과정과 함께 ReAct 실행 계획을 생성합니다.
-     */
-    fun createExecutionPlanStream(chat: Chat, chatId: String, executionId: String): Flow<ChatStreamResponse> = flow {
-        val userMessage = chat.getLatestUserMessage()?.content
-            ?: throw ErrorCode.COMMON_SYSTEM_ERROR.toException()
-        
-        try {
-            // 사고 과정 시작
-            emit(ChatStreamResponse(
-                chatId = chatId,
-                executionId = executionId,
-                type = StreamMessageType.THINKING,
-                thinkingMessage = "사용자의 요청을 분석하고 있습니다..."
-            ))
-            delay(500)
-            
-            emit(ChatStreamResponse(
-                chatId = chatId,
-                executionId = executionId,
-                type = StreamMessageType.THINKING,
-                thinkingMessage = "어떤 정보들이 필요할지 생각해보고 있습니다..."
-            ))
-            delay(700)
-            
-            emit(ChatStreamResponse(
-                chatId = chatId,
-                executionId = executionId,
-                type = StreamMessageType.THINKING,
-                thinkingMessage = "최적의 전략 조합을 계획하고 있습니다..."
-            ))
-            delay(600)
-            
-            // 실제 계획 생성
-            emit(ChatStreamResponse(
-                chatId = chatId,
-                executionId = executionId,
-                type = StreamMessageType.STEP_PLANNING,
-                statusMessage = "실행 계획을 생성하고 있습니다..."
-            ))
-            
-            val reActPlanner = getStrategyByType(StrategyType.REACT_PLANNER)
-            val response = executeStrategy(chat.id.toString(), reActPlanner, userMessage)
-            val responseText = response.result.output.text?.trim() 
-                ?: throw ErrorCode.CHAT_NULL_RESPONSE.toException()
-            
-            val executionPlan = try {
-                val plan = parseReActResponse(responseText)
-                logExecutionPlan(plan)
-                plan
-            } catch (e: Exception) {
-                logger.error("Failed to parse ReAct response: $responseText", e)
-                val fallbackStrategyId = extractStrategyIdFallback(responseText)
-                createFallbackExecutionPlan(fallbackStrategyId)
-            }
-            
-            // 계획 완료
-            emit(ChatStreamResponse(
-                chatId = chatId,
-                executionId = executionId,
-                type = StreamMessageType.STATUS_UPDATE,
-                totalSteps = executionPlan.actions.size,
-                progress = 0.2,
-                statusMessage = "실행 계획이 완료되었습니다 (총 ${executionPlan.actions.size}단계)"
-            ))
-            
-            // 계획 결과를 포함한 응답 (다른 컴포넌트에서 사용하기 위해)
-            emit(ChatStreamResponse(
-                chatId = chatId,
-                executionId = executionId,
-                type = StreamMessageType.COMPLETED,
-                statusMessage = "계획 생성 완료"
-            ))
-            
-        } catch (e: Exception) {
-            logger.error("Planning stream failed", e)
-            emit(ChatStreamResponse(
-                chatId = chatId,
-                executionId = executionId,
-                type = StreamMessageType.ERROR,
-                errorMessage = "계획 생성 중 오류가 발생했습니다: ${e.message}",
-                errorCode = "PLANNING_ERROR"
-            ))
         }
     }
     
@@ -202,6 +117,30 @@ class ReActExecutionPlanner(
             
             else -> StrategyType.GENERAL_RESPONSE.id
         }
+    }
+    
+    /**
+     * RAG 패턴 검증: 마지막 단계가 Response Generation인지 확인
+     */
+    private fun validateRAGPattern(reActResponse: ReActResponse) {
+        if (reActResponse.actions.isEmpty()) {
+            throw IllegalStateException("Empty execution plan is not allowed")
+        }
+        
+        val lastStep = reActResponse.actions.maxByOrNull { it.step }
+            ?: throw IllegalStateException("No steps found in execution plan")
+        
+        val lastStepStrategy = StrategyType.findById(lastStep.strategy)
+        
+        if (lastStepStrategy?.executionType != com.wheretopop.infrastructure.chat.prompt.strategy.StrategyExecutionType.RESPONSE_GENERATION) {
+            throw IllegalStateException(
+                "❌ RAG Pattern validation failed: Last step must be RESPONSE_GENERATION strategy. " +
+                "Found: ${lastStep.strategy} (${lastStepStrategy?.executionType}). " +
+                "Please ensure the execution plan follows R+A (Retrieval+Augmentation) → G (Generation) pattern."
+            )
+        }
+        
+        logger.info("✅ RAG Pattern validation passed: Last step is ${lastStep.strategy} (RESPONSE_GENERATION)")
     }
     
     /**

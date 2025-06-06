@@ -125,17 +125,19 @@ class ChatServiceImpl(
         // 백그라운드에서 실행 시작 (결과는 저장)
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                var finalResult: String? = null
+                var finalCompleteResult: String? = null
+                
                 executionFlow.collect { streamData ->
-                    // 최종 결과가 있으면 채팅에 저장
                     val responseData = objectMapper.readTree(streamData)
+                    
+                    // COMPLETED 단계에서 누적된 전체 결과 받기
                     if (responseData.has("isComplete") && responseData.get("isComplete").asBoolean()) {
-                        finalResult = responseData.get("finalResult")?.asText()
+                        finalCompleteResult = responseData.get("finalResult")?.asText()
                     }
                 }
                 
-                // 최종 결과를 채팅에 AI 응답으로 저장
-                finalResult?.let { result ->
+                // 완료된 경우 전체 결과를 채팅에 저장
+                finalCompleteResult?.let { result ->
                     val updatedChat = messageAddedChat.addMessage(ChatMessage.create(
                         chatId = chatId,
                         role = ChatMessageRole.ASSISTANT,
@@ -149,8 +151,8 @@ class ChatServiceImpl(
                     chatStore.save(updatedChat)
                 }
             } catch (e: Exception) {
-                // 실행 실패 시 에러 메시지를 채팅에 저장
-                val errorMessage = "처리 중 오류가 발생했습니다: ${e.message}"
+                // 실행 실패 시 사용자 친화적인 에러 메시지를 채팅에 저장
+                val errorMessage = "죄송해요, 일시적인 문제가 발생했어요. 다시 시도해 주세요."
                 val updatedChat = messageAddedChat.addMessage(ChatMessage.create(
                     chatId = chatId,
                     role = ChatMessageRole.ASSISTANT,

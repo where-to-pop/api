@@ -1,14 +1,15 @@
 package com.wheretopop.infrastructure.chat.prompt
 
 import com.wheretopop.domain.chat.Chat
-import com.wheretopop.infrastructure.chat.AiChatAssistant
 import com.wheretopop.infrastructure.chat.ChatAssistant
 import com.wheretopop.infrastructure.chat.prompt.strategy.StrategyExecutionType
 import com.wheretopop.infrastructure.chat.prompt.strategy.StrategyType
 import com.wheretopop.shared.exception.toException
 import com.wheretopop.shared.response.ErrorCode
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.withContext
 import mu.KotlinLogging
 import org.springframework.stereotype.Component
 import java.util.concurrent.ConcurrentHashMap
@@ -27,21 +28,6 @@ class ReActStreamProcessor(
     private val logger = KotlinLogging.logger {}
     
     /**
-     * 다단계 실행 계획을 스트림으로 실행합니다. (새로운 ChatStreamResponse 사용)
-     */
-    fun executeMultiStepPlanStreamV2(
-        chat: Chat, 
-        executionPlan: ReActResponse, 
-        originalUserMessage: String,
-        chatId: String,
-        executionId: String
-    ): Flow<ChatStreamResponse> {
-        return multiStepExecutor.executeMultiStepPlanStream(
-            chat, executionPlan, originalUserMessage, chatId, executionId
-        )
-    }
-    
-    /**
      * 다단계 실행 계획을 스트림으로 실행합니다. (기존 호환성 유지)
      */
     fun executeMultiStepPlanStream(
@@ -52,95 +38,32 @@ class ReActStreamProcessor(
         executionId: String
     ): Flow<ReActStreamResponse> = flow {
         val stepResults = ConcurrentHashMap<Int, String>()
-        val completedSteps = mutableSetOf<Int>()
         val totalSteps = executionPlan.actions.size
         
-        logger.info("스트림 기반 다단계 실행 시작: 총 ${totalSteps}단계")
+        logger.info("RAG 패턴 기반 스트림 실행 시작: 총 ${totalSteps}단계")
         
-        // 단계별 의존성 그래프 생성
-        val readySteps = mutableSetOf<ActionStep>()
+        // RAG 패턴: R+A (배치 처리) → G (스트리밍)
+        val ragSteps = separateRAGSteps(executionPlan.actions)
         
-        // 의존성이 없는 첫 번째 단계들 찾기
-        executionPlan.actions.filter { it.dependencies.isEmpty() }.forEach { step ->
-            readySteps.add(step)
-        }
+        // R+A 단계들을 배치로 실행
+        emit(ReActStreamResponse(
+            status = ReActExecutionStatus(
+                chatId = chatId,
+                executionId = executionId,
+                phase = ExecutionPhase.STEP_EXECUTING,
+                currentStep = null,
+                totalSteps = totalSteps,
+                progress = 0.1,
+                message = "정보 수집 및 분석 단계 (R+A) 실행 중..."
+            )
+        ))
         
-        while (readySteps.isNotEmpty() || completedSteps.size < totalSteps) {
-            // 준비된 단계들을 병렬로 실행
-            val currentBatch = readySteps.toList()
-            readySteps.clear()
-            
-            if (currentBatch.isNotEmpty()) {
-                logger.info("병렬 실행 배치: ${currentBatch.map { it.step }}")
-                
-                // 각 단계 실행 시작 알림
-                currentBatch.forEach { step ->
-                    emit(ReActStreamResponse(
-                        status = ReActExecutionStatus(
-                            chatId = chatId,
-                            executionId = executionId,
-                            phase = ExecutionPhase.STEP_EXECUTING,
-                            currentStep = step.step,
-                            totalSteps = totalSteps,
-                            progress = completedSteps.size.toDouble() / totalSteps,
-                            message = "단계 ${step.step} 실행 중: ${step.purpose}"
-                        )
-                    ))
-                }
-                
-                // 병렬 실행
-                val batchResults = executeBatchWithStreaming(
-                    chat, currentBatch, originalUserMessage, stepResults, chatId, executionId, totalSteps, completedSteps
-                )
-                
-                // 결과 수집 및 스트림 이벤트 발행
-                batchResults.collect { (stepNum, result, isError) ->
-                    stepResults[stepNum] = result
-                    completedSteps.add(stepNum)
-                    
-                    val step = executionPlan.actions.find { it.step == stepNum }
-                    
-                    emit(ReActStreamResponse(
-                        status = ReActExecutionStatus(
-                            chatId = chatId,
-                            executionId = executionId,
-                            phase = if (isError) ExecutionPhase.STEP_FAILED else ExecutionPhase.STEP_COMPLETED,
-                            currentStep = stepNum,
-                            totalSteps = totalSteps,
-                            progress = completedSteps.size.toDouble() / totalSteps,
-                            message = if (isError) "단계 $stepNum 실패" else "단계 $stepNum 완료: ${step?.purpose ?: ""}",
-                            stepResult = result.take(200), // 너무 긴 결과는 잘라서 전송
-                            error = if (isError) result else null
-                        )
-                    ))
-                }
-                
-                // 다음 실행 가능한 단계들 찾기
-                executionPlan.actions.forEach { step ->
-                    if (step.step !in completedSteps && 
-                        step.dependencies.all { it in completedSteps }) {
-                        readySteps.add(step)
-                    }
-                }
-            } else {
-                // 데드락 방지: 남은 단계가 있지만 실행 가능한 단계가 없는 경우
-                val remainingSteps = executionPlan.actions.filter { it.step !in completedSteps }
-                if (remainingSteps.isNotEmpty()) {
-                    logger.warn("잠재적 데드락 감지. 순차 실행으로 전환.")
-                    
-                    // 순차 실행 스트림
-                    executeSequentialWithStreaming(
-                        chat, remainingSteps, originalUserMessage, stepResults, completedSteps, 
-                        chatId, executionId, totalSteps
-                    ).collect { streamResponse ->
-                        emit(streamResponse)
-                    }
-                }
-                break
-            }
-        }
+        val retrievalAugmentationResults = executeRABatchSteps(
+            chat, ragSteps.retrievalAugmentationSteps, originalUserMessage, stepResults,
+            chatId, executionId, totalSteps
+        ) { response -> emit(response) }
         
-        // 결과 통합 시작
+        // R+A 완료 알림
         emit(ReActStreamResponse(
             status = ReActExecutionStatus(
                 chatId = chatId,
@@ -148,105 +71,54 @@ class ReActStreamProcessor(
                 phase = ExecutionPhase.AGGREGATING,
                 currentStep = null,
                 totalSteps = totalSteps,
-                progress = 0.95,
-                message = "결과를 통합하고 있습니다..."
+                progress = 0.75,
+                message = "정보 수집 및 분석 완료. 답변을 작성할 준비가 되었어요!"
             )
         ))
         
-        // 최종 결과 생성
-        val finalResult = generateFinalResult(executionPlan, stepResults)
+        // G (Generation) 단계를 스트리밍으로 실행
+        val generationStep = ragSteps.generationStep
+        val allRAResults = retrievalAugmentationResults.values.joinToString("\n\n") { result ->
+            "Context: $result"
+        }
         
-        // 응답 생성 시작 알림
+        // G 단계 시작 알림
         emit(ReActStreamResponse(
             status = ReActExecutionStatus(
                 chatId = chatId,
                 executionId = executionId,
-                phase = ExecutionPhase.AGGREGATING,
-                currentStep = null,
+                phase = ExecutionPhase.STEP_EXECUTING,
+                currentStep = generationStep.step,
                 totalSteps = totalSteps,
-                progress = 0.98,
-                message = "최종 응답을 생성하고 있습니다..."
+                progress = 0.78,
+                message = StrategyType.buildExecutingMessage(generationStep.strategy)
             )
         ))
         
-        // 최종 응답을 AI 스트림으로 생성
-        val responseGenerationStep = executionPlan.actions.find { 
-            StrategyType.findById(it.strategy)?.executionType == StrategyExecutionType.RESPONSE_GENERATION 
+        // 실시간 스트림으로 G 단계 실행
+        val accumulatedResponse = StringBuilder()
+        
+        executeStepInternalStream(
+            chat, generationStep, allRAResults, "", chatId, executionId, totalSteps, 0.78
+        ).collect { chunk ->
+            accumulatedResponse.append(chunk)
+            // 실시간 AI 응답 청크를 그대로 전달
+            emit(ReActStreamResponse(
+                status = ReActExecutionStatus(
+                    chatId = chatId,
+                    executionId = executionId,
+                    phase = ExecutionPhase.AGGREGATING,
+                    currentStep = generationStep.step,
+                    totalSteps = totalSteps,
+                    progress = 0.78 + (accumulatedResponse.length.toDouble() / 1000) * 0.21, // 78%~99%
+                    message = StrategyType.buildExecutingMessage(generationStep.strategy)
+                ),
+                isComplete = false,
+                finalResult = chunk
+            ))
         }
         
-        if (responseGenerationStep != null) {
-            // 응답 생성 전략이 있는 경우 실시간 스트림으로 생성
-            val allStepResults = stepResults.entries.joinToString("\n") { (stepNum, result) ->
-                "Step $stepNum: $result"
-            }
-            
-            executeStepInternalStream(
-                chat, responseGenerationStep, allStepResults, "", chatId, executionId, totalSteps, 0.98
-            ).collect { chunk ->
-                // 실시간 AI 응답 청크를 그대로 전달
-                emit(ReActStreamResponse(
-                    status = ReActExecutionStatus(
-                        chatId = chatId,
-                        executionId = executionId,
-                        phase = ExecutionPhase.AGGREGATING,
-                        currentStep = null,
-                        totalSteps = totalSteps,
-                        progress = 0.99,
-                        message = "응답 생성 중..."
-                    ),
-                    isComplete = false,
-                    finalResult = chunk // 실시간 AI 청크
-                ))
-            }
-        } else {
-            // 응답 생성 전략이 없는 경우 마지막 단계를 스트림으로 재실행
-            val lastStep = executionPlan.actions.maxByOrNull { it.step }
-            if (lastStep != null) {
-                // 모든 이전 단계 결과를 컨텍스트로 사용
-                val allStepResults = stepResults.entries.filter { it.key != lastStep.step }
-                    .joinToString("\n") { (stepNum, result) -> "Step $stepNum: $result" }
-                
-                // 마지막 단계를 스트림으로 재실행
-                executeStepInternalStream(
-                    chat, lastStep, allStepResults, "", chatId, executionId, totalSteps, 0.98
-                ).collect { chunk ->
-                    // 실시간 AI 응답 청크를 그대로 전달
-                    emit(ReActStreamResponse(
-                        status = ReActExecutionStatus(
-                            chatId = chatId,
-                            executionId = executionId,
-                            phase = ExecutionPhase.AGGREGATING,
-                            currentStep = null,
-                            totalSteps = totalSteps,
-                            progress = 0.99,
-                            message = "최종 응답 생성 중..."
-                        ),
-                        isComplete = false,
-                        finalResult = chunk // 실시간 AI 청크
-                    ))
-                }
-            } else {
-                // 폴백: 기존 방식 (글자별 스트림)
-                finalResult.chunked(1).forEachIndexed { index, chunk ->
-                    delay(30) // 타이핑 효과
-                    emit(ReActStreamResponse(
-                        status = ReActExecutionStatus(
-                            chatId = chatId,
-                            executionId = executionId,
-                            phase = ExecutionPhase.AGGREGATING,
-                            currentStep = null,
-                            totalSteps = totalSteps,
-                            progress = 0.98 + (index.toDouble() / finalResult.length) * 0.02,
-                            message = "응답 생성 중..."
-                        ),
-                        isComplete = false,
-                        finalResult = chunk // 글자별로 전송
-                    ))
-                }
-            }
-        }
-        
-        // 최종 완료
+        // 최종 완료 - 누적된 전체 응답을 함께 전송
         emit(ReActStreamResponse(
             status = ReActExecutionStatus(
                 chatId = chatId,
@@ -255,10 +127,10 @@ class ReActStreamProcessor(
                 currentStep = null,
                 totalSteps = totalSteps,
                 progress = 1.0,
-                message = "모든 단계가 완료되었습니다"
+                message = StrategyType.buildPhaseMessage(ExecutionPhase.COMPLETED)
             ),
             isComplete = true,
-            finalResult = null // 전체 결과는 이미 청크로 전송했으므로 null
+            finalResult = accumulatedResponse.toString() // 누적된 전체 응답
         ))
     }
     
@@ -311,120 +183,7 @@ class ReActStreamProcessor(
         }
     }
     
-    /**
-     * 배치를 스트림과 함께 병렬 실행합니다.
-     */
-    private fun executeBatchWithStreaming(
-        chat: Chat,
-        batch: List<ActionStep>,
-        originalUserMessage: String,
-        stepResults: ConcurrentHashMap<Int, String>,
-        chatId: String,
-        executionId: String,
-        totalSteps: Int,
-        completedSteps: Set<Int>
-    ): Flow<Triple<Int, String, Boolean>> = flow {
-        val results = runBlocking {
-            batch.map { step ->
-                async(Dispatchers.IO) {
-                    try {
-                        logger.info("단계 ${step.step} 실행: ${step.strategy}")
-                        
-                        // 의존성 결과 수집
-                        val dependencyResults = step.dependencies.mapNotNull { depStep ->
-                            stepResults[depStep]?.let { "Step $depStep result: $it" }
-                        }.joinToString("\n")
-                        
-                        // 컨텍스트 최적화
-                        val optimizedContext = contextOptimizer.buildOptimizedContext(originalUserMessage, step, stepResults)
-                        
-                        // 단계별 실행 (일반 버전 - 결과만 필요)
-                        val stepResult = executeStepInternal(chat, step, optimizedContext, dependencyResults)
-                        
-                        logger.info("단계 ${step.step} 완료")
-                        Triple(step.step, stepResult, false)
-                        
-                    } catch (e: Exception) {
-                        logger.error("단계 ${step.step} 실패: ${e.message}", e)
-                        Triple(step.step, "단계 ${step.step} 실패: ${e.message}", true)
-                    }
-                }
-            }.awaitAll()
-        }
-        
-        results.forEach { emit(it) }
-    }
-    
-    /**
-     * 순차 실행을 스트림과 함께 진행합니다.
-     */
-    private fun executeSequentialWithStreaming(
-        chat: Chat,
-        remainingSteps: List<ActionStep>,
-        originalUserMessage: String,
-        stepResults: ConcurrentHashMap<Int, String>,
-        completedSteps: MutableSet<Int>,
-        chatId: String,
-        executionId: String,
-        totalSteps: Int
-    ): Flow<ReActStreamResponse> = flow {
-        remainingSteps.forEach { step ->
-            emit(ReActStreamResponse(
-                status = ReActExecutionStatus(
-                    chatId = chatId,
-                    executionId = executionId,
-                    phase = ExecutionPhase.STEP_EXECUTING,
-                    currentStep = step.step,
-                    totalSteps = totalSteps,
-                    progress = completedSteps.size.toDouble() / totalSteps,
-                    message = "단계 ${step.step} 순차 실행 중: ${step.purpose}"
-                )
-            ))
-            
-            try {
-                val dependencyResults = step.dependencies.mapNotNull { depStep ->
-                    stepResults[depStep]?.let { "Step $depStep result: $it" }
-                }.joinToString("\n")
-                
-                val optimizedContext = contextOptimizer.buildOptimizedContext(originalUserMessage, step, stepResults)
-                val stepResult = executeStepInternal(chat, step, optimizedContext, dependencyResults)
-                
-                stepResults[step.step] = stepResult
-                completedSteps.add(step.step)
-                
-                emit(ReActStreamResponse(
-                    status = ReActExecutionStatus(
-                        chatId = chatId,
-                        executionId = executionId,
-                        phase = ExecutionPhase.STEP_COMPLETED,
-                        currentStep = step.step,
-                        totalSteps = totalSteps,
-                        progress = completedSteps.size.toDouble() / totalSteps,
-                        message = "단계 ${step.step} 완료: ${step.purpose}",
-                        stepResult = stepResult.take(200)
-                    )
-                ))
-            } catch (e: Exception) {
-                logger.error("단계 ${step.step} 실패: ${e.message}", e)
-                val errorResult = "단계 ${step.step} 실패: ${e.message}"
-                stepResults[step.step] = errorResult
-                completedSteps.add(step.step)
-                
-                emit(ReActStreamResponse(
-                    status = ReActExecutionStatus(
-                        chatId = chatId,
-                        executionId = executionId,
-                        phase = ExecutionPhase.STEP_FAILED,
-                        currentStep = step.step,
-                        totalSteps = totalSteps,
-                        progress = completedSteps.size.toDouble() / totalSteps,
-                        message = "단계 ${step.step} 실패",
-                        error = errorResult
-                    )
-                ))
-            }
-        }
-    }
+
     
     /**
      * 개별 단계 실행 (일반 버전) - 결과만 필요한 경우
@@ -470,18 +229,122 @@ class ReActStreamProcessor(
     }
     
     /**
-     * 최종 결과를 생성합니다.
+     * RAG 단계들을 분리합니다.
      */
-    private fun generateFinalResult(executionPlan: ReActResponse, stepResults: ConcurrentHashMap<Int, String>): String {
-        val responseGenerationStep = executionPlan.actions.find { 
-            StrategyType.findById(it.strategy)?.executionType == StrategyExecutionType.RESPONSE_GENERATION 
+    private fun separateRAGSteps(actions: List<ActionStep>): RAGSteps {
+        val retrievalAugmentationSteps = mutableListOf<ActionStep>()
+        var generationStep: ActionStep? = null
+        
+        actions.forEach { step ->
+            val strategyType = StrategyType.findById(step.strategy)
+            when (strategyType?.executionType) {
+                StrategyExecutionType.DATA_COLLECTION,
+                StrategyExecutionType.DATA_PROCESSING,
+                StrategyExecutionType.DECISION_MAKING -> {
+                    retrievalAugmentationSteps.add(step)
+                }
+                StrategyExecutionType.RESPONSE_GENERATION -> {
+                    generationStep = step
+                }
+                else -> {
+                    logger.warn("Unknown strategy type for step ${step.step}: ${step.strategy}")
+                    retrievalAugmentationSteps.add(step) // 기본적으로 R+A에 포함
+                }
+            }
         }
         
-        return if (responseGenerationStep != null) {
-            stepResults[responseGenerationStep.step] ?: "응답 생성 결과를 찾을 수 없습니다"
-        } else {
-            val lastStep = executionPlan.actions.maxByOrNull { it.step }
-            stepResults[lastStep?.step ?: 1] ?: "결과를 생성할 수 없습니다"
+        return RAGSteps(
+            retrievalAugmentationSteps = retrievalAugmentationSteps,
+            generationStep = generationStep ?: throw IllegalStateException("No generation step found!")
+        )
+    }
+    
+    /**
+     * R+A 단계들을 배치로 실행합니다.
+     */
+    private suspend fun executeRABatchSteps(
+        chat: Chat,
+        raSteps: List<ActionStep>,
+        originalUserMessage: String,
+        stepResults: ConcurrentHashMap<Int, String>,
+        chatId: String,
+        executionId: String,
+        totalSteps: Int,
+        emit: suspend (ReActStreamResponse) -> Unit
+    ): Map<Int, String> {
+        val results = mutableMapOf<Int, String>()
+        
+        // 의존성 순서대로 실행
+        val sortedSteps = raSteps.sortedBy { it.step }
+        
+        for (step in sortedSteps) {
+            try {
+                logger.info("R+A 단계 ${step.step} 실행: ${step.strategy}")
+                
+                // 🔄 단계 실행 시작 알림
+                emit(ReActStreamResponse(
+                    status = ReActExecutionStatus(
+                        chatId = chatId,
+                        executionId = executionId,
+                        phase = ExecutionPhase.STEP_EXECUTING,
+                        currentStep = step.step,
+                        totalSteps = totalSteps,
+                        progress = (results.size.toDouble() / raSteps.size) * 0.7, // R+A는 전체의 70%
+                        message = StrategyType.buildExecutingMessage(step.strategy, step.purpose)
+                    )
+                ))
+                
+                // 의존성 결과 수집
+                val dependencyResults = step.dependencies.mapNotNull { depStep ->
+                    results[depStep]?.let { "Step $depStep result: $it" }
+                }.joinToString("\n")
+                
+                // 컨텍스트 최적화
+                val optimizedContext = contextOptimizer.buildOptimizedContext(originalUserMessage, step, stepResults)
+                
+                // 단계 실행
+                val stepResult = executeStepInternal(chat, step, optimizedContext, dependencyResults)
+                results[step.step] = stepResult
+                stepResults[step.step] = stepResult
+                
+                logger.info("R+A 단계 ${step.step} 완료")
+                
+                // ✅ 단계 완료 알림
+                emit(ReActStreamResponse(
+                    status = ReActExecutionStatus(
+                        chatId = chatId,
+                        executionId = executionId,
+                        phase = ExecutionPhase.STEP_COMPLETED,
+                        currentStep = step.step,
+                        totalSteps = totalSteps,
+                        progress = ((results.size.toDouble() + 1) / raSteps.size) * 0.7,
+                        message = StrategyType.buildCompletedMessage(step.strategy, step.purpose),
+                        stepResult = stepResult.take(100) // 미리보기용 100자
+                    )
+                ))
+                
+            } catch (e: Exception) {
+                logger.error("R+A 단계 ${step.step} 실패: ${e.message}", e)
+                val errorResult = "단계 ${step.step} 실패: ${e.message}"
+                results[step.step] = errorResult
+                stepResults[step.step] = errorResult
+                
+                // ❌ 단계 실패 알림
+                emit(ReActStreamResponse(
+                    status = ReActExecutionStatus(
+                        chatId = chatId,
+                        executionId = executionId,
+                        phase = ExecutionPhase.STEP_FAILED,
+                        currentStep = step.step,
+                        totalSteps = totalSteps,
+                        progress = ((results.size.toDouble() + 1) / raSteps.size) * 0.7,
+                        message = StrategyType.buildErrorMessage(step.strategy, errorResult),
+                        error = errorResult
+                    )
+                ))
+            }
         }
+        
+        return results
     }
 }

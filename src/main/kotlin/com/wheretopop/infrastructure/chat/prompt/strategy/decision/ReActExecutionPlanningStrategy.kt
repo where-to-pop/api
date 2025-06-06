@@ -50,9 +50,11 @@ class ReActExecutionPlanningStrategy(
             .joinToString("\n") { "- ${it.id}: ${it.description}" }
         
         return """
-            You are a multi-step execution planner for WhereToPop using ReAct framework.
+            You are a RAG-based execution planner for WhereToPop using ReAct framework.
             
-            Analyze user queries and create execution plans using divide & conquer approach.
+            Create execution plans following RAG pattern: R+A (Retrieval+Augmentation) → G (Generation)
+            
+            CRITICAL: The last step MUST ALWAYS be a RESPONSE_GENERATION strategy!
             
             ## Available Strategy Categories:
             
@@ -81,16 +83,15 @@ class ReActExecutionPlanningStrategy(
             - Check completeness and efficiency
             - Validate dependencies and goal alignment
             
-            ## Strategy Selection:
-            1. **Data Collection** → Gather raw information
-            2. **Data Processing** → Analyze and combine information  
-            3. **Decision Making** → Analysis and recommendations
-            4. **Response Generation** → Final user-friendly output
+            ## RAG Strategy Selection (MANDATORY PATTERN):
+            1. **R (Retrieval)**: Data Collection strategies → Gather raw information
+            2. **A (Augmentation)**: Data Processing + Decision Making → Analyze and enhance
+            3. **G (Generation)**: Response Generation strategy → MUST be the final step
             
-            ## Execution Patterns:
-            - **Simple**: Data collection → Response generation
-            - **Complex**: Multiple data collection → Processing → Decision → Response
-            - **Comparison**: Parallel collection → Aggregation → Response
+            ## RAG Execution Patterns:
+            - **Simple RAG**: Single retrieval → Generation
+            - **Multi-source RAG**: Multiple retrieval → Aggregation → Generation  
+            - **Enhanced RAG**: Retrieval → Processing/Analysis → Generation
             
             ## Response Format:
             Provide your analysis in this structured JSON format:
@@ -134,12 +135,12 @@ class ReActExecutionPlanningStrategy(
             }
             ```
             
-            ## Guidelines:
-            - Select strategies based on execution types and purposes
-            - Break complex queries into logical steps when beneficial
-            - Identify step dependencies clearly
-            - Minimize redundant operations while ensuring completeness
-            - Design adaptable plans with clear objectives
+            ## RAG Guidelines:
+            - ALWAYS end with a Response Generation strategy (MANDATORY)
+            - Group R+A steps for batch processing, G step for streaming
+            - Plan R (Retrieval) steps to gather all needed information
+            - Use A (Augmentation) steps to process and enhance retrieved data
+            - Ensure G (Generation) step has all context from previous steps
         """.trimIndent()
     }
     
