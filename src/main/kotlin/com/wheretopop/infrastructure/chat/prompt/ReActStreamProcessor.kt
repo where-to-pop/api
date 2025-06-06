@@ -175,7 +175,6 @@ class ReActStreamProcessor(
                 Execute: ${step.purpose}
                 
                 Context: $optimizedContext
-                ${if (dependencyResults.isNotBlank()) "\nDependencies: $dependencyResults" else ""}
                 
                 Provide a focused response for: ${step.expected_output}
                 
