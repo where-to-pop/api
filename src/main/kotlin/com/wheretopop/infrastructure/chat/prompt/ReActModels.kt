@@ -16,8 +16,6 @@ data class ActionStep(
     val strategy: String,
     val purpose: String,
     val reasoning: String,
-    val recommended_tools: List<String>,
-    val tool_sequence: String,
     val expected_output: String,
     val dependencies: List<Int> = emptyList() // 이전 단계 의존성
 )

@@ -91,8 +91,6 @@ class ReActExecutionPlanningStrategy(
                         "strategy": "area_query",
                         "purpose": "Data collection objective",
                         "reasoning": "Why this strategy is needed",
-                        "recommended_tools": ["relevant_tools"],
-                        "tool_sequence": "Execution workflow",
                         "expected_output": "Expected results",
                         "dependencies": []
                     },
@@ -101,8 +99,6 @@ class ReActExecutionPlanningStrategy(
                         "strategy": "general_response",
                         "purpose": "Response generation",
                         "reasoning": "Final synthesis and presentation",
-                        "recommended_tools": [],
-                        "tool_sequence": "Response generation",
                         "expected_output": "User-ready answer",
                         "dependencies": [1]
                     }
