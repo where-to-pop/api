@@ -14,7 +14,6 @@ import mu.KotlinLogging
 import org.springframework.ai.chat.model.ChatResponse
 import org.springframework.stereotype.Component
 import java.time.Instant
-import java.util.concurrent.atomic.AtomicLong
 
 /**
  * 사용자 메시지에 따라 적절한 전략을 선택하고 실행하는 관리자 클래스
@@ -196,26 +195,7 @@ class ChatPromptStrategyManager(
             emit(createErrorStreamResponse(chatId, executionId, e.message))
         }
     }
-    
-    /**
-     * 현재까지의 누적 토큰 사용량을 조회합니다.
-     */
-    fun getTokenUsageStats(): Map<String, Any> {
-        val (promptTokens, completionTokens, totalTokens) = tokenUsageTracker.getCumulativeUsage()
-        return mapOf(
-            "totalPromptTokens" to promptTokens,
-            "totalCompletionTokens" to completionTokens,
-            "totalTokens" to totalTokens,
-            "timestamp" to Instant.now()
-        )
-    }
-    
-    /**
-     * 토큰 사용량 통계를 초기화합니다.
-     */
-    fun resetTokenUsageStats() {
-        tokenUsageTracker.resetUsage()
-    }
+
     
     /**
      * 단순한 쿼리인지 판단합니다.
@@ -225,7 +205,7 @@ class ChatPromptStrategyManager(
              "감사", "고마워", "도움말", "help"
         )
         return simplePatterns.any { userMessage.contains(it, ignoreCase = true) } ||
-               userMessage.length < 10
+               userMessage.length < 5
     }
     
     /**
@@ -235,18 +215,7 @@ class ChatPromptStrategyManager(
         return strategies.find { it.getType() == type }
             ?: throw IllegalStateException("No strategy found for type: ${type.id}")
     }
-    
-    /**
-     * 주어진 전략을 사용자 메시지로 실행합니다.
-     */
-    private fun executeStrategy(conversationId: String, strategy: ChatPromptStrategy, userMessage: String): ChatResponse {
-        val response = chatAssistant.call(conversationId, strategy.createPrompt(userMessage), strategy.getToolCallingChatOptions())
-        
-        // 토큰 사용량 추적
-        tokenUsageTracker.trackAndLogTokenUsage(response, "${strategy.getType().id} 전략 실행")
-        
-        return response
-    }
+
     
     // Stream Response 생성 헬퍼 메서드들
     private fun createSimpleQueryStreamResponse(chatId: String, executionId: String, message: String, progress: Double) =
