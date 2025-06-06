@@ -2,14 +2,8 @@ package com.wheretopop.infrastructure.chat.prompt.strategy.response
 
 import com.wheretopop.infrastructure.chat.prompt.strategy.BaseChatPromptStrategy
 import com.wheretopop.infrastructure.chat.prompt.strategy.StrategyType
-import com.wheretopop.interfaces.area.AreaToolRegistry
-import com.wheretopop.interfaces.building.BuildingToolRegistry
-import com.wheretopop.interfaces.popup.PopupToolRegistry
-import io.modelcontextprotocol.client.McpSyncClient
 import mu.KotlinLogging
-import org.springframework.ai.mcp.SyncMcpToolCallbackProvider
 import org.springframework.ai.model.tool.ToolCallingChatOptions
-import org.springframework.ai.support.ToolCallbacks
 import org.springframework.stereotype.Component
 
 /**
@@ -18,15 +12,9 @@ import org.springframework.stereotype.Component
  */
 @Component
 class GeneralResponseStrategy(
-    private val areaToolRegistry: AreaToolRegistry,
-    private val popupToolRegistry: PopupToolRegistry,
-    private val buildingToolRegistry: BuildingToolRegistry,
-    private val mcpSyncClients: List<McpSyncClient>
 ) : BaseChatPromptStrategy() {
 
     private val logger = KotlinLogging.logger {}
-    private val syncMcpToolCallbackProvider = SyncMcpToolCallbackProvider(mcpSyncClients)
-    private val mcpToolCallbacks = syncMcpToolCallbackProvider.toolCallbacks
 
     /**
      * Returns the strategy type
@@ -62,11 +50,8 @@ class GeneralResponseStrategy(
      * Configures tool calling options for general responses
      */
     override fun getToolCallingChatOptions(): ToolCallingChatOptions {
-        logger.info("Setting up tool callbacks for general responses")
-        logger.info("Available MCP tool callbacks: ${mcpToolCallbacks.contentToString()}")
-        
+
         val toolCallbackChatOptions = ToolCallingChatOptions.builder()
-            .toolCallbacks(*ToolCallbacks.from(areaToolRegistry, popupToolRegistry, buildingToolRegistry), *mcpToolCallbacks)
             .internalToolExecutionEnabled(false)
             .temperature(0.5) // Higher temperature for more natural conversation
             .build()

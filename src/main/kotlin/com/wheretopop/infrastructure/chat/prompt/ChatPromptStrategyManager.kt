@@ -21,7 +21,6 @@ class ChatPromptStrategyManager(
     private val chatAssistant: ChatAssistant,
     private val strategies: List<ChatPromptStrategy>,
     private val reActExecutionPlanner: ReActExecutionPlanner,
-    private val executionCacheManager: ExecutionCacheManager,
     private val reActStreamProcessor: ReActStreamProcessor,
     private val performanceMonitor: PerformanceMonitor,
     private val tokenUsageTracker: TokenUsageTracker
@@ -113,12 +112,7 @@ class ChatPromptStrategyManager(
 
             // 캐시된 실행 계획 확인 또는 새로 생성
             // 캐시 키는 최신 사용자 메시지만으로 생성 (기존 방식 유지)
-            val cacheKey = executionCacheManager.generateCacheKey(userMessage)
-            val executionPlan = executionCacheManager.getExecutionPlan(cacheKey) ?: run {
-                val plan = reActExecutionPlanner.createExecutionPlan(chat)
-                executionCacheManager.putExecutionPlan(cacheKey, plan)
-                plan
-            }
+            val executionPlan = reActExecutionPlanner.createExecutionPlan(chat)
 
             reActStreamProcessor.executeMultiStepPlanStream(chat, executionPlan, userMessage, chatId, executionId)
                 .collect { streamResponse ->

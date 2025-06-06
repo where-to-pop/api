@@ -50,11 +50,9 @@ class ReActExecutionPlanningStrategy(
             .joinToString("\n") { "- ${it.id}: ${it.description}" }
         
         return """
-            You are a RAG-based execution planner for WhereToPop using ReAct framework.
+            You are an adaptive execution planner for WhereToPop requirements.
             
-            Create execution plans following RAG pattern: R+A (Retrieval+Augmentation) → G (Generation)
-            
-            CRITICAL: The last step MUST ALWAYS be a RESPONSE_GENERATION strategy!
+            You receive pre-analyzed requirements with complexity levels and create appropriate execution plans.
             
             ## Available Strategy Categories:
             
@@ -66,81 +64,58 @@ class ReActExecutionPlanningStrategy(
             
             $responseGenerationStrategies
             
-            ## ReAct Framework for Multi-Step Planning:
+            ## Complexity-Based Planning:
             
-            ### 1. THOUGHT (Analysis)
-            - Break down user request into sub-goals
-            - Extract entities (locations, buildings, popup stores, addresses)
-            - Assess complexity and information dependencies
+            ### MODERATE Complexity:
+            - Use 1-2 data collection steps
+            - Simple analysis or direct response
+            - Efficient, focused approach
             
-            ### 2. ACTIONS (Execution Planning)
-            - Decompose into sequential steps
-            - Assign appropriate strategy to each step
-            - Map dependencies between steps
-            - Define expected outputs and integration plan
+            ### COMPLEX Complexity:
+            - Multi-source data collection
+            - Deep analysis and comparison
+            - Comprehensive recommendation with rationale
             
-            ### 3. OBSERVATION (Validation)
-            - Check completeness and efficiency
-            - Validate dependencies and goal alignment
-            
-            ## RAG Strategy Selection (MANDATORY PATTERN):
-            1. **R (Retrieval)**: Data Collection strategies → Gather raw information
-            2. **A (Augmentation)**: Data Processing + Decision Making → Analyze and enhance
-            3. **G (Generation)**: Response Generation strategy → MUST be the final step
-            
-            ## RAG Execution Patterns:
-            - **Simple RAG**: Single retrieval → Generation
-            - **Multi-source RAG**: Multiple retrieval → Aggregation → Generation  
-            - **Enhanced RAG**: Retrieval → Processing/Analysis → Generation
+            ## RAG Framework (MANDATORY):
+            1. **R (Retrieval)**: Collect relevant data
+            2. **A (Augmentation)**: Process and analyze (if needed)
+            3. **G (Generation)**: Generate response (MUST be final step)
             
             ## Response Format:
-            Provide your analysis in this structured JSON format:
-            
             ```json
             {
-                "thought": "Analysis including intent, entities, complexity, and dependencies",
+                "thought": "Analysis of requirements and execution approach based on complexity",
                 "actions": [
                     {
                         "step": 1,
                         "strategy": "area_query",
-                        "purpose": "Step objective",
-                        "reasoning": "Strategy selection reason",
-                        "recommended_tools": ["tool1", "tool2"],
-                        "tool_sequence": "Tool execution plan",
-                        "expected_output": "Expected information output",
+                        "purpose": "Data collection objective",
+                        "reasoning": "Why this strategy is needed",
+                        "recommended_tools": ["relevant_tools"],
+                        "tool_sequence": "Execution workflow",
+                        "expected_output": "Expected results",
                         "dependencies": []
                     },
                     {
                         "step": 2,
-                        "strategy": "online_search",
-                        "purpose": "Step objective",
-                        "reasoning": "Strategy selection reason",
-                        "recommended_tools": ["tool1", "tool2"],
-                        "tool_sequence": "Tool execution plan",
-                        "expected_output": "Expected information output",
-                        "dependencies": [1]
-                    },
-                    {
-                        "step": 3,
                         "strategy": "general_response",
-                        "purpose": "Step objective",
-                        "reasoning": "Strategy selection reason",
-                        "recommended_tools": ["tool1", "tool2"],
-                        "tool_sequence": "Tool execution plan",
-                        "expected_output": "Expected information output",
-                        "dependencies": [1, 2]
+                        "purpose": "Response generation",
+                        "reasoning": "Final synthesis and presentation",
+                        "recommended_tools": [],
+                        "tool_sequence": "Response generation",
+                        "expected_output": "User-ready answer",
+                        "dependencies": [1]
                     }
                 ],
-                "observation": "Plan validation: completeness, efficiency, dependencies, goal alignment"
+                "observation": "Plan validation and efficiency assessment"
             }
             ```
             
-            ## RAG Guidelines:
-            - ALWAYS end with a Response Generation strategy (MANDATORY)
-            - Group R+A steps for batch processing, G step for streaming
-            - Plan R (Retrieval) steps to gather all needed information
-            - Use A (Augmentation) steps to process and enhance retrieved data
-            - Ensure G (Generation) step has all context from previous steps
+            ## Guidelines:
+            - ALWAYS end with a Response Generation strategy
+            - Adapt plan complexity to the provided complexity level
+            - Ensure efficient execution with minimal unnecessary steps
+            - Focus on delivering value to the user
         """.trimIndent()
     }
     
@@ -148,18 +123,17 @@ class ReActExecutionPlanningStrategy(
     override fun createPrompt(userMessage: String): Prompt {
         val messages: MutableList<Message> = mutableListOf()
         
-        // Add ReAct system prompt
         messages.add(SystemMessage(getSystemPrompt()))
         
-        val analysisPrompt = """
-            Analyze using ReAct framework:
+        val planningPrompt = """
+            Create a comprehensive execution plan for this complex requirement:
             
-            User Message: "$userMessage"
+            $userMessage
             
-            Apply THOUGHT → ACTION → OBSERVATION process and provide JSON analysis.
+            Design a multi-step RAG execution plan with proper data collection, analysis, and response generation phases.
         """.trimIndent()
         
-        messages.add(UserMessage(analysisPrompt))
+        messages.add(UserMessage(planningPrompt))
         
         return Prompt(messages)
     }
