@@ -110,14 +110,27 @@ class ChatPromptStrategyManager(
             // 실행 계획 생성 시작
             emit(createPlanningStreamResponse(chatId, executionId, StrategyType.buildPhaseMessage(ExecutionPhase.PLANNING), 0.1))
 
-            // 캐시된 실행 계획 확인 또는 새로 생성
-            // 캐시 키는 최신 사용자 메시지만으로 생성 (기존 방식 유지)
-            val executionPlan = reActExecutionPlanner.createExecutionPlan(chat)
-
-            reActStreamProcessor.executeMultiStepPlanStream(chat, executionPlan, userMessage, chatId, executionId)
-                .collect { streamResponse ->
-                    emit(streamResponse)
+            // 실행 계획 생성 (스트림 형태로 진행 상황 emit)
+            var executionPlan: ReActResponse? = null
+            reActExecutionPlanner.createExecutionPlan(chat, chatId, executionId)
+                .collect { result ->
+                    when (result) {
+                        is ExecutionPlanningResult.Progress -> {
+                            emit(result.streamResponse)
+                        }
+                        is ExecutionPlanningResult.Complete -> {
+                            executionPlan = result.plan
+                        }
+                    }
                 }
+
+            // 실행 계획이 완료되면 실제 실행 시작
+            executionPlan?.let { plan ->
+                reActStreamProcessor.executeMultiStepPlanStream(chat, plan, userMessage, chatId, executionId)
+                    .collect { streamResponse ->
+                        emit(streamResponse)
+                    }
+            } ?: throw IllegalStateException("실행 계획 생성 실패")
 
         } catch (e: Exception) {
             logger.error("스트림 처리 중 오류 발생", e)

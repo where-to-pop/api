@@ -45,19 +45,7 @@ class ReActStreamProcessor(
         
         // R+A 단계가 있는 경우에만 실행
         if (ragSteps.retrievalAugmentationSteps.isNotEmpty()) {
-            // R+A 단계들을 배치로 실행
-            emit(ReActStreamResponse(
-                status = ReActExecutionStatus(
-                    chatId = chatId,
-                    executionId = executionId,
-                    phase = ExecutionPhase.STEP_EXECUTING,
-                    currentStep = null,
-                    totalSteps = totalSteps,
-                    progress = 0.1,
-                    message = "정보 수집 및 분석 단계 (R+A) 실행 중..."
-                )
-            ))
-            
+
             retrievalAugmentationResults = executeRABatchSteps(
                 chat, ragSteps.retrievalAugmentationSteps, originalUserMessage, stepResults,
                 chatId, executionId, totalSteps

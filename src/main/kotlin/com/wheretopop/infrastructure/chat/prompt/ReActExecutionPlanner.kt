@@ -9,6 +9,8 @@ import com.wheretopop.infrastructure.chat.ChatAssistant
 import com.wheretopop.infrastructure.chat.prompt.strategy.StrategyType
 import com.wheretopop.shared.exception.toException
 import com.wheretopop.shared.response.ErrorCode
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import mu.KotlinLogging
 import org.springframework.stereotype.Component
 
@@ -31,6 +33,14 @@ data class RequirementAnalysis(
     val contextSummary: String,       // 컨텍스트 요약
     val reasoning: String             // 분석 근거
 )
+
+/**
+ * 실행 계획 생성 결과
+ */
+sealed class ExecutionPlanningResult {
+    data class Progress(val streamResponse: ReActStreamResponse) : ExecutionPlanningResult()
+    data class Complete(val plan: ReActResponse) : ExecutionPlanningResult()
+}
 
 /**
  * ReAct 실행 계획 생성 및 파싱을 담당하는 클래스
@@ -56,19 +66,96 @@ class ReActExecutionPlanner(
     }
     
     /**
-     * ReAct 실행 계획을 생성합니다.
+     * ReAct 실행 계획을 생성합니다 (스트림 형태).
      */
-    fun createExecutionPlan(chat: Chat): ReActResponse {
+    fun createExecutionPlan(chat: Chat, chatId: String, executionId: String): Flow<ExecutionPlanningResult> = flow {
         // 1단계: 요구사항 분석 및 복잡도 평가
+        emit(ExecutionPlanningResult.Progress(
+            ReActStreamResponse(
+                status = ReActExecutionStatus(
+                    chatId = chatId,
+                    executionId = executionId,
+                    phase = ExecutionPhase.PLANNING,
+                    currentStep = null,
+                    totalSteps = 0,
+                    progress = 0.15,
+                    message = "요구사항을 분석하고 있어요"
+                )
+            )
+        ))
+        
         val requirementAnalysis = analyzeRequirement(chat)
         logger.info("요구사항 분석 완료: 복잡도=${requirementAnalysis.complexityLevel}")
         
         // 2단계: 복잡도에 따른 적응적 계획 수립
-        return when (requirementAnalysis.complexityLevel) {
-            ComplexityLevel.SIMPLE -> createSimplePlan(requirementAnalysis)
-            ComplexityLevel.MODERATE -> createModeratePlan(chat, requirementAnalysis)
-            ComplexityLevel.COMPLEX -> createComplexPlan(chat, requirementAnalysis)
+        val plan = when (requirementAnalysis.complexityLevel) {
+            ComplexityLevel.SIMPLE -> {
+                emit(ExecutionPlanningResult.Progress(
+                    ReActStreamResponse(
+                        status = ReActExecutionStatus(
+                            chatId = chatId,
+                            executionId = executionId,
+                            phase = ExecutionPhase.PLANNING,
+                            currentStep = null,
+                            totalSteps = 1,
+                            progress = 0.25,
+                            message = "바로 답변을 준비할게요!"
+                        )
+                    )
+                ))
+                createSimplePlan(requirementAnalysis)
+            }
+            ComplexityLevel.MODERATE -> {
+                emit(ExecutionPlanningResult.Progress(
+                    ReActStreamResponse(
+                        status = ReActExecutionStatus(
+                            chatId = chatId,
+                            executionId = executionId,
+                            phase = ExecutionPhase.PLANNING,
+                            currentStep = null,
+                            totalSteps = 0,
+                            progress = 0.2,
+                            message = "상세한 실행 계획을 세우고 있어요"
+                        )
+                    )
+                ))
+                createModeratePlan(chat, requirementAnalysis)
+            }
+            ComplexityLevel.COMPLEX -> {
+                emit(ExecutionPlanningResult.Progress(
+                    ReActStreamResponse(
+                        status = ReActExecutionStatus(
+                            chatId = chatId,
+                            executionId = executionId,
+                            phase = ExecutionPhase.PLANNING,
+                            currentStep = null,
+                            totalSteps = 0,
+                            progress = 0.2,
+                            message = "복잡한 요구사항이에요. 다단계 분석 계획을 세우고 있어요"
+                        )
+                    )
+                ))
+                createComplexPlan(chat, requirementAnalysis)
+            }
         }
+        
+        // 최종 계획 완료 알림
+        emit(ExecutionPlanningResult.Progress(
+            ReActStreamResponse(
+                status = ReActExecutionStatus(
+                    chatId = chatId,
+                    executionId = executionId,
+                    phase = ExecutionPhase.PLANNING,
+                    currentStep = null,
+                    totalSteps = plan.actions.size,
+                    progress = 0.3,
+                    message = "실행 계획을 완료했어요! 총 ${plan.actions.size}단계로 진행합니다."
+                )
+            )
+        ))
+        
+        // 최종 결과 emit
+        emit(ExecutionPlanningResult.Complete(plan))
     }
     
     /**
