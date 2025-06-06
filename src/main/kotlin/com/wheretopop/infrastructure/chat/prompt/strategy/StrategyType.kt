@@ -82,16 +82,6 @@ enum class StrategyType(
         StrategyDisplayInfo("정보 정리", "수집한 정보를 정리하고 있어요", "정보 정리가 완료되었어요")
     ),
     
-    /**
-     * Data filtering and selection strategy
-     */
-    DATA_FILTERING(
-        "data_filtering", 
-        "Filters and selects relevant data based on user query requirements",
-        StrategyExecutionType.DATA_PROCESSING,
-        StrategyDisplayInfo("정보 선별", "관련 정보를 선별하고 있어요", "정보 선별이 완료되었어요")
-    ),
-    
     // ============ DECISION MAKING STRATEGIES ============
     /**
      * Location suitability assessment strategy
