@@ -22,12 +22,6 @@ data class ActionStep(
     val dependencies: List<Int> = emptyList() // 이전 단계 의존성
 )
 
-data class ExecutionPlan(
-    val total_steps: Int,
-    val execution_strategy: String,
-    val final_goal: String
-)
-
 /**
  * 스트림 메시지 타입 정의
  */
@@ -106,30 +100,3 @@ data class ReActStreamResponse(
     val isComplete: Boolean = false,
     val finalResult: String? = null
 )
-
-/**
- * 실시간 사고 과정을 위한 데이터 클래스
- */
-data class ThinkingProcess(
-    val step: String,
-    val description: String,
-    val duration: Long = 0L // milliseconds
-)
-
-/**
- * 도구 실행 상태
- */
-data class ToolExecutionStatus(
-    val toolName: String,
-    val action: String,
-    val status: ToolStatus,
-    val progressMessage: String,
-    val estimatedTimeRemaining: Long? = null
-)
-
-enum class ToolStatus {
-    STARTING,
-    IN_PROGRESS,
-    COMPLETED,
-    FAILED
-} 

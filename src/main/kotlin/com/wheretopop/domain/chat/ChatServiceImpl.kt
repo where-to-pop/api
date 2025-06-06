@@ -205,16 +205,7 @@ class ChatServiceImpl(
             key.startsWith(chatKey) 
         }?.value
         
-        return activeExecution ?: flowOf(
-            objectMapper.writeValueAsString(mapOf(
-                "chatId" to chatId.value,
-                "userId" to userId.value,
-                "executionId" to executionId,
-                "status" to "NO_ACTIVE_EXECUTION",
-                "message" to "현재 진행 중인 실행이 없습니다",
-                "timestamp" to Instant.now()
-            ))
-        )
+        return activeExecution ?: throw ErrorCode.COMMON_ENTITY_NOT_FOUND.toException()
     }
     
     /**

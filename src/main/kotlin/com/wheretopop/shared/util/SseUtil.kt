@@ -18,7 +18,6 @@ class SseUtil {
         return texts.map { text ->
             ServerSentEvent.builder(text)
                 .id(UUID.randomUUID().toString())
-                .event("chat-event")
                 .build()
         }
     }
@@ -27,7 +26,6 @@ class SseUtil {
         return generations.map { generation ->
             ServerSentEvent.builder(generation.output.text.orEmpty())
                 .id(UUID.randomUUID().toString())
-                .event("chat-event")
                 .build()
         }
     }
@@ -36,7 +34,6 @@ class SseUtil {
         return generationFlow.map { generation ->
             ServerSentEvent.builder(generation.output.text.orEmpty())
                 .id(UUID.randomUUID().toString())
-                .event("chat-event")
                 .build()
         }
     }
@@ -53,7 +50,6 @@ class SseUtil {
                 textFlow.collect { data ->
                     val sseEvent = SseEmitter.event()
                         .id(UUID.randomUUID().toString())
-                        .name("react-status")
                         .data(data)
                     
                     emitter.send(sseEvent)
