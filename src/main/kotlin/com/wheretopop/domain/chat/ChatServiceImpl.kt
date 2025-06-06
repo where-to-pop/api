@@ -123,7 +123,7 @@ class ChatServiceImpl(
         
         return simpleInfo
     }
-    
+
     /**
      * 특정 채팅의 ReAct 실행 상태를 스트림으로 조회합니다.
      */

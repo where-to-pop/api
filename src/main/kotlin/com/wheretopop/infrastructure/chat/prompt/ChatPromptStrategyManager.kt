@@ -1,11 +1,9 @@
 package com.wheretopop.infrastructure.chat.prompt
 
 import com.wheretopop.domain.chat.Chat
-import com.wheretopop.domain.chat.ChatMessage
 import com.wheretopop.domain.chat.ChatScenario
 import com.wheretopop.infrastructure.chat.ChatAssistant
 import com.wheretopop.infrastructure.chat.prompt.strategy.StrategyType
-import com.wheretopop.shared.enums.ChatMessageRole
 import com.wheretopop.shared.exception.toException
 import com.wheretopop.shared.response.ErrorCode
 import kotlinx.coroutines.flow.Flow
@@ -13,7 +11,6 @@ import kotlinx.coroutines.flow.flow
 import mu.KotlinLogging
 import org.springframework.ai.chat.model.ChatResponse
 import org.springframework.stereotype.Component
-import java.time.Instant
 
 /**
  * 사용자 메시지에 따라 적절한 전략을 선택하고 실행하는 관리자 클래스
@@ -25,7 +22,6 @@ class ChatPromptStrategyManager(
     private val strategies: List<ChatPromptStrategy>,
     private val reActExecutionPlanner: ReActExecutionPlanner,
     private val executionCacheManager: ExecutionCacheManager,
-    private val multiStepExecutor: MultiStepExecutor,
     private val reActStreamProcessor: ReActStreamProcessor,
     private val performanceMonitor: PerformanceMonitor,
     private val tokenUsageTracker: TokenUsageTracker
@@ -45,10 +41,20 @@ class ChatPromptStrategyManager(
             val titleStrategy = getStrategyByType(StrategyType.TITLE_GENERATION)
             val response = executeStrategyWithTracking(chat.id.toString(), titleStrategy, userMessage, "제목 생성")
             
-            // 응답에서 제목만 추출
-            response.result.output.text?.trim()
-                ?.let { if (it.length > 50) it.take(47) + "…" else it }
+            // XML 태그에서 제목만 추출
+            val fullResponse = response.result.output.text?.trim()
                 ?: throw ErrorCode.CHAT_NULL_RESPONSE.toException()
+            logger.info("Full response for title generation: $fullResponse")
+            
+            // <title>제목</title> 형식에서 제목만 추출
+            val titleRegex = "<title>(.*?)</title>".toRegex()
+            val matchResult = titleRegex.find(fullResponse)
+            
+            val extractedTitle = matchResult?.groupValues?.get(1)?.trim()
+                ?: throw ErrorCode.CHAT_TITLE_EXTRACTION_FAILED.toException("No title found in response: $fullResponse")
+            
+            // 최대 길이 제한
+            if (extractedTitle.length > 50) extractedTitle.take(47) + "…" else extractedTitle
         }
     }
     
@@ -63,6 +69,7 @@ class ChatPromptStrategyManager(
         userMessage: String,
         context: String
     ): ChatResponse {
+        logger.info { "Selected Strategy: ${strategy.getType()}" }
         val response = chatAssistant.call(conversationId, strategy.createPrompt(userMessage), strategy.getToolCallingChatOptions())
         
         // 토큰 사용량 추적

@@ -15,7 +15,8 @@ enum class ErrorCode(private val errorMsg: String) {
     AUTH_ACCESS_TOKEN_NOT_FOUND("엑세스 토큰이 존재하지 않습니다."),
     AUTH_ACCESS_TOKEN_EXPIRED("엑세스 토큰이 만료되었습니다."),
     AUTH_REFRESH_TOKEN_EXPIRED("리프레시 토큰이 만료되었습니다."),
-    CHAT_NULL_RESPONSE("AI 모델에서 응답을 받지 못했습니다."),;
+    CHAT_NULL_RESPONSE("AI 모델에서 응답을 받지 못했습니다."),
+    CHAT_TITLE_EXTRACTION_FAILED("AI 모델의 응답에서 제목을 추출할 수 없습니다.");
     fun getErrorMsg(vararg args: Any?): String {
         return if (args.isEmpty()) {
             errorMsg

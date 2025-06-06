@@ -19,7 +19,6 @@ import java.util.concurrent.ConcurrentHashMap
  */
 @Component
 class ReActStreamProcessor(
-    private val multiStepExecutor: MultiStepExecutor,
     private val contextOptimizer: ContextOptimizer,
     private val chatAssistant: ChatAssistant,
     private val strategies: List<ChatPromptStrategy>,

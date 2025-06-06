@@ -2,6 +2,7 @@ package com.wheretopop.infrastructure.chat.prompt.strategy
 
 import com.wheretopop.infrastructure.chat.prompt.ChatPromptStrategy
 import com.wheretopop.infrastructure.chat.prompt.SystemPrompt
+import mu.KotlinLogging
 import org.springframework.ai.chat.messages.Message
 import org.springframework.ai.chat.messages.SystemMessage
 import org.springframework.ai.chat.messages.UserMessage
@@ -13,7 +14,7 @@ import org.springframework.ai.model.tool.ToolCallingChatOptions
  * 공통 기능을 구현하고 특정 전략에서 오버라이드할 함수를 정의합니다.
  */
 abstract class BaseChatPromptStrategy : ChatPromptStrategy {
-    
+    private val logger = KotlinLogging.logger {}
     /**
      * 기본 시스템 프롬프트를 반환합니다.
      * 모든 전략에서 공통으로 사용되는 프롬프트를 정의합니다.
@@ -42,14 +43,18 @@ abstract class BaseChatPromptStrategy : ChatPromptStrategy {
      */
     override fun createPrompt(userMessage: String): Prompt {
         val messages: MutableList<Message> = mutableListOf()
-        
-        // 기본 시스템 프롬프트 추가
-        messages.add(SystemMessage(getSystemPrompt()))
-        
-        // 추가 시스템 프롬프트가 있으면 추가
-        getAdditionalSystemPrompt()?.let {
-            messages.add(SystemMessage(it))
+        // 기본 시스템 프롬프트와 추가 시스템 프롬프트를 하나로 합침
+        val combinedSystemPrompt = buildString {
+            append(getSystemPrompt())
+            
+            getAdditionalSystemPrompt()?.let { additionalPrompt ->
+                append("\n\n")
+                append(additionalPrompt)
+            }
         }
+        
+        // 합쳐진 시스템 프롬프트를 하나의 SystemMessage로 추가
+        messages.add(SystemMessage(combinedSystemPrompt))
         
         // 사용자 메시지 추가
         messages.add(UserMessage(userMessage))
