@@ -6,6 +6,7 @@ import com.wheretopop.infrastructure.popup.external.RetrievedPopupInfoMetadata
 import com.wheretopop.shared.domain.identifier.PopupPopplyId
 import com.wheretopop.shared.infrastructure.entity.PopupPopplyEntity
 import mu.KotlinLogging
+import org.springframework.ai.document.Document
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 
@@ -95,38 +96,7 @@ class PopupPopplyProcessor(
             }
         }
 
-        val mappedResults = vectorSearchResults.mapNotNull { popupDocument ->
-            logger.debug("문서 매핑 중: ID='{}', 원본 Score='{}'", popupDocument.id, popupDocument.score)
-            // 원본 메타데이터 로그 (필요하면 DEBUG 또는 INFO로 변경)
-            logger.trace("  문서 ID '{}'의 원본 메타데이터: {}", popupDocument.id, popupDocument.metadata)
-
-            val metadataMap: Map<String, Any?> = popupDocument.metadata
-            val metadataObjectAfterFromMap = RetrievedPopupInfoMetadata.fromMap(metadataMap) // fromMap 결과
-
-            // ***** 요청하신 INFO 레벨 로그 *****
-            // RetrievedPopupInfoMetadata.toString()이 호출되어 객체의 모든 필드와 값이 출력됩니다.
-            logger.info("  [INFO] 문서 ID '{}'에 대해 fromMap 결과 (RetrievedPopupInfoMetadata): {}", popupDocument.id, metadataObjectAfterFromMap)
-
-            // TRACE 레벨 로그는 그대로 두거나 필요에 따라 주석 처리/제거 가능
-            // logger.trace("  문서 ID '{}'의 파싱된 RetrievedPopupInfoMetadata: {}", popupDocument.id, metadataObjectAfterFromMap)
-
-            val popupInfo: PopupInfo.Detail? = metadataObjectAfterFromMap.toDomain()
-            logger.trace("  문서 ID '{}'의 변환된 PopupInfo.Detail: {}", popupDocument.id, popupInfo)
-
-            if (popupInfo == null || popupDocument.score == null) {
-                logger.warn(
-                    "  문서 ID '{}' 스킵됨: popupInfo is null -> {}, popupDocument.score is null -> {}",
-                    popupDocument.id,
-                    popupInfo == null,
-                    popupDocument.score == null
-                )
-                null
-            } else {
-                val resultWithScore = PopupInfo.WithScore(popupInfo, popupDocument.score!!)
-                logger.debug("  문서 ID '{}' 성공적으로 매핑됨: {}", popupDocument.id, resultWithScore)
-                resultWithScore
-            }
-        }
+        val mappedResults = mapPopupDocumentsToPopupInfoWithScore(vectorSearchResults)
 
         logger.debug("매핑 완료. 최종 반환되는 PopupInfo.WithScore 인스턴스 수: {}", mappedResults.size)
         if (logger.isTraceEnabled && mappedResults.isNotEmpty()) {
@@ -136,6 +106,31 @@ class PopupPopplyProcessor(
         }
 
         return mappedResults
+    }
+
+    override fun getPopupsByAreaId(areaId: Long, k: Int): List<PopupInfo.WithScore> {
+        val vectorSearchResults = popupVectorRepository.findByAreaId(areaId, k)
+        return mapPopupDocumentsToPopupInfoWithScore(vectorSearchResults)
+    }
+
+    override fun getPopupsByBuildingId(buildingId: Long, k: Int): List<PopupInfo.WithScore> {
+        val vectorSearchResults = popupVectorRepository.findByBuildingId(buildingId, k)
+        return mapPopupDocumentsToPopupInfoWithScore(vectorSearchResults)
+    }
+
+    override fun getPopupsByAreaName(areaName: String, k: Int): List<PopupInfo.WithScore> {
+        val vectorSearchResults = popupVectorRepository.findByAreaName(areaName, k)
+        return mapPopupDocumentsToPopupInfoWithScore(vectorSearchResults)
+    }
+
+    override fun getPopupsByTargetAgeGroup(ageGroup: String, query: String, k: Int): List<PopupInfo.WithScore> {
+        val vectorSearchResults = popupVectorRepository.findByTargetAgeGroup(ageGroup, query, k)
+        return mapPopupDocumentsToPopupInfoWithScore(vectorSearchResults)
+    }
+
+    override fun getPopupsByCategory(category: String, k: Int): List<PopupInfo.WithScore> {
+        val vectorSearchResults = popupVectorRepository.findByCategory(category, k)
+        return mapPopupDocumentsToPopupInfoWithScore(vectorSearchResults)
     }
 
     override fun existsById(id: Long): Boolean {
@@ -261,5 +256,27 @@ class PopupPopplyProcessor(
             "Popups Crawling Completed: Attempts {}, Success {}, {}",
             processedCount, successCount, if (stoppedEarly) "Stopped" else "Normally Ended"
         )
+    }
+
+    private fun mapPopupDocumentsToPopupInfoWithScore(popupDocuments: List<Document>): List<PopupInfo.WithScore> {
+        return popupDocuments.mapNotNull { popupDocument ->
+            val metadataMap: Map<String, Any?> = popupDocument.metadata
+            val metadataObjectAfterFromMap = RetrievedPopupInfoMetadata.fromMap(metadataMap)
+
+            val popupInfo: PopupInfo.Detail? = metadataObjectAfterFromMap.toDomain()
+
+            if (popupInfo == null || popupDocument.score == null) {
+                logger.warn(
+                    "  문서 ID '{}' 스킵됨: popupInfo is null -> {}, popupDocument.score is null -> {}",
+                    popupDocument.id,
+                    popupInfo == null,
+                    popupDocument.score == null
+                )
+                null
+            } else {
+                val resultWithScore = PopupInfo.WithScore(popupInfo, popupDocument.score!!)
+                resultWithScore
+            }
+        }
     }
 }

@@ -3,6 +3,8 @@ package com.wheretopop.infrastructure.popup.external
 import com.wheretopop.domain.popup.PopupId
 import com.wheretopop.domain.popup.PopupInfo
 import com.wheretopop.domain.popup.PopupInfoMapper
+import com.wheretopop.shared.enums.AgeGroup
+import com.wheretopop.shared.enums.PopUpCategory
 
 data class RetrievedPopupInfoMetadata(
     val originalId: Long?,
@@ -15,23 +17,38 @@ data class RetrievedPopupInfoMetadata(
     val areaId: Long?,
     val areaName: String?,
     val buildingId: Long?,
+    val keywords: List<String>?,
+    val category: PopUpCategory?,
+    val targetAgeGroups: List<AgeGroup>?,
+    val brandKeywords: List<String>?,
 ) {
-    fun toDomain(): PopupInfo.Detail? {
-        if (originalId == null || popupName == null || address == null || description == null || organizerName == null || areaId == null || areaName == null || buildingId == null) {
-            return null
-        }
 
-        return PopupInfoMapper.toDetail(
-            id = PopupId.of(originalId),
-            name = popupName,
-            address = address,
+    private fun hasNullRequiredFields(): Boolean {
+        return listOf(
+            originalId, popupName, address, description, organizerName,
+            areaId, areaName, buildingId,
+            keywords, category, targetAgeGroups, brandKeywords
+        ).any { it == null }
+    }
+
+    fun toDomain(): PopupInfo.Detail? {
+        if (hasNullRequiredFields()) return null
+
+        return PopupInfo.Detail(
+            id = PopupId.of(originalId!!),
+            name = popupName!!,
+            address = address!!,
             latitude = latitude,
             longitude = longitude,
-            description = description,
-            organizerName = organizerName,
-            areaId = areaId,
-            areaName = areaName,
-            buildingId = buildingId,
+            description = description!!,
+            organizerName = organizerName!!,
+            areaId = areaId!!,
+            areaName = areaName!!,
+            buildingId = buildingId!!,
+            keywords = keywords!!,
+            category = category!!,
+            targetAgeGroups = targetAgeGroups!!,
+            brandKeywords = brandKeywords!!,
         )
     }
 
@@ -48,6 +65,10 @@ data class RetrievedPopupInfoMetadata(
                 areaId = metadataMap["area_id"] as? Long,
                 areaName = metadataMap["area_name"] as? String,
                 buildingId = metadataMap["building_id"] as? Long,
+                keywords = metadataMap["keywords"] as? List<String>,
+                category = metadataMap["category"] as? PopUpCategory,
+                targetAgeGroups = metadataMap["target_age_groups"] as? List<AgeGroup>,
+                brandKeywords = metadataMap["brand_keywords"] as? List<String>,
             )
         }
 

@@ -116,8 +116,47 @@ class PopupVectorRepositoryImpl(
             val documents: List<Document> = vectorStore.similaritySearch(searchRequest)
             return documents.firstOrNull()
         } catch (e: StatusRuntimeException) {
-            logger.error("Vector similarity search failed for original_id: $id", e)
+            logger.error("Vector similarity search failed", e)
             return null
         }
+    }
+
+    private fun safeSearch(searchRequest: SearchRequest): List<Document> {
+        return try {
+            vectorStore.similaritySearch(searchRequest) ?: emptyList()
+        } catch (e: StatusRuntimeException) {
+            logger.error("Vector similarity search failed", e)
+            emptyList()
+        }
+    }
+
+    override fun findByAreaId(areaId: Long, k: Int): List<Document> {
+        val filter = "metadata.area_id == $areaId"
+        val request = SearchRequest.builder().topK(k).filterExpression(filter).build()
+        return safeSearch(request)
+    }
+
+    override fun findByBuildingId(buildingId: Long, k: Int): List<Document> {
+        val filter = "metadata.building_id == $buildingId"
+        val request = SearchRequest.builder().topK(k).filterExpression(filter).build()
+        return safeSearch(request)
+    }
+
+    override fun findByAreaName(areaName: String, k: Int): List<Document> {
+        val query = "Area: $areaName"
+        val request = SearchRequest.builder().query(query).topK(k).build()
+        return safeSearch(request)
+    }
+
+    override fun findByTargetAgeGroup(ageGroup: String, query: String, k: Int): List<Document> {
+        val filter = "metadata.target_age_groups CONTAINS \"$ageGroup\""
+        val request = SearchRequest.builder().query(query).topK(k).filterExpression(filter).build()
+        return safeSearch(request)
+    }
+
+    override fun findByCategory(category: String, k: Int): List<Document> {
+        val filter = "metadata.category == \"$category\""
+        val request = SearchRequest.builder().topK(k).filterExpression(filter).build()
+        return safeSearch(request)
     }
 }

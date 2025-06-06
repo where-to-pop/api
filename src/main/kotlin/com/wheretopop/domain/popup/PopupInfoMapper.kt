@@ -1,5 +1,8 @@
 package com.wheretopop.domain.popup
 
+import com.wheretopop.shared.enums.AgeGroup
+import com.wheretopop.shared.enums.PopUpCategory
+
 
 /**
  * PopupInfo DTO 객체 생성을 담당하는 매퍼 클래스입니다.
@@ -37,7 +40,8 @@ class PopupInfoMapper {
             basicPopupInfo: PopupInfo.Basic,
             areaId: Long,
             areaName: String,
-            buildingId: Long
+            buildingId: Long,
+            augmentedPopupInfo: PopupInfo.Augmented
         ): PopupInfo.Detail {
             return PopupInfo.Detail(
                 id = basicPopupInfo.id,
@@ -50,6 +54,10 @@ class PopupInfoMapper {
                 areaId = areaId,
                 areaName = areaName,
                 buildingId = buildingId,
+                keywords = augmentedPopupInfo.keywords,
+                category = augmentedPopupInfo.category,
+                targetAgeGroups = augmentedPopupInfo.targetAgeGroups,
+                brandKeywords = augmentedPopupInfo.brandKeywords,
             )
         }
         fun toDetail(
@@ -62,7 +70,11 @@ class PopupInfoMapper {
             organizerName: String,
             areaId: Long,
             areaName: String,
-            buildingId: Long
+            buildingId: Long,
+            keywords: List<String>,
+            category: PopUpCategory,
+            targetAgeGroups: List<AgeGroup>,
+            brandKeywords: List<String>,
         ): PopupInfo.Detail {
             return PopupInfo.Detail(
                 id = id,
@@ -74,7 +86,11 @@ class PopupInfoMapper {
                 organizerName = organizerName,
                 areaId = areaId,
                 areaName = areaName,
-                buildingId = buildingId
+                buildingId = buildingId,
+                keywords = keywords,
+                category = category,
+                targetAgeGroups = targetAgeGroups,
+                brandKeywords = brandKeywords,
             )
         }
 
