@@ -244,11 +244,11 @@ enum class StrategyType(
         
         fun buildPhaseMessage(phase: com.wheretopop.infrastructure.chat.prompt.ExecutionPhase): String {
             return when (phase) {
-                com.wheretopop.infrastructure.chat.prompt.ExecutionPhase.PLANNING -> "질문을 분석하고 있어요..."
-                com.wheretopop.infrastructure.chat.prompt.ExecutionPhase.STEP_EXECUTING -> "작업을 진행하고 있어요..."
+                com.wheretopop.infrastructure.chat.prompt.ExecutionPhase.PLANNING -> "질문을 분석하고 있어요"
+                com.wheretopop.infrastructure.chat.prompt.ExecutionPhase.STEP_EXECUTING -> "작업을 진행하고 있어요"
                 com.wheretopop.infrastructure.chat.prompt.ExecutionPhase.STEP_COMPLETED -> "단계가 완료되었어요"
                 com.wheretopop.infrastructure.chat.prompt.ExecutionPhase.STEP_FAILED -> "문제가 발생했어요"
-                com.wheretopop.infrastructure.chat.prompt.ExecutionPhase.AGGREGATING -> "정보를 정리하고 있어요..."
+                com.wheretopop.infrastructure.chat.prompt.ExecutionPhase.AGGREGATING -> "정보를 정리하고 있어요"
                 com.wheretopop.infrastructure.chat.prompt.ExecutionPhase.COMPLETED -> "모든 정보를 찾았어요!"
                 com.wheretopop.infrastructure.chat.prompt.ExecutionPhase.FAILED -> "죄송해요, 문제가 발생했어요"
             }
