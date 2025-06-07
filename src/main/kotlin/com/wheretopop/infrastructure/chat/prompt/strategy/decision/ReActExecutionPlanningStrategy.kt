@@ -36,7 +36,6 @@ class ReActExecutionPlanningStrategy(
 
     override fun getSystemPrompt(): String {
         val dataCollectionStrategies = StrategyType.getDataCollectionStrategies()
-            .filter { it != StrategyType.REACT_PLANNER }
             .joinToString("\n") { "- ${it.id}: ${it.description}" }
         
         val dataProcessingStrategies = StrategyType.getDataProcessingStrategies()
@@ -44,6 +43,7 @@ class ReActExecutionPlanningStrategy(
         
         val decisionMakingStrategies = StrategyType.getDecisionMakingStrategies()
             .filter { it != StrategyType.REACT_PLANNER }
+            .filter { it != StrategyType.REQUIREMENT_ANALYSIS }
             .joinToString("\n") { "- ${it.id}: ${it.description}" }
         
         val responseGenerationStrategies = StrategyType.getResponseGenerationStrategies()

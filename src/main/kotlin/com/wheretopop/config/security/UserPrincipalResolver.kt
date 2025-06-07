@@ -1,8 +1,9 @@
 package com.wheretopop.config.security
 
 import com.wheretopop.domain.user.UserId
+import com.wheretopop.shared.exception.toException
+import com.wheretopop.shared.response.ErrorCode
 import org.springframework.core.MethodParameter
-import org.springframework.security.core.Authentication
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
 import org.springframework.web.bind.support.WebDataBinderFactory
@@ -44,11 +45,11 @@ class UserPrincipalResolver : HandlerMethodArgumentResolver {
         val authentication = SecurityContextHolder.getContext().authentication
         
         if (authentication == null || !authentication.isAuthenticated) {
-            throw IllegalStateException("User is not authenticated")
+            throw ErrorCode.COMMON_FORBIDDEN.toException("User is not authenticated")
         }
         
         val userId = authentication.principal as? UserId
-            ?: throw IllegalStateException("User ID not found in authentication")
+            ?: throw ErrorCode.COMMON_FORBIDDEN.toException("User ID not found in authentication")
             
         return UserPrincipal(userId)
     }

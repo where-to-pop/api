@@ -66,6 +66,7 @@ class xAreaQueryStrategy(
             - FOCUS: Raw data and measurable insights, avoid subjective interpretations
             
             Your output will be consumed by analysis algorithms - prioritize structure and precision over readability.
+
         """.trimIndent()
     }
     

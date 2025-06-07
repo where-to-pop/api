@@ -38,7 +38,7 @@ enum class StrategyType(
         "area_query", 
         "Collects comprehensive area information including congestion, demographics, and characteristics",
         StrategyExecutionType.DATA_COLLECTION,
-        StrategyDisplayInfo("지역 정보", "근처 지역을 찾고 있어요", "지역 정보를 찾았어요")
+        StrategyDisplayInfo("지역 정보", "지역 정보를 찾고 있어요", "지역 정보를 찾았어요")
     ),
 
     /**
