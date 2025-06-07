@@ -35,25 +35,25 @@ class PopupToolRegistry(
         }
     }
 
-    @Tool(description = "Finds popups similar to the given query. The 'query' parameter describes the desired characteristics or information of the popup (e.g., 'sticker event', 'cooking class'). The 'k' parameter specifies the maximum number of results to return (defaults to 2).")
+    @Tool(description = "Finds popups similar to the given query. The 'query' parameter describes the desired characteristics or information of the popup (e.g., 'sticker event', 'cooking class'). The 'k' parameter specifies the maximum number of results to return (defaults to 3).")
     fun findSimilarPopupInfos(query: String, k: Int = DEFAULT_K): String {
         val popups = popupFacade.findSimilarPopupInfos(query, k)
         return formatPopupDetails(popups)
     }
 
-    @Tool(description = "Finds popup events by area ID. The 'query' parameter is optional and can provide additional characteristics for more specific searches. The 'k' parameter specifies the maximum number of results to return (defaults to 2). Use when the user gives a specific area ID and wants to see related popups.")
+    @Tool(description = "Finds popup events by area ID. The 'query' parameter is optional and can provide additional characteristics for more specific searches. The 'k' parameter specifies the maximum number of results to return (defaults to 3). Use when the user gives a specific area ID and wants to see related popups.")
     fun findPopupInfosByAreaId(areaId: Long, query: String = "", k: Int = DEFAULT_K): String {
         val popups = popupFacade.findPopupInfosByAreaId(areaId, query, k)
         return formatPopupDetails(popups)
     }
 
-    @Tool(description = "Finds popup events by building ID. The 'query' parameter is optional and can provide additional characteristics for more specific searches. The 'k' parameter specifies the maximum number of results to return (defaults to 2). Use when the user asks for events in a specific building by ID.")
+    @Tool(description = "Finds popup events by building ID. The 'query' parameter is optional and can provide additional characteristics for more specific searches. The 'k' parameter specifies the maximum number of results to return (defaults to 3). Use when the user asks for events in a specific building by ID.")
     fun findPopupInfosByBuildingId(buildingId: Long, query: String = "", k: Int = DEFAULT_K): String {
         val popups = popupFacade.findPopupInfosByBuildingId(buildingId, query, k)
         return formatPopupDetails(popups)
     }
 
-    @Tool(description = "Finds popup events by area name. The 'query' parameter is optional and can provide additional characteristics for more specific searches. The 'k' parameter specifies the maximum number of results to return (defaults to 2). Use when the user gives a name of an area (e.g., '홍대, 건대, 강남') to find related popups.")
+    @Tool(description = "Finds popup events by area name. The 'query' parameter is optional and can provide additional characteristics for more specific searches. The 'k' parameter specifies the maximum number of results to return (defaults to 3). Use when the user gives a name of an area (e.g., '홍대, 건대, 강남') to find related popups.")
     fun findPopupInfosByAreaName(areaName: String, query: String = "", k: Int = DEFAULT_K): String {
         val popups = popupFacade.findPopupInfosByAreaName(areaName, query, k)
         return formatPopupDetails(popups)
@@ -63,7 +63,7 @@ class PopupToolRegistry(
         description = """
             Finds popup events by target age group and optional query.
             The 'query' parameter is optional and can provide additional characteristics for more specific searches.
-            The 'k' parameter specifies the maximum number of results to return (defaults to 2).
+            The 'k' parameter specifies the maximum number of results to return (defaults to 3).
             Use when the user wants popups for specific age groups.
             The ageGroup parameter **must be one of the following enum values**:
             - TEEN_AND_UNDER
@@ -84,7 +84,7 @@ class PopupToolRegistry(
         description = """
             Finds popup events by category.
             The 'query' parameter is optional and can provide additional characteristics for more specific searches.
-            The 'k' parameter specifies the maximum number of results to return (defaults to 2).
+            The 'k' parameter specifies the maximum number of results to return (defaults to 3).
             The category parameter **must be one of the following enum values**:
             - FASHION
             - FOOD_AND_BEVERAGE
