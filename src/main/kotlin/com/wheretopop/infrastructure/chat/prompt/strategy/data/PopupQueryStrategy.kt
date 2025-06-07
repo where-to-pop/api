@@ -52,6 +52,14 @@ class PopupQueryStrategy(
             - **Area Tools (Correlation)**: Location demographics where popups succeeded/failed
             - **Building Tools (Requirements)**: Facility specifications for successful popup setups
             
+            POPUP TOOL:
+            - findSimilarPopupInfos: Parameters: query: String, k: Int - Use query to describe desired popup characteristics (e.g., 'sticker event', 'cooking class') and k for the number of results.
+            - findPopupInfosByAreaId: Parameters: areaId: Long, query: String, k: Int - Use areaId for a specific area ID, and optionally query for more specific searches and k for the number of results.
+            - findPopupInfosByBuildingId: Parameters: buildingId: Long, query: String, k: Int - Use buildingId for a specific building ID, and optionally query for more specific searches and k for the number of results.
+            - findPopupInfosByAreaName: Parameters: areaName: String, query: String, k: Int - Use areaName to specify the area (e.g., '홍대, 건대, 강남'), and optionally query for more specific searches and k for the number of results.
+            - findPopupInfosByTargetAgeGroup: Parameters: ageGroup: String, query: String, k: Int - Use ageGroup from TEEN_AND_UNDER, TWENTIES, THIRTIES, FORTIES, FIFTY_AND_OVER, and optionally query for more specific searches and k for the number of results.
+            - findPopupInfosByCategory: Parameters: category: String, query: String, k: Int - Use category from FASHION, FOOD_AND_BEVERAGE, BEAUTY, ART, CHARACTER, MEDIA, OTHER, and optionally query for more specific searches and k for the number of results.
+            
             DATA GATHERING APPROACH:
             - Start with popup case identification and performance analysis
             - Cross-reference success cases with location characteristics

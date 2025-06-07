@@ -47,7 +47,7 @@ class PopupInfo {
 
         val keywords: List<String>,
         val category: String,
-        val targetAgeGroups: List<String>,
+        val targetAgeGroup: String,
         val brandKeywords: List<String>,
     ) {
         fun generateVectorId(): String {
@@ -58,7 +58,7 @@ class PopupInfo {
             return listOfNotNull(
                 "Title: $name",
                 "Keywords: ${keywords.toString()}",
-                "Target Age Group: ${targetAgeGroups.toString()}",
+                "Target Age Group: ${targetAgeGroup}",
                 "Area: $areaName",
                 "Building: $address",
                 "Brand: $organizerName",
@@ -81,7 +81,7 @@ class PopupInfo {
                 "building_id" to buildingId,
                 "keywords" to keywords,
                 "category" to category,
-                "target_age_groups" to targetAgeGroups,
+                "target_age_group" to targetAgeGroup,
                 "brand_keywords" to brandKeywords,
             )
 
@@ -97,7 +97,7 @@ class PopupInfo {
     data class Augmented(
         val keywords: List<String>,
         val category: String,
-        val targetAgeGroups: List<String>,
+        val targetAgeGroup: String,
         val brandKeywords: List<String>,
     )
 }
