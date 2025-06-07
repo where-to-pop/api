@@ -49,13 +49,13 @@ class PopupListCrawler(
             return PopupPopplyId.of(popupId)
 
         } catch (e: TimeoutException) {
-            logger.error("페이지 로드 또는 요소 검색 시간 초과 ({}초): {}", timeoutSeconds, e.message)
+            logger.error("페이지 로드 또는 요소 검색 시간 초과 ({}초)", timeoutSeconds)
             return null
         } catch (e: NoSuchElementException) {
-            logger.error("지정한 CSS 선택자({})로 요소를 찾을 수 없습니다: {}", cssSelector, e.message)
+            logger.error("지정한 CSS 선택자({})로 요소를 찾을 수 없습니다", cssSelector)
             return null
         } catch (e: Exception) {
-            logger.error("스크래핑 중 예상치 못한 오류 발생: {}", e.message, e)
+            logger.error("스크래핑 중 예상치 못한 오류 발생: {}", e.message)
             return null
         }
     }
