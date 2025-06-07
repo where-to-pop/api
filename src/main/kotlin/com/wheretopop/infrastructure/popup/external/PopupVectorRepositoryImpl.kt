@@ -149,7 +149,7 @@ class PopupVectorRepositoryImpl(
     }
 
     override fun findByTargetAgeGroup(ageGroup: String, query: String, k: Int): List<Document> {
-        val filterExp = "'$ageGroup' IN target_age_groups"
+        val filterExp = "target_age_group == '$ageGroup'"
         val request = SearchRequest.builder().query(query).filterExpression(filterExp).topK(k).build()
         return safeSearch(request)
     }

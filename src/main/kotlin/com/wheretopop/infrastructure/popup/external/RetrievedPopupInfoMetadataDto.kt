@@ -17,7 +17,7 @@ data class RetrievedPopupInfoMetadata(
     val buildingId: Long?,
     val keywords: List<String>?,
     val category: String?,
-    val targetAgeGroups: List<String>?,
+    val targetAgeGroup: String?,
     val brandKeywords: List<String>?,
 ) {
 
@@ -25,7 +25,7 @@ data class RetrievedPopupInfoMetadata(
         return listOf(
             originalId, popupName, address, description, organizerName,
             areaId, areaName, buildingId,
-            keywords, category, targetAgeGroups, brandKeywords
+            keywords, category, targetAgeGroup, brandKeywords
         ).any { it == null }
     }
 
@@ -45,7 +45,7 @@ data class RetrievedPopupInfoMetadata(
             buildingId = buildingId!!,
             keywords = keywords!!,
             category = category!!,
-            targetAgeGroups = targetAgeGroups!!,
+            targetAgeGroup = targetAgeGroup!!,
             brandKeywords = brandKeywords!!,
         )
     }
@@ -65,7 +65,7 @@ data class RetrievedPopupInfoMetadata(
                 buildingId = metadataMap["building_id"] as? Long,
                 keywords = metadataMap["keywords"] as? List<String>,
                 category = metadataMap["category"] as? String,
-                targetAgeGroups = metadataMap["target_age_groups"] as? List<String>,
+                targetAgeGroup = metadataMap["target_age_group"] as? String,
                 brandKeywords = metadataMap["brand_keywords"] as? List<String>,
             )
         }

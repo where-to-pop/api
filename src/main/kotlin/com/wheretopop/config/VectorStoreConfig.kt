@@ -45,10 +45,10 @@ class VectorStoreConfig(
             .objectClass(popupObjectClass)
             .filterMetadataFields(
                 listOf(
-                    WeaviateVectorStore.MetadataField.text("area_id"),
-                    WeaviateVectorStore.MetadataField.text("building_id"),
+                    WeaviateVectorStore.MetadataField.number("area_id"),
+                    WeaviateVectorStore.MetadataField.number("building_id"),
                     WeaviateVectorStore.MetadataField.text("area_name"),
-                    WeaviateVectorStore.MetadataField.text("target_age_groups"),
+                    WeaviateVectorStore.MetadataField.text("target_age_group"),
                     WeaviateVectorStore.MetadataField.text("category"),
                 )
             )

@@ -56,7 +56,7 @@ class PopupInfoMapper {
                 buildingId = buildingId,
                 keywords = augmentedPopupInfo.keywords,
                 category = augmentedPopupInfo.category,
-                targetAgeGroups = augmentedPopupInfo.targetAgeGroups,
+                targetAgeGroup = augmentedPopupInfo.targetAgeGroup,
                 brandKeywords = augmentedPopupInfo.brandKeywords,
             )
         }
@@ -73,7 +73,7 @@ class PopupInfoMapper {
             buildingId: Long,
             keywords: List<String>,
             category: String,
-            targetAgeGroups: List<String>,
+            targetAgeGroup: String,
             brandKeywords: List<String>,
         ): PopupInfo.Detail {
             return PopupInfo.Detail(
@@ -89,7 +89,7 @@ class PopupInfoMapper {
                 buildingId = buildingId,
                 keywords = keywords,
                 category = category,
-                targetAgeGroups = targetAgeGroups,
+                targetAgeGroup = targetAgeGroup,
                 brandKeywords = brandKeywords,
             )
         }

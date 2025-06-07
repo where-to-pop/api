@@ -29,7 +29,7 @@ class PopupToolRegistry(
         - 주소: ${popup.address} (건물 ID: ${popup.buildingId})
         - 브랜드: ${popup.organizerName} (브랜드 키워드: ${popup.brandKeywords.toString()}
         - 지역: ${popup.areaName} (지역 ID: ${popup.areaId})
-        - 타겟 연령층: ${popup.targetAgeGroups}
+        - 타겟 연령층: ${popup.targetAgeGroup}
         - 키워드: ${popup.keywords.toString()}
         """.trimIndent()
         }
@@ -75,7 +75,7 @@ class PopupToolRegistry(
             Example queries: "Find popups for teens", "Show me popups for people in their 20s"
         """
     )
-    fun findPopupInfosByTargetAgeGroup(ageGroup: String, query: String = "", k: Int = DEFAULT_K): String {
+    fun findPopupInfosByTargetAgeGroup(ageGroup: String, query: String, k: Int = DEFAULT_K): String {
         val popups = popupFacade.findPopupInfosByTargetAgeGroup(ageGroup, query, k)
         return formatPopupDetails(popups)
     }
