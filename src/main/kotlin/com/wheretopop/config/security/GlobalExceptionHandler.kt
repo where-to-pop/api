@@ -2,6 +2,7 @@ package com.wheretopop.config.security
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.wheretopop.shared.exception.WhereToPoPException
+import com.wheretopop.shared.exception.toException
 import com.wheretopop.shared.response.CommonResponse
 import com.wheretopop.shared.response.ErrorCode
 import mu.KotlinLogging
@@ -27,43 +28,29 @@ class MvcGlobalExceptionHandler(
      * Spring Security 인증 예외 처리
      */
     @ExceptionHandler(AuthenticationException::class)
-    fun handleAuthenticationException(ex: AuthenticationException): ResponseEntity<CommonResponse<Any>> {
+    fun handleAuthenticationException(ex: AuthenticationException) {
         logger.warn("인증 실패: ${ex.message}")
-        
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(CommonResponse.fail(
-                errorCode = ErrorCode.COMMON_FORBIDDEN,
-            ))
+        throw ErrorCode.COMMON_FORBIDDEN.toException();
     }
 
     /**
      * Spring Security 인가 예외 처리 (AuthorizationDeniedException)
      */
     @ExceptionHandler(AuthorizationDeniedException::class)
-    fun handleAuthorizationDeniedException(ex: AuthorizationDeniedException): ResponseEntity<CommonResponse<Any>> {
+    fun handleAuthorizationDeniedException(ex: AuthorizationDeniedException) {
         logger.warn("인가 실패: ${ex.message}")
-        
-        return ResponseEntity.status(HttpStatus.FORBIDDEN)
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(CommonResponse.fail(
-                errorCode = ErrorCode.COMMON_FORBIDDEN
-            ))
+
+        throw ErrorCode.COMMON_FORBIDDEN.toException();
     }
 
     /**
      * Spring Security 접근 거부 예외 처리 (AccessDeniedException)
      */
     @ExceptionHandler(AccessDeniedException::class)
-    fun handleAccessDeniedException(ex: AccessDeniedException): ResponseEntity<CommonResponse<Any>> {
+    fun handleAccessDeniedException(ex: AccessDeniedException) {
         logger.warn("접근 거부: ${ex.message}")
-        
-        return ResponseEntity.status(HttpStatus.FORBIDDEN)
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(CommonResponse.fail(
-                message = "접근이 거부되었습니다",
-                errorCode = ErrorCode.COMMON_FORBIDDEN.name
-            ))
+
+        throw ErrorCode.COMMON_FORBIDDEN.toException();
     }
 
     /**
