@@ -99,8 +99,8 @@ class PopupVectorRepositoryImpl(
         }
     }
 
-    override fun findSimilarPopups(query: String): List<Document> {
-        val searchRequest = SearchRequest.builder().query(query).topK(3).build()
+    override fun findSimilarPopups(query: String, k: Int): List<Document> {
+        val searchRequest = SearchRequest.builder().query(query).topK(k).build()
         try {
             return vectorStore.similaritySearch(searchRequest) ?: emptyList()
         } catch (e: StatusRuntimeException) {
@@ -130,33 +130,33 @@ class PopupVectorRepositoryImpl(
         }
     }
 
-    override fun findByAreaId(areaId: Long, k: Int): List<Document> {
-        val filter = "metadata.area_id == $areaId"
-        val request = SearchRequest.builder().topK(k).filterExpression(filter).build()
+    override fun findByAreaId(areaId: Long, query: String, k: Int): List<Document> {
+        val filterExp = "area_id == $areaId"
+        val request = SearchRequest.builder().query(query).topK(k).filterExpression(filterExp).build()
         return safeSearch(request)
     }
 
-    override fun findByBuildingId(buildingId: Long, k: Int): List<Document> {
-        val filter = "metadata.building_id == $buildingId"
-        val request = SearchRequest.builder().topK(k).filterExpression(filter).build()
+    override fun findByBuildingId(buildingId: Long, query: String, k: Int): List<Document> {
+        val filterExp = "building_id == $buildingId"
+        val request = SearchRequest.builder().query(query).topK(k).filterExpression(filterExp).build()
         return safeSearch(request)
     }
 
-    override fun findByAreaName(areaName: String, k: Int): List<Document> {
-        val query = "Area: $areaName"
-        val request = SearchRequest.builder().query(query).topK(k).build()
+    override fun findByAreaName(areaName: String, query: String, k: Int): List<Document> {
+        val filterExp = "area_name == '$areaName'"
+        val request = SearchRequest.builder().query(query).filterExpression(filterExp).topK(k).build()
         return safeSearch(request)
     }
 
     override fun findByTargetAgeGroup(ageGroup: String, query: String, k: Int): List<Document> {
-        val filter = "\"$ageGroup\" IN metadata.target_age_groups"
-        val request = SearchRequest.builder().query(query).topK(k).filterExpression(filter).build()
+        val filterExp = "'$ageGroup' IN target_age_groups"
+        val request = SearchRequest.builder().query(query).filterExpression(filterExp).topK(k).build()
         return safeSearch(request)
     }
 
-    override fun findByCategory(category: String, k: Int): List<Document> {
-        val filter = "metadata.category == \"$category\""
-        val request = SearchRequest.builder().topK(k).filterExpression(filter).build()
+    override fun findByCategory(category: String, query: String, k: Int): List<Document> {
+        val filterExp = "category == '$category'"
+        val request = SearchRequest.builder().query(category).topK(k).filterExpression(filterExp).build()
         return safeSearch(request)
     }
 }

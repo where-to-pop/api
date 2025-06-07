@@ -66,25 +66,10 @@ class PopupPopplyProcessor(
         return popupDetailData
     }
 
-    override fun getSimilarPopups(query: String): List<PopupInfo.WithScore> {
-//        val vectorSearchResults = popupVectorRepository.findSimilarPopups(query)
-//        return vectorSearchResults.mapNotNull { popup ->
-//            val metadataMap: Map<String, Any?> = popup.metadata
-//            val metadata = RetrievedPopupInfoMetadata.fromMap(metadataMap)
-//            val popupInfo: PopupInfo.Detail? = metadata.toDomain()
-//            if (popupInfo == null || popup.score == null) {
-//                null
-//            } else {
-//                PopupInfo.WithScore(popupInfo, popup.score)
-//            }
-//        }
-
-        logger.debug("getSimilarPopups 호출됨. 검색어: '{}'", query)
-
-        val vectorSearchResults = popupVectorRepository.findSimilarPopups(query)
+    override fun getSimilarPopups(query: String, k: Int): List<PopupInfo.WithScore> {
+        val vectorSearchResults = popupVectorRepository.findSimilarPopups(query, k)
         logger.debug("popupVectorRepository.findSimilarPopups 결과 수: {}", vectorSearchResults.size)
 
-        // TRACE 레벨 로그는 그대로 두거나 필요에 따라 주석 처리/제거 가능
         if (logger.isTraceEnabled) {
             vectorSearchResults.forEachIndexed { index, searchResult ->
                 logger.trace("  결과 [{}]: ID='{}', Score='{}', Metadata='{}'",
@@ -108,18 +93,18 @@ class PopupPopplyProcessor(
         return mappedResults
     }
 
-    override fun getPopupsByAreaId(areaId: Long, k: Int): List<PopupInfo.WithScore> {
-        val vectorSearchResults = popupVectorRepository.findByAreaId(areaId, k)
+    override fun getPopupsByAreaId(areaId: Long, query: String, k: Int): List<PopupInfo.WithScore> {
+        val vectorSearchResults = popupVectorRepository.findByAreaId(areaId,query, k)
         return mapPopupDocumentsToPopupInfoWithScore(vectorSearchResults)
     }
 
-    override fun getPopupsByBuildingId(buildingId: Long, k: Int): List<PopupInfo.WithScore> {
-        val vectorSearchResults = popupVectorRepository.findByBuildingId(buildingId, k)
+    override fun getPopupsByBuildingId(buildingId: Long, query: String, k: Int): List<PopupInfo.WithScore> {
+        val vectorSearchResults = popupVectorRepository.findByBuildingId(buildingId,query, k)
         return mapPopupDocumentsToPopupInfoWithScore(vectorSearchResults)
     }
 
-    override fun getPopupsByAreaName(areaName: String, k: Int): List<PopupInfo.WithScore> {
-        val vectorSearchResults = popupVectorRepository.findByAreaName(areaName, k)
+    override fun getPopupsByAreaName(areaName: String, query: String, k: Int): List<PopupInfo.WithScore> {
+        val vectorSearchResults = popupVectorRepository.findByAreaName(areaName,query, k)
         return mapPopupDocumentsToPopupInfoWithScore(vectorSearchResults)
     }
 
@@ -128,8 +113,8 @@ class PopupPopplyProcessor(
         return mapPopupDocumentsToPopupInfoWithScore(vectorSearchResults)
     }
 
-    override fun getPopupsByCategory(category: String, k: Int): List<PopupInfo.WithScore> {
-        val vectorSearchResults = popupVectorRepository.findByCategory(category, k)
+    override fun getPopupsByCategory(category: String, query: String, k: Int): List<PopupInfo.WithScore> {
+        val vectorSearchResults = popupVectorRepository.findByCategory(category,query, k)
         return mapPopupDocumentsToPopupInfoWithScore(vectorSearchResults)
     }
 
@@ -264,8 +249,10 @@ class PopupPopplyProcessor(
             val metadataObjectAfterFromMap = RetrievedPopupInfoMetadata.fromMap(metadataMap)
 
             val popupInfo: PopupInfo.Detail? = metadataObjectAfterFromMap.toDomain()
+            logger.info("  문서 ID '{}'의 메타데이터: {}", popupDocument.score, metadataMap)
 
             if (popupInfo == null || popupDocument.score == null) {
+
                 logger.warn(
                     "  문서 ID '{}' 스킵됨: popupInfo is null -> {}, popupDocument.score is null -> {}",
                     popupDocument.id,

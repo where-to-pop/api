@@ -3,8 +3,6 @@ package com.wheretopop.infrastructure.popup.external
 import com.wheretopop.domain.popup.PopupId
 import com.wheretopop.domain.popup.PopupInfo
 import com.wheretopop.domain.popup.PopupInfoMapper
-import com.wheretopop.shared.enums.AgeGroup
-import com.wheretopop.shared.enums.PopUpCategory
 
 data class RetrievedPopupInfoMetadata(
     val originalId: Long?,
@@ -18,8 +16,8 @@ data class RetrievedPopupInfoMetadata(
     val areaName: String?,
     val buildingId: Long?,
     val keywords: List<String>?,
-    val category: PopUpCategory?,
-    val targetAgeGroups: List<AgeGroup>?,
+    val category: String?,
+    val targetAgeGroups: List<String>?,
     val brandKeywords: List<String>?,
 ) {
 
@@ -66,8 +64,8 @@ data class RetrievedPopupInfoMetadata(
                 areaName = metadataMap["area_name"] as? String,
                 buildingId = metadataMap["building_id"] as? Long,
                 keywords = metadataMap["keywords"] as? List<String>,
-                category = metadataMap["category"] as? PopUpCategory,
-                targetAgeGroups = metadataMap["target_age_groups"] as? List<AgeGroup>,
+                category = metadataMap["category"] as? String,
+                targetAgeGroups = metadataMap["target_age_groups"] as? List<String>,
                 brandKeywords = metadataMap["brand_keywords"] as? List<String>,
             )
         }

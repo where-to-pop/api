@@ -46,8 +46,8 @@ class PopupInfo {
         val buildingId: Long,
 
         val keywords: List<String>,
-        val category: PopUpCategory,
-        val targetAgeGroups: List<AgeGroup>,
+        val category: String,
+        val targetAgeGroups: List<String>,
         val brandKeywords: List<String>,
     ) {
         fun generateVectorId(): String {
@@ -96,8 +96,8 @@ class PopupInfo {
 
     data class Augmented(
         val keywords: List<String>,
-        val category: PopUpCategory,
-        val targetAgeGroups: List<AgeGroup>,
+        val category: String,
+        val targetAgeGroups: List<String>,
         val brandKeywords: List<String>,
     )
 }

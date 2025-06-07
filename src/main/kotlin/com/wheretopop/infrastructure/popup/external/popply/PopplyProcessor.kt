@@ -12,11 +12,11 @@ interface PopplyProcessor {
     fun save(popupDetail: PopupDetail, popupId: PopupId)
     fun saveEmbeddings(popupInfo: PopupInfo.Detail)
     fun getAllPopups(): List<PopupInfo.Basic>
-    fun getSimilarPopups(query: String): List<PopupInfo.WithScore>
+    fun getSimilarPopups(query: String, k: Int): List<PopupInfo.WithScore>
     fun existsById(id: Long): Boolean
-    fun getPopupsByAreaId(areaId: Long, k: Int): List<PopupInfo.WithScore>
-    fun getPopupsByBuildingId(buildingId: Long, k: Int): List<PopupInfo.WithScore>
-    fun getPopupsByAreaName(areaName: String, k: Int): List<PopupInfo.WithScore>
+    fun getPopupsByAreaId(areaId: Long, query: String, k: Int): List<PopupInfo.WithScore>
+    fun getPopupsByBuildingId(buildingId: Long, query: String, k: Int): List<PopupInfo.WithScore>
+    fun getPopupsByAreaName(areaName: String, query: String, k: Int): List<PopupInfo.WithScore>
     fun getPopupsByTargetAgeGroup(ageGroup: String, query: String, k: Int): List<PopupInfo.WithScore>
-    fun getPopupsByCategory(category: String, k: Int): List<PopupInfo.WithScore>
+    fun getPopupsByCategory(category: String, query: String, k: Int): List<PopupInfo.WithScore>
 }

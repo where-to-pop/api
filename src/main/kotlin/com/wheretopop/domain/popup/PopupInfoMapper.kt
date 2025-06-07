@@ -72,8 +72,8 @@ class PopupInfoMapper {
             areaName: String,
             buildingId: Long,
             keywords: List<String>,
-            category: PopUpCategory,
-            targetAgeGroups: List<AgeGroup>,
+            category: String,
+            targetAgeGroups: List<String>,
             brandKeywords: List<String>,
         ): PopupInfo.Detail {
             return PopupInfo.Detail(

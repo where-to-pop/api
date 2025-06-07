@@ -84,27 +84,27 @@ class PopupFacade(
         }
     }
 
-    fun findSimilarPopupInfos(query: String): List<PopupInfo.WithScore> {
-        return popplyUseCase.getSimilarPopupInfos(query)
+    fun findSimilarPopupInfos(query: String, k: Int): List<PopupInfo.WithScore> {
+        return popplyUseCase.getSimilarPopupInfos(query, k)
     }
 
-    fun findPopupInfosByAreaId(areaId: Long, k: Int): List<PopupInfo.WithScore> {
-        return popplyUseCase.getPopupsByAreaId(areaId, k)
+    fun findPopupInfosByAreaId(areaId: Long, query: String, k: Int): List<PopupInfo.WithScore> {
+        return popplyUseCase.getPopupsByAreaId(areaId,query, k)
     }
 
-    fun findPopupInfosByBuildingId(buildingId: Long, k: Int): List<PopupInfo.WithScore> {
-        return popplyUseCase.getPopupsByBuildingId(buildingId, k)
+    fun findPopupInfosByBuildingId(buildingId: Long, query: String, k: Int): List<PopupInfo.WithScore> {
+        return popplyUseCase.getPopupsByBuildingId(buildingId,query, k)
     }
 
-    fun findPopupInfosByAreaName(areaName: String, k: Int): List<PopupInfo.WithScore> {
-        return popplyUseCase.getPopupsByAreaName(areaName, k)
+    fun findPopupInfosByAreaName(areaName: String, query: String, k: Int): List<PopupInfo.WithScore> {
+        return popplyUseCase.getPopupsByAreaName(areaName,query, k)
     }
 
     fun findPopupInfosByTargetAgeGroup(ageGroup: String, query: String, k: Int): List<PopupInfo.WithScore> {
         return popplyUseCase.getPopupsByTargetAgeGroup(ageGroup, query, k)
     }
 
-    fun findPopupInfosByCategory(category: String, k: Int): List<PopupInfo.WithScore> {
-        return popplyUseCase.getPopupsByCategory(category, k)
+    fun findPopupInfosByCategory(category: String, query: String, k: Int): List<PopupInfo.WithScore> {
+        return popplyUseCase.getPopupsByCategory(category,query, k)
     }
 }
