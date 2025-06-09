@@ -1,0 +1,7 @@
+name: Build and Push to Dev ECS
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - develop
