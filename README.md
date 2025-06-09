@@ -57,3 +57,8 @@ API 문서는 애플리케이션 실행 후 다음 URL에서 확인할 수 있�
 - Elasticsearch: `localhost:9200`
 - Kibana: `localhost:5601`
 - DBGate: `localhost:3000`
+## 배포 파이프라인
+
+GitHub Actions를 사용하여 빌드된 Docker 이미지를 네이버 클라우드 VM에 배포합니다. 워크플로는 `main` 브랜치에 푸시될 때 실행되며, 필요한 비밀 값은 GitHub 저장소의 Secrets에 등록해야 합니다.
+
+
