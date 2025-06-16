@@ -156,7 +156,7 @@ class PopupVectorRepositoryImpl(
 
     override fun findByCategory(category: String, query: String, k: Int): List<Document> {
         val filterExp = "category == '$category'"
-        val request = SearchRequest.builder().query(category).topK(k).filterExpression(filterExp).build()
+        val request = SearchRequest.builder().query(query).topK(k).filterExpression(filterExp).build()
         return safeSearch(request)
     }
 }
