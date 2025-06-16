@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap
 @Component
 class ContextOptimizer {
     private val logger = KotlinLogging.logger {}
-    
+
     companion object {
         /**
          * 컨텍스트 최적화에 사용할 최근 메시지 개수
@@ -43,7 +43,8 @@ class ContextOptimizer {
      */
     fun buildOptimizedContextWithChat(
         chat: Chat,
-        currentStep: ActionStep, 
+        requirementAnalysis: RequirementAnalysis?,
+        currentStep: ActionStep,
         stepResults: ConcurrentHashMap<Int, String>
     ): String {
         val recentContext = chat.getRecentMessagesAsContext(CONTEXT_MESSAGE_COUNT)
@@ -59,12 +60,22 @@ class ContextOptimizer {
             contextParts.add("Recent conversation context:\n$recentContext")
         }
         
-        contextParts.add("Current query: $latestUserMessage")
+        contextParts.add("## Current query: \n$latestUserMessage")
         
         if (relevantResults.isNotEmpty()) {
             contextParts.add("Relevant previous results:\n${relevantResults.joinToString("\n")}")
         }
-        
+
+        if (requirementAnalysis !== null) {
+        contextParts.add(
+            """
+                ###Requirement Analysis:
+                contextSummary: ${requirementAnalysis.contextSummary} \n
+                userIntent: ${requirementAnalysis.userIntent} \n
+                processedQuery: ${requirementAnalysis.processedQuery} \n
+                \n\n
+            """.trimMargin())
+            }
         return contextParts.joinToString("\n\n")
     }
 

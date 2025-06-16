@@ -8,7 +8,8 @@ import java.time.Instant
 data class ReActResponse(
     val thought: String,
     val actions: List<ActionStep>,
-    val observation: String
+    val observation: String,
+    var requirementAnalysis: RequirementAnalysis
 )
 
 data class ActionStep(

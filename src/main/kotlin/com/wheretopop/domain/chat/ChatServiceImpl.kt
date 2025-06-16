@@ -61,7 +61,7 @@ class ChatServiceImpl(
         val savedChat = chatStore.save(chatWithTitle)
         
         // 백그라운드에서 스트림 방식으로 AI 응답 처리
-        processMessageInBackground(savedChat)
+        processMessageInBackground(savedChat, command.context)
         
         return ChatInfoMapper.toDetailInfo(savedChat)
     }
@@ -97,7 +97,7 @@ class ChatServiceImpl(
      * 채팅에 사용자 메시지를 추가하고 백그라운드에서 ReAct 실행을 시작합니다.
      * 즉시 Simple 정보를 반환하고, 실행 상태는 getChatExecutionStatusStream으로 모니터링 가능합니다.
      */
-    override fun sendMessage(chatId: ChatId, message: String): ChatInfo.Simple {
+    override fun sendMessage(chatId: ChatId, message: String, context: String?): ChatInfo.Simple {
         val chat = chatReader.findById(chatId) ?: throw ErrorCode.COMMON_ENTITY_NOT_FOUND.toException()
         
         // 사용자 메시지를 채팅에 추가
@@ -119,7 +119,7 @@ class ChatServiceImpl(
         val simpleInfo = ChatInfoMapper.toSimpleInfo(savedChat)
         
         // 백그라운드에서 스트림 방식으로 AI 응답 처리
-        processMessageInBackground(savedChat)
+        processMessageInBackground(savedChat, context)
         
         return simpleInfo
     }
@@ -154,15 +154,20 @@ class ChatServiceImpl(
         val chats = chatReader.findByUserId(userId)
         return chats.map { ChatInfoMapper.toMainInfo(it) }
     }
+
+    override fun getSimple(chatId: ChatId): ChatInfo.Simple {
+        val chat = chatReader.findById(chatId) ?: throw ErrorCode.COMMON_ENTITY_NOT_FOUND.toException()
+        return ChatInfoMapper.toSimpleInfo(chat);
+    }
     
     /**
      * 백그라운드에서 메시지를 처리하고 결과를 저장합니다.
      */
-    private fun processMessageInBackground(chat: Chat) {
+    private fun processMessageInBackground(chat: Chat, context: String?) {
         val executionKey = "${chat.id.value}_${System.currentTimeMillis()}"
         
         // chatScenario를 직접 호출해서 JSON 변환
-        val executionFlow = chatScenario.processUserMessageStream(chat)
+        val executionFlow = chatScenario.processUserMessageStream(chat, context)
             .map { reActStreamResponse ->
                 objectMapper.writeValueAsString(reActStreamResponse)
             }

@@ -5,7 +5,6 @@ import com.wheretopop.infrastructure.chat.prompt.strategy.StrategyType
 import com.wheretopop.interfaces.area.AreaToolRegistry
 import com.wheretopop.interfaces.building.BuildingToolRegistry
 import com.wheretopop.interfaces.popup.PopupToolRegistry
-import io.modelcontextprotocol.client.McpSyncClient
 import mu.KotlinLogging
 import org.springframework.ai.mcp.SyncMcpToolCallbackProvider
 import org.springframework.ai.model.tool.ToolCallingChatOptions
@@ -21,11 +20,10 @@ class xAreaQueryStrategy(
     private val areaToolRegistry: AreaToolRegistry,
     private val popupToolRegistry: PopupToolRegistry,
     private val buildingToolRegistry: BuildingToolRegistry,
-    private val mcpSyncClients: List<McpSyncClient>
+    private val syncMcpToolCallbackProvider: SyncMcpToolCallbackProvider
     ) : BaseChatPromptStrategy() {
 
     private val logger = KotlinLogging.logger {}
-    private val syncMcpToolCallbackProvider = SyncMcpToolCallbackProvider(mcpSyncClients)
     private val mcpToolCallbacks = syncMcpToolCallbackProvider.toolCallbacks
     
     /**

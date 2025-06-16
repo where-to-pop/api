@@ -28,7 +28,7 @@ class ReActStreamProcessor(
     
     fun executeMultiStepPlanStream(
         chat: Chat,
-        executionPlan: ReActResponse, 
+        executionPlan: ReActResponse,
         originalUserMessage: String,
         chatId: String,
         executionId: String
@@ -47,7 +47,7 @@ class ReActStreamProcessor(
         if (ragSteps.retrievalAugmentationSteps.isNotEmpty()) {
 
             retrievalAugmentationResults = executeRABatchSteps(
-                chat, ragSteps.retrievalAugmentationSteps, originalUserMessage, stepResults,
+                chat, executionPlan.requirementAnalysis, ragSteps.retrievalAugmentationSteps, originalUserMessage, stepResults,
                 chatId, executionId, totalSteps
             ) { response -> emit(response) }
             
@@ -95,7 +95,15 @@ class ReActStreamProcessor(
         val accumulatedResponse = StringBuilder()
         
         executeStepInternalStream(
-            chat, generationStep, allRAResults, "", originalUserMessage, chatId, executionId, totalSteps, startProgress
+            chat =chat,
+            step = generationStep,
+            optimizedContext = """
+                ### Request Analysis \n
+                ${executionPlan.requirementAnalysis.toString()}
+                ### RAG RESULT \n
+                $allRAResults
+            """.trimIndent() + executionPlan.toString(),
+            originalUserMessage
         ).collect { chunk ->
             accumulatedResponse.append(chunk)
             
@@ -142,12 +150,7 @@ class ReActStreamProcessor(
         chat: Chat, 
         step: ActionStep, 
         optimizedContext: String, 
-        dependencyResults: String,
         originalUserMessage: String,
-        chatId: String,
-        executionId: String,
-        totalSteps: Int,
-        currentProgress: Double
     ): Flow<String> = flow {
         try {
             val strategyType = StrategyType.findById(step.strategy)
@@ -274,6 +277,7 @@ class ReActStreamProcessor(
      */
     private suspend fun executeRABatchSteps(
         chat: Chat,
+        requirementAnalysis: RequirementAnalysis?,
         raSteps: List<ActionStep>,
         originalUserMessage: String,
         stepResults: ConcurrentHashMap<Int, String>,
@@ -310,7 +314,7 @@ class ReActStreamProcessor(
                 }.joinToString("\n")
                 
                 // 컨텍스트 최적화 (Chat 객체 활용)
-                val optimizedContext = contextOptimizer.buildOptimizedContextWithChat(chat, step, stepResults)
+                val optimizedContext = contextOptimizer.buildOptimizedContextWithChat(chat, requirementAnalysis, step , stepResults, )
                 
                 // 단계 실행
                 val stepResult = executeStepInternal(chat, step, optimizedContext, dependencyResults, originalUserMessage)

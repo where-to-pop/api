@@ -23,9 +23,9 @@ class ReActExecutionPlanningStrategy(
     private val areaToolRegistry: AreaToolRegistry,
     private val popupToolRegistry: PopupToolRegistry,
     private val buildingToolRegistry: BuildingToolRegistry,
-    private val mcpSyncClients: List<McpSyncClient>
+    private val syncMcpToolCallbackProvider: SyncMcpToolCallbackProvider
+
 ) : BaseChatPromptStrategy() {
-    private val syncMcpToolCallbackProvider = SyncMcpToolCallbackProvider(mcpSyncClients)
     private val mcpToolCallbacks = syncMcpToolCallbackProvider.toolCallbacks
     
 
@@ -79,39 +79,7 @@ class ReActExecutionPlanningStrategy(
             ## RAG Framework (MANDATORY):
             1. **R (Retrieval)**: Collect relevant data
             2. **A (Augmentation)**: Process and analyze (if needed)
-            3. **G (Generation)**: Generate response (MUST be final step)
-            
-            ## Response Format:
-            ```json
-            {
-                "thought": "Analysis of requirements and execution approach based on complexity",
-                "actions": [
-                    {
-                        "step": 1,
-                        "strategy": "area_query",
-                        "purpose": "Data collection objective",
-                        "reasoning": "Why this strategy is needed",
-                        "expected_output": "Expected results",
-                        "dependencies": []
-                    },
-                    {
-                        "step": 2,
-                        "strategy": "general_response",
-                        "purpose": "Response generation",
-                        "reasoning": "Final synthesis and presentation",
-                        "expected_output": "User-ready answer",
-                        "dependencies": [1]
-                    }
-                ],
-                "observation": "Plan validation and efficiency assessment"
-            }
-            ```
-            
-            ## Guidelines:
-            - ALWAYS end with a Response Generation strategy
-            - Adapt plan complexity to the provided complexity level
-            - Ensure efficient execution with minimal unnecessary steps
-            - Focus on delivering value to the user
+        ㅌg value to the user
         """.trimIndent()
     }
     

@@ -11,11 +11,12 @@ class ChatInput {
         val projectId: ProjectId,
         val initialMessage: String
     ) {
-        fun toCommand() = ChatCommand.InitializeChat(
+        fun toCommand(context: String?) = ChatCommand.InitializeChat(
             userId = userId,
             projectId = projectId,
             initialMessage = initialMessage,
-            isActive = true
+            isActive = true,
+            context = context
         )
     }
 

@@ -73,11 +73,11 @@ class RequirementAnalysisStrategy : BaseChatPromptStrategy() {
             
             ```json
             {
-                "userIntent": "사용자의 핵심 의도",
-                "processedQuery": "분석을 위해 가공된 명확한 쿼리",
-                "complexityLevel": "SIMPLE|MODERATE|COMPLEX",
-                "contextSummary": "대화 컨텍스트 요약",
-                "reasoning": "복잡도 판단 근거"
+                "userIntent": "현재 팝업스토어 시장에서 인기 있는 컨셉을 파악하여 프로젝트 기획에 참고하려는 것",
+                "processedQuery": "최근 팝업스토어 시장에서 20~30대를 주요 타깃으로 하는 대형 브랜드 중심의 브랜딩 목적 팝업스토어 중 가장 효과적이었던 컨셉 유형을 분석해줘",
+                "complexityLevel": "MODERATE",
+                "contextSummary": "사용자는 '네이버 세미나 팝업'이라는 브랜딩 목적의 MEDIA 카테고리 팝업스토어를 기획 중이며, 주요 타깃은 20~30대이고, 팝업 기간은 약 2개월(2025-05-26~2025-07-29)이며 대형 브랜드로 분류됨. 최근 대화에서는 성수동의 인스턴트펑크 팝업스토어, 압구정의 비자레이매지네이션 팝업스토어 제공됨. 유저는 성수동과 압구정을 중심으로 탐색을 했음.",
+                "reasoning": "단순한 인기 순위 응답을 넘어서, 사용자 프로젝트 맥락(브랜드 규모, 기간, 타깃 연령층, 카테고리)에 적합한 컨셉을 도출하려면 시장 트렌드와 사례 간 비교가 필요하며, 중간 수준의 맥락 보강 및 해석이 요구됨"
             }
             ```
             

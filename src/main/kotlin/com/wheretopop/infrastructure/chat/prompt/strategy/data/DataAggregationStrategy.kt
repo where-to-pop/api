@@ -21,11 +21,11 @@ class DataAggregationStrategy(
     private val areaToolRegistry: AreaToolRegistry,
     private val popupToolRegistry: PopupToolRegistry,
     private val buildingToolRegistry: BuildingToolRegistry,
-    private val mcpSyncClients: List<McpSyncClient>
+    private val syncMcpToolCallbackProvider: SyncMcpToolCallbackProvider
+
 ) : BaseChatPromptStrategy() {
 
     private val logger = KotlinLogging.logger {}
-    private val syncMcpToolCallbackProvider = SyncMcpToolCallbackProvider(mcpSyncClients)
     private val mcpToolCallbacks = syncMcpToolCallbackProvider.toolCallbacks
 
     /**

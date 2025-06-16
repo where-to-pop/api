@@ -29,7 +29,7 @@ enum class ComplexityLevel {
 data class RequirementAnalysis(
     val userIntent: String,           // 사용자 의도
     val processedQuery: String,       // 가공된 쿼리
-    val complexityLevel: ComplexityLevel, // 복잡도s
+    val complexityLevel: ComplexityLevel, // 복잡도
     val contextSummary: String,       // 컨텍스트 요약
     val reasoning: String             // 분석 근거
 )
@@ -68,7 +68,7 @@ class ReActExecutionPlanner(
     /**
      * ReAct 실행 계획을 생성합니다 (스트림 형태).
      */
-    fun createExecutionPlan(chat: Chat, chatId: String, executionId: String): Flow<ExecutionPlanningResult> = flow {
+    fun createExecutionPlan(chat: Chat, chatId: String, executionId: String, context: String?): Flow<ExecutionPlanningResult> = flow {
         // 1단계: 요구사항 분석 및 복잡도 평가
         emit(ExecutionPlanningResult.Progress(
             ReActStreamResponse(
@@ -84,7 +84,7 @@ class ReActExecutionPlanner(
             )
         ))
         
-        val requirementAnalysis = analyzeRequirement(chat)
+        val requirementAnalysis = analyzeRequirement(chat, context)
         logger.info("요구사항 분석 완료: 복잡도=${requirementAnalysis.complexityLevel}")
         
         // 2단계: 복잡도에 따른 적응적 계획 수립
@@ -161,7 +161,7 @@ class ReActExecutionPlanner(
     /**
      * 요구사항을 분석하고 복잡도를 평가합니다.
      */
-    private fun analyzeRequirement(chat: Chat): RequirementAnalysis {
+    private fun analyzeRequirement(chat: Chat, context: String?): RequirementAnalysis {
         val requirementAnalyzer = getStrategyByType(StrategyType.REQUIREMENT_ANALYSIS)
         
         // 최근 메시지들을 컨텍스트로 구성
@@ -171,10 +171,13 @@ class ReActExecutionPlanner(
         
         val contextualMessage = if (recentContext.isNotBlank()) {
             """
-            Recent conversation context:
+            ## Context
+            $context
+            
+            ## Recent Conversation History
             $recentContext
             
-            Current user message to analyze:
+            ## Current user message to analyze:
             $latestUserMessage
             """.trimIndent()
         } else {
@@ -217,7 +220,8 @@ class ReActExecutionPlanner(
                     dependencies = emptyList()
                 )
             ),
-            observation = "단순한 요구사항으로 단일 전략 적용"
+            observation = "단순한 요구사항으로 단일 전략 적용",
+            requirementAnalysis = analysis
         )
     }
     
@@ -263,6 +267,7 @@ class ReActExecutionPlanner(
         
         return try {
             val reActResponse = parseReActResponse(responseText)
+            reActResponse.requirementAnalysis = analysis
             validateRAGPattern(reActResponse)
             logExecutionPlan(reActResponse)
             reActResponse
@@ -311,7 +316,8 @@ class ReActExecutionPlanner(
                     dependencies = emptyList()
                 )
             ),
-            observation = "Fallback plan created for single strategy execution"
+            observation = "Fallback plan created for single strategy execution",
+            requirementAnalysis = RequirementAnalysis("fallback", "fallback", ComplexityLevel.SIMPLE, "null", "null")
         )
     }
     

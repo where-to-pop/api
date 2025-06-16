@@ -10,6 +10,7 @@ class ChatCommand {
         val projectId: ProjectId,
         val isActive: Boolean,
         val initialMessage: String,
+        val context: String?
     ){
         fun toDomain(): Chat {
             return Chat.create(

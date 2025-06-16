@@ -14,11 +14,10 @@ import org.springframework.stereotype.Component
  */
 @Component
 class OnlineSearchStrategy(
-    private val mcpSyncClients: List<McpSyncClient>
+    private val syncMcpToolCallbackProvider: SyncMcpToolCallbackProvider
 ) : BaseChatPromptStrategy() {
 
     private val logger = KotlinLogging.logger {}
-    private val syncMcpToolCallbackProvider = SyncMcpToolCallbackProvider(mcpSyncClients)
     private val mcpToolCallbacks = syncMcpToolCallbackProvider.toolCallbacks
     
     /**

@@ -25,5 +25,25 @@ class ProjectInfo {
         val createdAt: Instant,
         val updatedAt: Instant,
         val deletedAt: Instant?
-    )
-} 
+    ) {
+        override fun toString(): String {
+            return buildString {
+                append("Project Context(")
+                append("name=$name, ")
+                append("brandName=$brandName, ")
+                append("popupCategory=$popupCategory, ")
+                append("popupType=$popupType, ")
+                append("duration=$duration, ")
+                append("primaryTargetAgeGroup=$primaryTargetAgeGroup, ")
+                append("secondaryTargetAgeGroup=$secondaryTargetAgeGroup, ")
+                append("brandScale=$brandScale, ")
+                append("projectGoal=$projectGoal, ")
+                append("additionalBrandInfo=$additionalBrandInfo, ")
+                append("additionalProjectInfo=$additionalProjectInfo, ")
+                append("createdAt=$createdAt, ")
+                append("updatedAt=$updatedAt, ")
+                append("deletedAt=$deletedAt")
+            }
+        }
+    }
+}

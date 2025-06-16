@@ -76,43 +76,22 @@ class ChatPromptStrategyManager(
             if (extractedTitle.length > 50) extractedTitle.take(47) + "…" else extractedTitle
         }
     }
-    
 
 
-    /**
-     * 토큰 사용량 추적과 함께 전략을 실행합니다.
-     */
-    private fun executeStrategyWithTracking(
-        conversationId: String, 
-        strategy: ChatPromptStrategy, 
-        userMessage: String,
-        context: String
-    ): ChatResponse {
-        logger.info { "Selected Strategy: ${strategy.getType()}" }
-        val response = chatAssistant.call(conversationId, strategy.createPrompt(userMessage), strategy.getToolCallingChatOptions())
-        
-        // 토큰 사용량 추적
-        tokenUsageTracker.trackAndLogTokenUsage(response, context)
-        
-        return response
-    }
-    
     /**
      * 사용자 메시지를 스트림으로 처리하고 ReAct 실행 과정을 실시간으로 반환합니다.
      */
-    override fun processUserMessageStream(chat: Chat): Flow<ReActStreamResponse> = flow {
+    override fun processUserMessageStream(chat: Chat, context: String?): Flow<ReActStreamResponse> = flow {
         val chatId = chat.id.toString()
         val executionId = java.util.UUID.randomUUID().toString()
-        val userMessage = chat.getLatestUserMessage()?.content
-            ?: throw ErrorCode.COMMON_SYSTEM_ERROR.toException()
-
+        val userMessage = chat.getLatestUserMessage()?.content ?: throw ErrorCode.COMMON_SYSTEM_ERROR.toException();
         try {
             // 실행 계획 생성 시작
             emit(createPlanningStreamResponse(chatId, executionId, StrategyType.buildPhaseMessage(ExecutionPhase.PLANNING), 0.1))
 
             // 실행 계획 생성 (스트림 형태로 진행 상황 emit)
             var executionPlan: ReActResponse? = null
-            reActExecutionPlanner.createExecutionPlan(chat, chatId, executionId)
+            reActExecutionPlanner.createExecutionPlan(chat, chatId, executionId, context)
                 .collect { result ->
                     when (result) {
                         is ExecutionPlanningResult.Progress -> {
@@ -137,6 +116,26 @@ class ChatPromptStrategyManager(
             emit(createErrorStreamResponse(chatId, executionId, e.message))
         }
     }
+    
+
+
+    /**
+     * 토큰 사용량 추적과 함께 전략을 실행합니다.
+     */
+    private fun executeStrategyWithTracking(
+        conversationId: String, 
+        strategy: ChatPromptStrategy, 
+        userMessage: String,
+        context: String
+    ): ChatResponse {
+        logger.info { "Selected Strategy: ${strategy.getType()}" }
+        val response = chatAssistant.call(conversationId, strategy.createPrompt(userMessage), strategy.getToolCallingChatOptions())
+        
+        // 토큰 사용량 추적
+        tokenUsageTracker.trackAndLogTokenUsage(response, context)
+        
+        return response
+    }
 
     /**
      * 주어진 전략 타입의 전략을 찾아 반환합니다.
@@ -150,8 +149,8 @@ class ChatPromptStrategyManager(
     private fun createPlanningStreamResponse(
         chatId: String, 
         executionId: String, 
-        message: String, 
-        progress: Double, 
+        message: String,
+        progress: Double,
         totalSteps: Int = 0
     ) = ReActStreamResponse(
         status = ReActExecutionStatus(
