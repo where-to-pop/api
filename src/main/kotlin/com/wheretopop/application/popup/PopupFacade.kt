@@ -107,4 +107,16 @@ class PopupFacade(
     fun findPopupInfosByCategory(category: String, query: String, k: Int): List<PopupInfo.WithScore> {
         return popplyUseCase.getPopupsByCategory(category,query, k)
     }
+
+    fun findPopupInfosByFilters(
+        query: String,
+        k: Int,
+        areaId: Long?,
+        buildingId: Long?,
+        areaName: String?,
+        ageGroup: String?,
+        category: String?,
+    ): List<PopupInfo.WithScore> {
+        return popplyUseCase.getPopupsByFilters(query, k, areaId, buildingId, areaName, ageGroup, category)
+    }
 }

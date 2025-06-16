@@ -65,7 +65,7 @@ class BuildingRegisterStoreImpl(
 
             return buildingRegister
         } catch (e: Exception) {
-            logger.error(e) { "Error creating building register for buildingId ${command.buildingId}: ${e.message}" }
+            logger.error(e) { "Error creating building register for buildingId ${command.buildingId}" }
             return null
         }
     }

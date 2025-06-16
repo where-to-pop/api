@@ -118,6 +118,19 @@ class PopupPopplyProcessor(
         return mapPopupDocumentsToPopupInfoWithScore(vectorSearchResults)
     }
 
+    override fun getPopupsByFilters(
+        query: String,
+        k: Int,
+        areaId: Long?,
+        buildingId: Long?,
+        areaName: String?,
+        ageGroup: String?,
+        category: String?,
+    ): List<PopupInfo.WithScore> {
+        val vectorSearchResults = popupVectorRepository.findByFilters(query, k, areaId, buildingId, areaName, ageGroup, category)
+        return mapPopupDocumentsToPopupInfoWithScore(vectorSearchResults)
+    }
+
     override fun existsById(id: Long): Boolean {
         return popupVectorRepository.findById(id) != null
     }

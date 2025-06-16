@@ -34,6 +34,35 @@ class PopupToolRegistry(
         """.trimIndent()
         }
     }
+    @Tool(
+        description = """
+        여러 조건(지역ID, 건물ID, 지역명, 타겟 연령층, 카테고리 등)으로 팝업을 복합적으로 검색합니다.
+        각 파라미터는 선택적으로 입력할 수 있습니다. 
+        'query'는 추가적인 검색 특성을 자연어로 입력합니다.
+        'k'는 최대 반환 개수(기본값 3)입니다.
+        예시: "category='FASHION', ageGroup='TWENTIES', query='전시'"
+    """
+    )
+    fun findPopupInfosByFilters(
+        query: String = "",
+        k: Int = DEFAULT_K,
+        areaId: Long? = null,
+        buildingId: Long? = null,
+        areaName: String? = null,
+        ageGroup: String? = null,
+        category: String? = null
+    ): String {
+        val popups = popupFacade.findPopupInfosByFilters(
+            query = query,
+            k = k,
+            areaId = areaId,
+            buildingId = buildingId,
+            areaName = areaName,
+            ageGroup = ageGroup,
+            category = category
+        )
+        return formatPopupDetails(popups)
+    }
 
     @Tool(description = "Finds popups similar to the given query. The 'query' parameter describes the desired characteristics or information of the popup (e.g., 'sticker event', 'cooking class'). The 'k' parameter specifies the maximum number of results to return (defaults to 3).")
     fun findSimilarPopupInfos(query: String, k: Int = DEFAULT_K): String {

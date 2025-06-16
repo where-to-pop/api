@@ -159,4 +159,37 @@ class PopupVectorRepositoryImpl(
         val request = SearchRequest.builder().query(query).topK(k).filterExpression(filterExp).build()
         return safeSearch(request)
     }
+
+    private fun buildFilterExpression(
+        areaId: Long? = null,
+        buildingId: Long? = null,
+        areaName: String? = null,
+        ageGroup: String? = null,
+        category: String? = null,
+        id: Long? = null
+    ): String? {
+        val filters = mutableListOf<String>()
+        areaId?.let { filters.add("area_id == $it") }
+        buildingId?.let { filters.add("building_id == $it") }
+        areaName?.let { filters.add("area_name == '$it'") }
+        ageGroup?.let { filters.add("target_age_group == '$ageGroup'") }
+        category?.let { filters.add("category == '$category'") }
+        return if (filters.isNotEmpty()) filters.joinToString(" && ") else null
+    }
+
+    override fun findByFilters(
+        query: String,
+        k: Int,
+        areaId: Long?,
+        buildingId: Long?,
+        areaName: String?,
+        ageGroup: String?,
+        category: String?,
+    ): List<Document> {
+        val filterExp = buildFilterExpression(areaId, buildingId, areaName, ageGroup, category)
+        val builder = SearchRequest.builder().query(query).topK(k)
+        filterExp?.let { builder.filterExpression(it) }
+        val request = builder.build()
+        return safeSearch(request)
+    }
 }
