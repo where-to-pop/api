@@ -11,4 +11,13 @@ interface PopupExternalReader {
     fun getPopupsForSpecificAreaByName(areaName: String, query: String, k: Int): List<PopupInfo.WithScore>
     fun getPopupsForSpecificAgeGroup(ageGroup: String, query: String, k: Int): List<PopupInfo.WithScore>
     fun getPopupsForSpecificCategory(category: String, query: String, k: Int): List<PopupInfo.WithScore>
+    fun getPopupsForSpecificFilters(
+        query: String,
+        k: Int,
+        areaId: Long?,
+        buildingId: Long?,
+        areaName: String?,
+        ageGroup: String?,
+        category: String?,
+    ): List<PopupInfo.WithScore>
 }

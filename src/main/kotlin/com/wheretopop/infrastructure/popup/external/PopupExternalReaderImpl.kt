@@ -39,4 +39,16 @@ class PopupExternalReaderImpl(
     override fun getPopupsForSpecificCategory(category: String, query: String, k: Int): List<PopupInfo.WithScore> {
         return popplyProcessor.getPopupsByCategory(category,query, k)
     }
+
+    override fun getPopupsForSpecificFilters(
+        query: String,
+        k: Int,
+        areaId: Long?,
+        buildingId: Long?,
+        areaName: String?,
+        ageGroup: String?,
+        category: String?,
+    ): List<PopupInfo.WithScore> {
+        return popplyProcessor.getPopupsByFilters(query, k, areaId, buildingId, areaName, ageGroup, category)
+    }
 }

@@ -19,4 +19,13 @@ interface PopplyProcessor {
     fun getPopupsByAreaName(areaName: String, query: String, k: Int): List<PopupInfo.WithScore>
     fun getPopupsByTargetAgeGroup(ageGroup: String, query: String, k: Int): List<PopupInfo.WithScore>
     fun getPopupsByCategory(category: String, query: String, k: Int): List<PopupInfo.WithScore>
+    fun getPopupsByFilters(
+        query: String,
+        k: Int,
+        areaId: Long?,
+        buildingId: Long?,
+        areaName: String?,
+        ageGroup: String?,
+        category: String?,
+    ): List<PopupInfo.WithScore>
 }

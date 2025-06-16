@@ -11,4 +11,13 @@ interface PopupVectorRepository {
     fun findByAreaName(areaName: String, query: String, k: Int): List<Document>
     fun findByTargetAgeGroup(ageGroup: String, query: String, k: Int): List<Document>
     fun findByCategory(category: String, query: String, k: Int): List<Document>
+    fun findByFilters(
+        query: String,
+        k: Int,
+        areaId: Long?,
+        buildingId: Long?,
+        areaName: String?,
+        ageGroup: String?,
+        category: String?,
+    ): List<Document>
 }
