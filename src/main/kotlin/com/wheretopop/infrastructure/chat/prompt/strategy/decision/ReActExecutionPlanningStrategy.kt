@@ -5,7 +5,6 @@ import com.wheretopop.infrastructure.chat.prompt.strategy.StrategyType
 import com.wheretopop.interfaces.area.AreaToolRegistry
 import com.wheretopop.interfaces.building.BuildingToolRegistry
 import com.wheretopop.interfaces.popup.PopupToolRegistry
-import io.modelcontextprotocol.client.McpSyncClient
 import org.springframework.ai.chat.messages.Message
 import org.springframework.ai.chat.messages.SystemMessage
 import org.springframework.ai.chat.messages.UserMessage
@@ -72,14 +71,46 @@ class ReActExecutionPlanningStrategy(
             - Efficient, focused approach
             
             ### COMPLEX Complexity:
-            - Multi-source data collection
+            - Multi-source data collection (including online search)
             - Deep analysis and comparison
             - Comprehensive recommendation with rationale
             
             ## RAG Framework (MANDATORY):
             1. **R (Retrieval)**: Collect relevant data
             2. **A (Augmentation)**: Process and analyze (if needed)
-        ㅌg value to the user
+            3. **G (Generation)**: Generate response (MUST be final step)
+            
+            ## Response Format:
+            ```json
+            {
+                "thought": "Analysis of requirements and execution approach based on complexity",
+                "actions": [
+                    {
+                        "step": 1,
+                        "strategy": "area_query",
+                        "purpose": "Data collection objective",
+                        "reasoning": "Why this strategy is needed",
+                        "expected_output": "Expected results",
+                        "dependencies": []
+                    },
+                    {
+                        "step": 2,
+                        "strategy": "general_response",
+                        "purpose": "Response generation",
+                        "reasoning": "Final synthesis and presentation",
+                        "expected_output": "User-ready answer",
+                        "dependencies": [1]
+                    }
+                ],
+                "observation": "Plan validation and efficiency assessment"
+            }
+            ```
+            
+            ## Guidelines:
+            - ALWAYS end with a Response Generation strategy
+            - Adapt plan complexity to the provided complexity level
+            - Ensure efficient execution with minimal unnecessary steps
+            - Focus on delivering value to the user
         """.trimIndent()
     }
     

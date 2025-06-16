@@ -90,7 +90,7 @@ class ChatPromptStrategyManager(
             emit(createPlanningStreamResponse(chatId, executionId, StrategyType.buildPhaseMessage(ExecutionPhase.PLANNING), 0.1))
 
             // 실행 계획 생성 (스트림 형태로 진행 상황 emit)
-            var executionPlan: ReActResponse? = null
+            var executionPlan: ReActExecutionInput? = null
             reActExecutionPlanner.createExecutionPlan(chat, chatId, executionId, context)
                 .collect { result ->
                     when (result) {

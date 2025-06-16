@@ -9,7 +9,11 @@ data class ReActResponse(
     val thought: String,
     val actions: List<ActionStep>,
     val observation: String,
-    var requirementAnalysis: RequirementAnalysis
+)
+
+data class ReActExecutionInput (
+    val reActResponse: ReActResponse,
+    val requirementAnalysis: RequirementAnalysis
 )
 
 data class ActionStep(
@@ -62,3 +66,31 @@ data class RAGSteps(
     val retrievalAugmentationSteps: List<ActionStep>, // R+A 단계들 (배치 실행)
     val generationStep: ActionStep                    // G 단계 (스트리밍 실행)
 )
+
+/**
+ * 요구사항 복잡도 레벨
+ */
+enum class ComplexityLevel {
+    SIMPLE,     // 단순 - 일반 응답만으로 충분
+    MODERATE,   // 보통 - 1-2개 데이터 소스 필요
+    COMPLEX     // 복잡 - 다중 데이터 소스 및 분석 필요
+}
+
+/**
+ * 요구사항 분석 결과
+ */
+data class RequirementAnalysis(
+    val userIntent: String,           // 사용자 의도
+    val processedQuery: String,       // 가공된 쿼리
+    val complexityLevel: ComplexityLevel, // 복잡도
+    val contextSummary: String,       // 컨텍스트 요약
+    val reasoning: String             // 분석 근거
+)
+
+/**
+ * 실행 계획 생성 결과
+ */
+sealed class ExecutionPlanningResult {
+    data class Progress(val streamResponse: ReActStreamResponse) : ExecutionPlanningResult()
+    data class Complete(val plan: ReActExecutionInput) : ExecutionPlanningResult()
+}

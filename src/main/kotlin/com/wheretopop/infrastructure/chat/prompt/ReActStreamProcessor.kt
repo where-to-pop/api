@@ -28,18 +28,18 @@ class ReActStreamProcessor(
     
     fun executeMultiStepPlanStream(
         chat: Chat,
-        executionPlan: ReActResponse,
+        plan: ReActExecutionInput,
         originalUserMessage: String,
         chatId: String,
         executionId: String
     ): Flow<ReActStreamResponse> = flow {
         val stepResults = ConcurrentHashMap<Int, String>()
-        val totalSteps = executionPlan.actions.size
+        val totalSteps = plan.reActResponse.actions.size
         
         logger.info("스트림 실행 시작: 총 ${totalSteps}단계")
         
         // RAG 패턴: R+A (배치 처리) → G (스트리밍)
-        val ragSteps = separateRAGSteps(executionPlan.actions)
+        val ragSteps = separateRAGSteps(plan.reActResponse.actions)
         
         val retrievalAugmentationResults: Map<Int, String>
         
@@ -47,7 +47,7 @@ class ReActStreamProcessor(
         if (ragSteps.retrievalAugmentationSteps.isNotEmpty()) {
 
             retrievalAugmentationResults = executeRABatchSteps(
-                chat, executionPlan.requirementAnalysis, ragSteps.retrievalAugmentationSteps, originalUserMessage, stepResults,
+                chat, plan.requirementAnalysis, ragSteps.retrievalAugmentationSteps, originalUserMessage, stepResults,
                 chatId, executionId, totalSteps
             ) { response -> emit(response) }
             
@@ -98,11 +98,11 @@ class ReActStreamProcessor(
             chat =chat,
             step = generationStep,
             optimizedContext = """
-                ### Request Analysis \n
-                ${executionPlan.requirementAnalysis.toString()}
-                ### RAG RESULT \n
+                ### Request Analysis
+                ${plan.requirementAnalysis.toString()}
+                ### RAG RESULT
                 $allRAResults
-            """.trimIndent() + executionPlan.toString(),
+            """.trimIndent(),
             originalUserMessage
         ).collect { chunk ->
             accumulatedResponse.append(chunk)

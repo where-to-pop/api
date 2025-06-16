@@ -70,9 +70,9 @@ class ContextOptimizer {
         contextParts.add(
             """
                 ###Requirement Analysis:
-                contextSummary: ${requirementAnalysis.contextSummary} \n
-                userIntent: ${requirementAnalysis.userIntent} \n
-                processedQuery: ${requirementAnalysis.processedQuery} \n
+                contextSummary: ${requirementAnalysis.contextSummary}
+                userIntent: ${requirementAnalysis.userIntent}
+                processedQuery: ${requirementAnalysis.processedQuery}
                 \n\n
             """.trimMargin())
             }
