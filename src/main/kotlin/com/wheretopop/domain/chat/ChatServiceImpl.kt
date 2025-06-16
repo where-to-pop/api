@@ -12,6 +12,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.launch
 import org.springframework.stereotype.Service
 import java.time.Instant
@@ -34,8 +36,9 @@ class ChatServiceImpl(
         disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
     }
     
-    // 진행 중인 ReAct 실행 스트림을 캐시
+    // 진행 중인 ReAct 실행 스트림을 캐시 (Hot Stream)
     private val activeExecutions = ConcurrentHashMap<String, Flow<String>>()
+    private val executionScope = CoroutineScope(Dispatchers.IO)
 
     /**
      * 새 채팅을 초기화합니다. (스트림 기반)
@@ -166,21 +169,26 @@ class ChatServiceImpl(
     private fun processMessageInBackground(chat: Chat, context: String?) {
         val executionKey = "${chat.id.value}_${System.currentTimeMillis()}"
         
-        // chatScenario를 직접 호출해서 JSON 변환
+        // chatScenario를 직접 호출해서 JSON 변환 후 Hot Stream으로 변환
         val executionFlow = chatScenario.processUserMessageStream(chat, context)
             .map { reActStreamResponse ->
                 objectMapper.writeValueAsString(reActStreamResponse)
             }
+            .shareIn(
+                scope = executionScope,
+                started = SharingStarted.Lazily, // 첫 번째 collector가 연결될 때 시작
+                replay = 1 // 마지막 값을 새로운 collector에게 전달
+            )
             .onCompletion { 
                 // 실행 완료 시 캐시에서 제거
                 activeExecutions.remove(executionKey)
             }
         
-        // 실행 스트림을 캐시에 저장
+        // Hot Stream을 캐시에 저장
         activeExecutions[executionKey] = executionFlow
         
-        // 백그라운드에서 실행 시작 (결과는 저장)
-        CoroutineScope(Dispatchers.IO).launch {
+        // 백그라운드에서 실행 시작 (결과는 저장) - Hot Stream이므로 한 번만 실행됨
+        executionScope.launch {
             try {
                 var finalCompleteResult: String? = null
                 
