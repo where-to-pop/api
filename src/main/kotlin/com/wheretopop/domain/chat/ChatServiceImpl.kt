@@ -9,12 +9,9 @@ import com.wheretopop.shared.exception.toException
 import com.wheretopop.shared.response.ErrorCode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.shareIn
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import mu.KotlinLogging
 import org.springframework.stereotype.Service
 import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
@@ -29,7 +26,8 @@ class ChatServiceImpl(
     private val chatStore: ChatStore,
     private val chatScenario: ChatScenario
 ): ChatService {
-    
+    private val logger = KotlinLogging.logger {}
+
     private val objectMapper: ObjectMapper = jacksonObjectMapper().apply {
         registerModule(JavaTimeModule())
         // ISO 8601 형식으로 날짜 직렬화
@@ -169,54 +167,69 @@ class ChatServiceImpl(
     private fun processMessageInBackground(chat: Chat, context: String?) {
         val executionKey = "${chat.id.value}_${System.currentTimeMillis()}"
         
-        // chatScenario를 직접 호출해서 JSON 변환 후 Hot Stream으로 변환
-        val executionFlow = chatScenario.processUserMessageStream(chat, context)
-            .map { reActStreamResponse ->
-                objectMapper.writeValueAsString(reActStreamResponse)
+        // Hot Stream 하나로 통합 (저장 + 클라이언트 전송)
+        val sharedFlow = chatScenario.processUserMessageStream(chat, context)
+            .takeWhile { reActStreamResponse ->
+                // isComplete 이벤트까지 포함하고 그 다음에 종료
+                if (reActStreamResponse.isComplete) {
+                    return@takeWhile false // 이 이벤트 이후 종료
+                }
+                true // 계속 진행
             }
             .shareIn(
                 scope = executionScope,
-                started = SharingStarted.Lazily, // 첫 번째 collector가 연결될 때 시작
-                replay = 1 // 마지막 값을 새로운 collector에게 전달
+                started = SharingStarted.WhileSubscribed(
+                    stopTimeoutMillis = 5000, // 마지막 subscriber가 떠난 후 5초 뒤 정리
+                    replayExpirationMillis = 0 // replay 만료 시간 설정
+                ),
+                replay = 10 // 충분한 replay 버퍼로 클라이언트가 중간에 연결해도 히스토리 확인 가능
             )
-            .onCompletion { 
-                // 실행 완료 시 캐시에서 제거
-                activeExecutions.remove(executionKey)
+        
+        // 클라이언트용 JSON 스트림
+        val clientFlow = sharedFlow
+            .map { reActStreamResponse ->
+                objectMapper.writeValueAsString(reActStreamResponse)
             }
         
-        // Hot Stream을 캐시에 저장
-        activeExecutions[executionKey] = executionFlow
+        // Hot Stream을 캐시에 저장 (클라이언트용)
+        activeExecutions[executionKey] = clientFlow
         
-        // 백그라운드에서 실행 시작 (결과는 저장) - Hot Stream이므로 한 번만 실행됨
+        // 저장 로직 처리 (같은 Hot Stream 사용)
         executionScope.launch {
             try {
-                var finalCompleteResult: String? = null
-                
-                executionFlow.collect { streamData ->
-                    val responseData = objectMapper.readTree(streamData)
-                    
-                    // COMPLETED 단계에서 누적된 전체 결과 받기
-                    if (responseData.has("isComplete") && responseData.get("isComplete").asBoolean()) {
-                        finalCompleteResult = responseData.get("finalResult")?.asText()
+                sharedFlow
+                    .onEach { reActStreamResponse ->
+                        // COMPLETED 단계에서 누적된 전체 결과 받기
+                        if (reActStreamResponse.isComplete) {
+                            val finalResult = reActStreamResponse.finalResult
+                            logger.info("finalCompleteResult: $finalResult")
+                            
+                            // 완료되면 바로 저장
+                            finalResult?.let { result ->
+                                val latestChat = chatReader.findById(chat.id) ?: return@let
+                                val updatedChat = latestChat.addMessage(ChatMessage.create(
+                                    chatId = chat.id,
+                                    role = ChatMessageRole.ASSISTANT,
+                                    content = result,
+                                    finishReason = null,
+                                    latencyMs = 0L,
+                                    createdAt = Instant.now(),
+                                    updatedAt = Instant.now(),
+                                    deletedAt = null
+                                ))
+                                chatStore.save(updatedChat)
+                                logger.info("어시스턴트 메시지 저장 완료: ${result.take(100)}...")
+                            }
+                            
+                            // 완료 후 캐시에서 제거
+                            activeExecutions.remove(executionKey)
+                            logger.info("실행 완료 - 캐시에서 제거: $executionKey")
+                        }
                     }
-                }
+                    .collect()
                 
-                // 완료된 경우 전체 결과를 채팅에 저장
-                finalCompleteResult?.let { result ->
-                    val latestChat = chatReader.findById(chat.id) ?: return@launch
-                    val updatedChat = latestChat.addMessage(ChatMessage.create(
-                        chatId = chat.id,
-                        role = ChatMessageRole.ASSISTANT,
-                        content = result,
-                        finishReason = null,
-                        latencyMs = 0L,
-                        createdAt = Instant.now(),
-                        updatedAt = Instant.now(),
-                        deletedAt = null
-                    ))
-                    chatStore.save(updatedChat)
-                }
             } catch (e: Exception) {
+                logger.error("저장 로직 실행 중 오류 발생", e)
                 // 실행 실패 시 사용자 친화적인 에러 메시지를 채팅에 저장
                 val errorMessage = "죄송해요, 일시적인 문제가 발생했어요. 다시 시도해 주세요."
                 val latestChat = chatReader.findById(chat.id) ?: return@launch
@@ -231,6 +244,9 @@ class ChatServiceImpl(
                     deletedAt = null
                 ))
                 chatStore.save(updatedChat)
+                
+                // 에러 발생 시에도 캐시에서 제거
+                activeExecutions.remove(executionKey)
             }
         }
     }
