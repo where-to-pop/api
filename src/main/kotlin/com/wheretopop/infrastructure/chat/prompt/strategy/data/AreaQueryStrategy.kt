@@ -6,9 +6,10 @@ import com.wheretopop.interfaces.area.AreaToolRegistry
 import com.wheretopop.interfaces.building.BuildingToolRegistry
 import com.wheretopop.interfaces.popup.PopupToolRegistry
 import mu.KotlinLogging
-import org.springframework.ai.mcp.SyncMcpToolCallbackProvider
 import org.springframework.ai.model.tool.ToolCallingChatOptions
 import org.springframework.ai.support.ToolCallbacks
+import org.springframework.ai.tool.ToolCallback
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 
 /**
@@ -16,16 +17,16 @@ import org.springframework.stereotype.Component
  * Collects comprehensive area information including congestion, demographics, and characteristics
  */
 @Component
-class xAreaQueryStrategy(
+class AreaQueryStrategy(
     private val areaToolRegistry: AreaToolRegistry,
     private val popupToolRegistry: PopupToolRegistry,
     private val buildingToolRegistry: BuildingToolRegistry,
-    private val syncMcpToolCallbackProvider: SyncMcpToolCallbackProvider
+    @Qualifier("searchToolCallbacks")
+    private val mcpToolCallbacks: Array<ToolCallback>
     ) : BaseChatPromptStrategy() {
 
     private val logger = KotlinLogging.logger {}
-    private val mcpToolCallbacks = syncMcpToolCallbackProvider.toolCallbacks
-    
+
     /**
      * Returns the strategy type
      */
@@ -73,8 +74,7 @@ class xAreaQueryStrategy(
      */
     override fun getToolCallingChatOptions(): ToolCallingChatOptions {
         logger.info("Setting up tool callbacks for area queries")
-        logger.info("Available MCP tool callbacks: ${mcpToolCallbacks.contentToString()}")
-        
+
         val toolCallbackChatOptions = ToolCallingChatOptions.builder()
             .toolCallbacks(*ToolCallbacks.from(areaToolRegistry, popupToolRegistry, buildingToolRegistry), *mcpToolCallbacks)
             .internalToolExecutionEnabled(false)

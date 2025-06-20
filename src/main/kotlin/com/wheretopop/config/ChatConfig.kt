@@ -1,27 +1,26 @@
 package com.wheretopop.config
 
+import io.modelcontextprotocol.client.McpSyncClient
 import mu.KotlinLogging
 import org.springframework.ai.chat.memory.ChatMemory
 import org.springframework.ai.chat.memory.ChatMemoryRepository
 import org.springframework.ai.chat.memory.MessageWindowChatMemory
-import org.springframework.ai.chat.memory.repository.jdbc.JdbcChatMemoryRepository
-import org.springframework.ai.chat.memory.repository.jdbc.JdbcChatMemoryRepositoryDialect
+import org.springframework.ai.mcp.SyncMcpToolCallbackProvider
+import org.springframework.ai.tool.ToolCallback
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.jdbc.core.JdbcTemplate
-import javax.sql.DataSource
 
 
 @Configuration
-class ChatConfig {
+class ChatConfig (
+    private val mcpSyncClients: List<McpSyncClient>
+) {
     private val logger = KotlinLogging.logger {}
-    @Bean
-    fun chatMemoryRepository(jdbcTemplate: JdbcTemplate, dataSource: DataSource): ChatMemoryRepository {
-        return JdbcChatMemoryRepository.builder()
-            .jdbcTemplate(jdbcTemplate)
-            .dialect(JdbcChatMemoryRepositoryDialect.from(dataSource))
-            .build()
-    }
+    private val syncMcpToolCallbackProvider = SyncMcpToolCallbackProvider(mcpSyncClients)
+    private val mcpToolCallbacks = syncMcpToolCallbackProvider.toolCallbacks
+
+
 
     @Bean
     fun chatMemory(chatMemoryRepository: ChatMemoryRepository): ChatMemory {
@@ -30,5 +29,12 @@ class ChatConfig {
             .chatMemoryRepository(chatMemoryRepository)
             .maxMessages(50)
             .build()
+    }
+
+    @Bean
+    @Qualifier("searchToolCallbacks")
+    fun searchToolCallbacks(): Array<ToolCallback> {
+        return mcpToolCallbacks;
+
     }
 }

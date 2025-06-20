@@ -2,10 +2,9 @@ package com.wheretopop.infrastructure.chat.prompt.strategy.data
 
 import com.wheretopop.infrastructure.chat.prompt.strategy.BaseChatPromptStrategy
 import com.wheretopop.infrastructure.chat.prompt.strategy.StrategyType
-import io.modelcontextprotocol.client.McpSyncClient
-import mu.KotlinLogging
-import org.springframework.ai.mcp.SyncMcpToolCallbackProvider
 import org.springframework.ai.model.tool.ToolCallingChatOptions
+import org.springframework.ai.tool.ToolCallback
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 
 /**
@@ -14,12 +13,11 @@ import org.springframework.stereotype.Component
  */
 @Component
 class OnlineSearchStrategy(
-    private val syncMcpToolCallbackProvider: SyncMcpToolCallbackProvider
+    @Qualifier("searchToolCallbacks")
+    private val mcpToolCallbacks: Array<ToolCallback>
 ) : BaseChatPromptStrategy() {
 
-    private val logger = KotlinLogging.logger {}
-    private val mcpToolCallbacks = syncMcpToolCallbackProvider.toolCallbacks
-    
+
     /**
      * Returns the strategy type
      */
@@ -66,9 +64,7 @@ class OnlineSearchStrategy(
      * Configures tool calling options for online search
      */
     override fun getToolCallingChatOptions(): ToolCallingChatOptions {
-        logger.info("Setting up MCP tool callbacks for online search")
-        logger.info("Available MCP tool callbacks: ${mcpToolCallbacks.contentToString()}")
-        
+
         val toolCallbackChatOptions = ToolCallingChatOptions.builder()
             .toolCallbacks(*mcpToolCallbacks)
             .internalToolExecutionEnabled(false)

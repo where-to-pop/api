@@ -6,9 +6,10 @@ import com.wheretopop.interfaces.area.AreaToolRegistry
 import com.wheretopop.interfaces.building.BuildingToolRegistry
 import com.wheretopop.interfaces.popup.PopupToolRegistry
 import mu.KotlinLogging
-import org.springframework.ai.mcp.SyncMcpToolCallbackProvider
 import org.springframework.ai.model.tool.ToolCallingChatOptions
 import org.springframework.ai.support.ToolCallbacks
+import org.springframework.ai.tool.ToolCallback
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 
 /**
@@ -20,12 +21,12 @@ class PopupQueryStrategy(
     private val areaToolRegistry: AreaToolRegistry,
     private val popupToolRegistry: PopupToolRegistry,
     private val buildingToolRegistry: BuildingToolRegistry,
-    private val syncMcpToolCallbackProvider: SyncMcpToolCallbackProvider
+    @Qualifier("searchToolCallbacks")
+    private val mcpToolCallbacks: Array<ToolCallback>
 
 ) : BaseChatPromptStrategy() {
 
     private val logger = KotlinLogging.logger {}
-    private val mcpToolCallbacks = syncMcpToolCallbackProvider.toolCallbacks
 
     /**
      * Returns the strategy type

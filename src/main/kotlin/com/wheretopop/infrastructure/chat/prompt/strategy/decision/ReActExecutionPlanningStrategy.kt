@@ -9,9 +9,10 @@ import org.springframework.ai.chat.messages.Message
 import org.springframework.ai.chat.messages.SystemMessage
 import org.springframework.ai.chat.messages.UserMessage
 import org.springframework.ai.chat.prompt.Prompt
-import org.springframework.ai.mcp.SyncMcpToolCallbackProvider
 import org.springframework.ai.model.tool.ToolCallingChatOptions
 import org.springframework.ai.support.ToolCallbacks
+import org.springframework.ai.tool.ToolCallback
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 
 /**
@@ -22,11 +23,11 @@ class ReActExecutionPlanningStrategy(
     private val areaToolRegistry: AreaToolRegistry,
     private val popupToolRegistry: PopupToolRegistry,
     private val buildingToolRegistry: BuildingToolRegistry,
-    private val syncMcpToolCallbackProvider: SyncMcpToolCallbackProvider
+    @Qualifier("searchToolCallbacks")
+    private val mcpToolCallbacks: Array<ToolCallback>
 
 ) : BaseChatPromptStrategy() {
-    private val mcpToolCallbacks = syncMcpToolCallbackProvider.toolCallbacks
-    
+
 
     override fun getType(): StrategyType {
         return StrategyType.REACT_PLANNER

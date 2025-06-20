@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.wheretopop.domain.user.UserId
+import com.wheretopop.shared.enums.ChatMessageFinishReason
 import com.wheretopop.shared.enums.ChatMessageRole
 import com.wheretopop.shared.exception.toException
 import com.wheretopop.shared.response.ErrorCode
@@ -167,36 +168,27 @@ class ChatServiceImpl(
     private fun processMessageInBackground(chat: Chat, context: String?) {
         val executionKey = "${chat.id.value}_${System.currentTimeMillis()}"
         
-        // Hot Stream 하나로 통합 (저장 + 클라이언트 전송)
-        val sharedFlow = chatScenario.processUserMessageStream(chat, context)
-            .takeWhile { reActStreamResponse ->
-                // isComplete 이벤트까지 포함하고 그 다음에 종료
-                if (reActStreamResponse.isComplete) {
-                    return@takeWhile false // 이 이벤트 이후 종료
-                }
-                true // 계속 진행
-            }
-            .shareIn(
-                scope = executionScope,
-                started = SharingStarted.WhileSubscribed(
-                    stopTimeoutMillis = 5000, // 마지막 subscriber가 떠난 후 5초 뒤 정리
-                    replayExpirationMillis = 0 // replay 만료 시간 설정
-                ),
-                replay = 10 // 충분한 replay 버퍼로 클라이언트가 중간에 연결해도 히스토리 확인 가능
-            )
-        
-        // 클라이언트용 JSON 스트림
-        val clientFlow = sharedFlow
-            .map { reActStreamResponse ->
-                objectMapper.writeValueAsString(reActStreamResponse)
-            }
-        
-        // Hot Stream을 캐시에 저장 (클라이언트용)
-        activeExecutions[executionKey] = clientFlow
-        
-        // 저장 로직 처리 (같은 Hot Stream 사용)
-        executionScope.launch {
+        // 실행 Job을 추적하여 완료 시 정리할 수 있도록 함
+        val executionJob = executionScope.launch {
             try {
+                // Hot Stream 하나로 통합 (저장 + 클라이언트 전송)
+                val sharedFlow = chatScenario.processUserMessageStream(chat, context)
+                    .shareIn(
+                        scope = this, // 현재 Job의 scope 사용
+                        started = SharingStarted.Eagerly,
+                        replay = 10 // 충분한 replay 버퍼로 클라이언트가 중간에 연결해도 히스토리 확인 가능
+                    )
+                
+                // 클라이언트용 JSON 스트림
+                val clientFlow = sharedFlow
+                    .map { reActStreamResponse ->
+                        objectMapper.writeValueAsString(reActStreamResponse)
+                    }
+                
+                // Hot Stream을 캐시에 저장 (클라이언트용)
+                activeExecutions[executionKey] = clientFlow
+                
+                // 저장 로직 처리
                 sharedFlow
                     .onEach { reActStreamResponse ->
                         // COMPLETED 단계에서 누적된 전체 결과 받기
@@ -237,7 +229,7 @@ class ChatServiceImpl(
                     chatId = chat.id,
                     role = ChatMessageRole.ASSISTANT,
                     content = errorMessage,
-                    finishReason = null,
+                    finishReason = ChatMessageFinishReason.ERROR,
                     latencyMs = 0L,
                     createdAt = Instant.now(),
                     updatedAt = Instant.now(),
