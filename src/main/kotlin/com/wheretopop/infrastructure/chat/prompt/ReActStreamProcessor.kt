@@ -44,10 +44,10 @@ class ReActStreamProcessor(
         val retrievalAugmentationResults: Map<Int, String>
         
         // R+A 단계가 있는 경우에만 실행
-        if (ragSteps.retrievalAugmentationSteps.isNotEmpty()) {
+        if (ragSteps.retrievalSteps.isNotEmpty()) {
 
             retrievalAugmentationResults = executeRABatchSteps(
-                chat, plan.requirementAnalysis, ragSteps.retrievalAugmentationSteps, originalUserMessage, stepResults,
+                chat, plan.requirementAnalysis, ragSteps.retrievalSteps, originalUserMessage, stepResults,
                 chatId, executionId, totalSteps
             ) { response -> emit(response) }
             
@@ -76,7 +76,7 @@ class ReActStreamProcessor(
         }
         
         // 진행률 계산: R+A 단계가 있으면 0.78부터, 없으면 0.1부터 시작
-        val startProgress = if (ragSteps.retrievalAugmentationSteps.isNotEmpty()) 0.78 else 0.1
+        val startProgress = if (ragSteps.augmentationSteps.isNotEmpty()) 0.78 else 0.1
         
         // G 단계 시작 알림
         emit(ReActStreamResponse(
@@ -108,7 +108,7 @@ class ReActStreamProcessor(
             accumulatedResponse.append(chunk)
             
             // 진행률 계산: R+A가 있으면 78%~99%, 없으면 10%~99%
-            val progressRange = if (ragSteps.retrievalAugmentationSteps.isNotEmpty()) 0.21 else 0.89
+            val progressRange = if (ragSteps.augmentationSteps.isNotEmpty()) 0.21 else 0.89
             val currentProgress = startProgress + (accumulatedResponse.length.toDouble() / 1000) * progressRange
             
             // 실시간 AI 응답 청크를 그대로 전달
@@ -245,29 +245,34 @@ class ReActStreamProcessor(
      * RAG 단계들을 분리합니다.
      */
     private fun separateRAGSteps(actions: List<ActionStep>): RAGSteps {
-        val retrievalAugmentationSteps = mutableListOf<ActionStep>()
+        val retrievalSteps = mutableListOf<ActionStep>()
+        val augmentationSteps = mutableListOf<ActionStep>()
+
         var generationStep: ActionStep? = null
         
         actions.forEach { step ->
             val strategyType = StrategyType.findById(step.strategy)
             when (strategyType?.executionType) {
                 StrategyExecutionType.RETRIEVAL,
-                StrategyExecutionType.AUGMENTATION,
                 StrategyExecutionType.PRE_RETRIEVAL -> {
-                    retrievalAugmentationSteps.add(step)
+                    retrievalSteps.add(step)
+                }
+                StrategyExecutionType.AUGMENTATION -> {
+                    augmentationSteps.add(step)
                 }
                 StrategyExecutionType.GENERATION -> {
                     generationStep = step
                 }
                 else -> {
                     logger.warn("Unknown strategy type for step ${step.step}: ${step.strategy}")
-                    retrievalAugmentationSteps.add(step) // 기본적으로 R+A에 포함
+                    throw ErrorCode.COMMON_SYSTEM_ERROR.toException();
                 }
             }
         }
         
         return RAGSteps(
-            retrievalAugmentationSteps = retrievalAugmentationSteps,
+            retrievalSteps,
+            augmentationSteps,
             generationStep = generationStep ?: throw IllegalStateException("No generation step found!")
         )
     }

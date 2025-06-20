@@ -63,8 +63,9 @@ data class ReActStreamResponse(
  * RAG 패턴을 위한 단계 분리 데이터 클래스
  */
 data class RAGSteps(
-    val retrievalAugmentationSteps: List<ActionStep>, // R+A 단계들 (배치 실행)
-    val generationStep: ActionStep                    // G 단계 (스트리밍 실행)
+    val retrievalSteps: List<ActionStep>,      // R 단계들 (병렬 실행)
+    val augmentationSteps: List<ActionStep>,   // A 단계들 (순차 실행, R 결과 의존)
+    val generationStep: ActionStep             // G 단계 (스트리밍 실행)
 )
 
 /**

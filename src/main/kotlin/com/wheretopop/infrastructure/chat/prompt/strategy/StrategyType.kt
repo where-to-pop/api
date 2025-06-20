@@ -4,10 +4,10 @@ package com.wheretopop.infrastructure.chat.prompt.strategy
  * Strategy execution types for better orchestration
  */
 enum class StrategyExecutionType {
-    PRE_RETRIEVAL,    // 의사결정/추론 단계
+    PRE_RETRIEVAL,
     RETRIEVAL,
-    AUGMENTATION,    // 데이터 처리/분석 단계
-    GENERATION // 최종 응답 생성 단계
+    AUGMENTATION,
+    GENERATION
 }
 
 /**
