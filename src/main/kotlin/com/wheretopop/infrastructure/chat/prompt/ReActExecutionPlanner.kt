@@ -5,6 +5,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.wheretopop.domain.chat.Chat
+import com.wheretopop.domain.chat.ChatMessageId
 import com.wheretopop.infrastructure.chat.ChatAssistant
 import com.wheretopop.infrastructure.chat.prompt.strategy.StrategyType
 import com.wheretopop.shared.exception.toException
@@ -41,13 +42,13 @@ class ReActExecutionPlanner(
     /**
      * ReAct 실행 계획을 생성합니다 (스트림 형태).
      */
-    fun createExecutionPlan(chat: Chat, chatId: String, executionId: String, context: String?): Flow<ExecutionPlanningResult> = flow {
+    fun createExecutionPlan(chat: Chat, chatId: String, chatMessageId: ChatMessageId, context: String?): Flow<ExecutionPlanningResult> = flow {
         // 1단계: 요구사항 분석 및 복잡도 평가
         emit(ExecutionPlanningResult.Progress(
             ReActStreamResponse(
                 status = ReActExecutionStatus(
                     chatId = chatId,
-                    executionId = executionId,
+                    executionId = chatMessageId.toString(),
                     phase = ExecutionPhase.PLANNING,
                     currentStep = null,
                     totalSteps = 0,
@@ -57,7 +58,7 @@ class ReActExecutionPlanner(
             )
         ))
         
-        val requirementAnalysis = analyzeRequirement(chat, context)
+        val requirementAnalysis = analyzeRequirement(chat, chatMessageId, context)
         logger.info("요구사항 분석 완료: 복잡도=${requirementAnalysis.complexityLevel}")
         
         // 2단계: 복잡도에 따른 적응적 계획 수립
@@ -67,7 +68,7 @@ class ReActExecutionPlanner(
                     ReActStreamResponse(
                         status = ReActExecutionStatus(
                             chatId = chatId,
-                            executionId = executionId,
+                            executionId = chatMessageId.toString(),
                             phase = ExecutionPhase.PLANNING,
                             currentStep = null,
                             totalSteps = 1,
@@ -83,7 +84,7 @@ class ReActExecutionPlanner(
                     ReActStreamResponse(
                         status = ReActExecutionStatus(
                             chatId = chatId,
-                            executionId = executionId,
+                            executionId = chatMessageId.toString(),
                             phase = ExecutionPhase.PLANNING,
                             currentStep = null,
                             totalSteps = 0,
@@ -92,14 +93,14 @@ class ReActExecutionPlanner(
                         )
                     )
                 ))
-                createModeratePlan(chat, requirementAnalysis)
+                createModeratePlan(chat, chatMessageId, requirementAnalysis)
             }
             ComplexityLevel.COMPLEX -> {
                 emit(ExecutionPlanningResult.Progress(
                     ReActStreamResponse(
                         status = ReActExecutionStatus(
                             chatId = chatId,
-                            executionId = executionId,
+                            executionId = chatMessageId.toString(),
                             phase = ExecutionPhase.PLANNING,
                             currentStep = null,
                             totalSteps = 0,
@@ -108,7 +109,7 @@ class ReActExecutionPlanner(
                         )
                     )
                 ))
-                createComplexPlan(chat, requirementAnalysis)
+                createComplexPlan(chat, chatMessageId, requirementAnalysis)
             }
         }
         
@@ -117,7 +118,7 @@ class ReActExecutionPlanner(
             ReActStreamResponse(
                 status = ReActExecutionStatus(
                     chatId = chatId,
-                    executionId = executionId,
+                    executionId = chatMessageId.toString(),
                     phase = ExecutionPhase.PLANNING,
                     currentStep = null,
                     totalSteps = executionInput.reActResponse.actions.size,
@@ -134,7 +135,7 @@ class ReActExecutionPlanner(
     /**
      * 요구사항을 분석하고 복잡도를 평가합니다.
      */
-    private fun analyzeRequirement(chat: Chat, context: String?): RequirementAnalysis {
+    private fun analyzeRequirement(chat: Chat, chatMessageId: ChatMessageId, context: String?): RequirementAnalysis {
         val requirementAnalyzer = getStrategyByType(StrategyType.REQUIREMENT_ANALYSIS)
         
         // 최근 메시지들을 컨텍스트로 구성
@@ -157,8 +158,8 @@ class ReActExecutionPlanner(
             latestUserMessage
         }
         
-        val response = executeStrategy(chat.id.toString(), requirementAnalyzer, contextualMessage)
-        val responseText = response.result.output.text?.trim()
+        val response = executeStrategy(chatMessageId, requirementAnalyzer, contextualMessage)
+        val responseText = response.chatResponse.result.output.text?.trim()
             ?: throw ErrorCode.CHAT_NULL_RESPONSE.toException()
         
         return try {
@@ -191,7 +192,6 @@ class ReActExecutionPlanner(
                     purpose = analysis.userIntent,
                     reasoning = "단순한 요구사항으로 추가 데이터 수집 불필요",
                     expected_output = "사용자 질문에 대한 포괄적인 답변",
-                    dependencies = emptyList()
                 )
             ),
             observation = "단순한 요구사항으로 단일 전략 적용",
@@ -203,23 +203,23 @@ class ReActExecutionPlanner(
     /**
      * 보통 복잡도 요구사항에 대한 ReAct 계획 생성
      */
-    private fun createModeratePlan(chat: Chat, analysis: RequirementAnalysis): ReActExecutionInput {
+    private fun createModeratePlan(chat: Chat, chatMessageId: ChatMessageId, analysis: RequirementAnalysis): ReActExecutionInput {
         logger.info("보통 복잡도 계획 생성: ReAct 플래닝 사용")
-        return createReActPlan(chat, analysis, "MODERATE")
+        return createReActPlan(chat, chatMessageId, analysis, "MODERATE")
     }
     
     /**
      * 복잡한 요구사항에 대한 ReAct 계획 생성
      */
-    private fun createComplexPlan(chat: Chat, analysis: RequirementAnalysis): ReActExecutionInput {
+    private fun createComplexPlan(chat: Chat, chatMessageId: ChatMessageId, analysis: RequirementAnalysis): ReActExecutionInput {
         logger.info("복잡한 계획 생성: ReAct 플래닝 사용")
-        return createReActPlan(chat, analysis, "COMPLEX")
+        return createReActPlan(chat, chatMessageId, analysis, "COMPLEX")
     }
     
     /**
      * ReAct 플래닝을 사용한 계획 생성 (MODERATE/COMPLEX 공통)
      */
-    private fun createReActPlan(chat: Chat, analysis: RequirementAnalysis, complexityLevel: String): ReActExecutionInput {
+    private fun createReActPlan(chat: Chat, chatMessageId: ChatMessageId, analysis: RequirementAnalysis, complexityLevel: String): ReActExecutionInput {
         val reActPlanner = getStrategyByType(StrategyType.REACT_PLANNER)
         val originalUserMessage = chat.getLatestUserMessage()?.content ?: ""
         
@@ -236,8 +236,8 @@ class ReActExecutionPlanner(
             Make sure to address the original user message directly.
         """.trimIndent()
         
-        val response = executeStrategy(chat.id.toString(), reActPlanner, contextualMessage)
-        val responseText = response.result.output.text?.trim()
+        val response = executeStrategy(chatMessageId, reActPlanner, contextualMessage)
+        val responseText = response.chatResponse.result.output.text?.trim()
             ?: throw ErrorCode.CHAT_NULL_RESPONSE.toException()
         
         return try {
@@ -288,7 +288,6 @@ class ReActExecutionPlanner(
                         purpose = "Execute fallback strategy",
                         reasoning = "Using fallback strategy due to plan parsing failure",
                         expected_output = "Strategy-specific generation",
-                        dependencies = emptyList()
                     )
                 ),
                 observation = "Fallback plan created for single strategy execution",
@@ -366,7 +365,6 @@ class ReActExecutionPlanner(
             logger.info("    - Purpose: ${step.purpose}")
             logger.info("    - Reasoning: ${step.reasoning}")
             logger.info("    - Expected Output: ${step.expected_output}")
-            logger.info("    - Dependencies: ${step.dependencies}")
         }
         
         logger.info("- Observation: ${reActResponse.observation}")
@@ -377,11 +375,11 @@ class ReActExecutionPlanner(
             ?: throw IllegalStateException("No strategy found for type: ${type.id}")
     }
     
-    private fun executeStrategy(conversationId: String, strategy: ChatPromptStrategy, userMessage: String): org.springframework.ai.chat.model.ChatResponse {
-        val response = chatAssistant.call(conversationId, strategy.createPrompt(userMessage), strategy.getToolCallingChatOptions())
+    private fun executeStrategy(chatMessageId: ChatMessageId, strategy: ChatPromptStrategy, userMessage: String): ChatAssistant.ResponseWithToolExecutionResult {
+        val response = chatAssistant.call(chatMessageId, strategy.createPrompt(userMessage), strategy.getToolCallingChatOptions())
         
         // 토큰 사용량 추적
-        tokenUsageTracker.trackAndLogTokenUsage(response, "ReAct 계획 생성 - ${strategy.getType().id}")
+        tokenUsageTracker.trackAndLogTokenUsage(response.chatResponse, "ReAct 계획 생성 - ${strategy.getType().id}")
         
         return response
     }

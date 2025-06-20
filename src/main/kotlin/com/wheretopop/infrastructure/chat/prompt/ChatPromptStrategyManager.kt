@@ -1,6 +1,7 @@
 package com.wheretopop.infrastructure.chat.prompt
 
 import com.wheretopop.domain.chat.Chat
+import com.wheretopop.domain.chat.ChatMessageId
 import com.wheretopop.domain.chat.ChatScenario
 import com.wheretopop.infrastructure.chat.ChatAssistant
 import com.wheretopop.infrastructure.chat.prompt.strategy.StrategyType
@@ -58,7 +59,7 @@ class ChatPromptStrategyManager(
         
         return performanceMonitor.measureTimeSync("Title generation") {
             val titleStrategy = getStrategyByType(StrategyType.TITLE_GENERATION)
-            val response = executeStrategyWithTracking(chat.id.toString(), titleStrategy, contextualMessage, "제목 생성")
+            val response = executeStrategyWithTracking(ChatMessageId.create(), titleStrategy, contextualMessage, "제목 생성")
             
             // XML 태그에서 제목만 추출
             val fullResponse = response.result.output.text?.trim()
@@ -81,17 +82,16 @@ class ChatPromptStrategyManager(
     /**
      * 사용자 메시지를 스트림으로 처리하고 ReAct 실행 과정을 실시간으로 반환합니다.
      */
-    override fun processUserMessageStream(chat: Chat, context: String?): Flow<ReActStreamResponse> = flow {
+    override fun processUserMessageStream(chat: Chat, chatMessageId: ChatMessageId, context: String?): Flow<ReActStreamResponse> = flow {
         val chatId = chat.id.toString()
-        val executionId = java.util.UUID.randomUUID().toString()
         val userMessage = chat.getLatestUserMessage()?.content ?: throw ErrorCode.COMMON_SYSTEM_ERROR.toException();
         try {
             // 실행 계획 생성 시작
-            emit(createPlanningStreamResponse(chatId, executionId, StrategyType.buildPhaseMessage(ExecutionPhase.PLANNING), 0.1))
+            emit(createPlanningStreamResponse(chatId, chatMessageId, StrategyType.buildPhaseMessage(ExecutionPhase.PLANNING), 0.1))
 
             // 실행 계획 생성 (스트림 형태로 진행 상황 emit)
             var executionPlan: ReActExecutionInput? = null
-            reActExecutionPlanner.createExecutionPlan(chat, chatId, executionId, context)
+            reActExecutionPlanner.createExecutionPlan(chat, chatId, chatMessageId, context)
                 .collect { result ->
                     when (result) {
                         is ExecutionPlanningResult.Progress -> {
@@ -105,7 +105,7 @@ class ChatPromptStrategyManager(
 
             // 실행 계획이 완료되면 실제 실행 시작
             executionPlan?.let { plan ->
-                reActStreamProcessor.executeMultiStepPlanStream(chat, plan, userMessage, chatId, executionId)
+                reActStreamProcessor.executeMultiStepPlanStream(chat, chatMessageId, plan, userMessage)
                     .collect { streamResponse ->
                         emit(streamResponse)
                     }
@@ -113,7 +113,7 @@ class ChatPromptStrategyManager(
 
         } catch (e: Exception) {
             logger.error("스트림 처리 중 오류 발생", e)
-            emit(createErrorStreamResponse(chatId, executionId, e.message))
+            emit(createErrorStreamResponse(chatId, chatMessageId, e.message))
         }
     }
     
@@ -123,13 +123,13 @@ class ChatPromptStrategyManager(
      * 토큰 사용량 추적과 함께 전략을 실행합니다.
      */
     private fun executeStrategyWithTracking(
-        conversationId: String, 
+        chatMessageId: ChatMessageId,
         strategy: ChatPromptStrategy, 
         userMessage: String,
         context: String
     ): ChatResponse {
         logger.info { "Selected Strategy: ${strategy.getType()}" }
-        val response = chatAssistant.call(conversationId, strategy.createPrompt(userMessage), strategy.getToolCallingChatOptions())
+        val response = chatAssistant.call(chatMessageId, strategy.createPrompt(userMessage), strategy.getToolCallingChatOptions()).chatResponse
         
         // 토큰 사용량 추적
         tokenUsageTracker.trackAndLogTokenUsage(response, context)
@@ -148,14 +148,14 @@ class ChatPromptStrategyManager(
 
     private fun createPlanningStreamResponse(
         chatId: String, 
-        executionId: String, 
+        chatMessageId: ChatMessageId, 
         message: String,
         progress: Double,
         totalSteps: Int = 0
     ) = ReActStreamResponse(
         status = ReActExecutionStatus(
             chatId = chatId,
-            executionId = executionId,
+            executionId = chatMessageId.toString(),
             phase = ExecutionPhase.PLANNING,
             currentStep = null,
             totalSteps = totalSteps,
@@ -164,11 +164,11 @@ class ChatPromptStrategyManager(
         )
     )
     
-    private fun createErrorStreamResponse(chatId: String, executionId: String, errorMessage: String?) =
+    private fun createErrorStreamResponse(chatId: String, chatMessageId: ChatMessageId, errorMessage: String?) =
         ReActStreamResponse(
             status = ReActExecutionStatus(
                 chatId = chatId,
-                executionId = executionId,
+                executionId = chatMessageId.toString(),
                 phase = ExecutionPhase.FAILED,
                 currentStep = null,
                 totalSteps = 0,

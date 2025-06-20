@@ -186,17 +186,18 @@ class ChatServiceImpl(
      * 백그라운드에서 메시지를 처리하고 결과를 저장합니다.
      */
     private fun processMessageInBackground(
-        chat: Chat, 
-        context: String?, 
+        chat: Chat,
+        context: String?,
         mutableSharedFlow: MutableSharedFlow<String>,
         executionKey: String
     ) {
         // 백그라운드에서 실제 AI 처리 시작
         executionScope.launch {
+            val chatMessageId = ChatMessageId.create()
             try {
                 var finalCompleteResult: String? = null
 
-                chatScenario.processUserMessageStream(chat, context)
+                chatScenario.processUserMessageStream(chat, chatMessageId, context)
                     .map { reActStreamResponse ->
                         objectMapper.writeValueAsString(reActStreamResponse)
                     }
@@ -216,6 +217,7 @@ class ChatServiceImpl(
                 finalCompleteResult?.let { result ->
                     val latestChat = chatReader.findById(chat.id) ?: return@launch
                     val updatedChat = latestChat.addMessage(ChatMessage.create(
+                        id = chatMessageId,
                         chatId = chat.id,
                         role = ChatMessageRole.ASSISTANT,
                         content = result,
@@ -232,6 +234,7 @@ class ChatServiceImpl(
                 val errorMessage = "죄송해요, 일시적인 문제가 발생했어요. 다시 시도해 주세요."
                 val latestChat = chatReader.findById(chat.id) ?: return@launch
                 val updatedChat = latestChat.addMessage(ChatMessage.create(
+                    id = chatMessageId,
                     chatId = chat.id,
                     role = ChatMessageRole.ASSISTANT,
                     content = errorMessage,

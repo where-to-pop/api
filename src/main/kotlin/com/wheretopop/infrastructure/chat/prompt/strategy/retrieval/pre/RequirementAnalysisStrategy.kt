@@ -1,4 +1,4 @@
-package com.wheretopop.infrastructure.chat.prompt.strategy.augmentation
+package com.wheretopop.infrastructure.chat.prompt.strategy.retrieval.pre
 
 import com.wheretopop.infrastructure.chat.prompt.strategy.BaseChatPromptStrategy
 import com.wheretopop.infrastructure.chat.prompt.strategy.StrategyType

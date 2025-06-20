@@ -5,5 +5,5 @@ import kotlinx.coroutines.flow.Flow
 
 interface ChatScenario {
     fun generateTitle(chat: Chat): String
-    fun processUserMessageStream(chat: Chat, context: String?): Flow<ReActStreamResponse>
+    fun processUserMessageStream(chat: Chat, chatMessageId: ChatMessageId,context: String?): Flow<ReActStreamResponse>
 }

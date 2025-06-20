@@ -1,4 +1,4 @@
-package com.wheretopop.infrastructure.chat.prompt.strategy.augmentation
+package com.wheretopop.infrastructure.chat.prompt.strategy.retrieval.pre
 
 import com.wheretopop.infrastructure.chat.prompt.strategy.BaseChatPromptStrategy
 import com.wheretopop.infrastructure.chat.prompt.strategy.StrategyType
@@ -92,7 +92,6 @@ class ReActExecutionPlanningStrategy(
                         "purpose": "Data collection objective",
                         "reasoning": "Why this strategy is needed",
                         "expected_output": "Expected results",
-                        "dependencies": []
                     },
                     {
                         "step": 2,
@@ -100,7 +99,6 @@ class ReActExecutionPlanningStrategy(
                         "purpose": "Response generation",
                         "reasoning": "Final synthesis and presentation",
                         "expected_output": "User-ready answer",
-                        "dependencies": [1]
                     }
                 ],
                 "observation": "Plan validation and efficiency assessment"

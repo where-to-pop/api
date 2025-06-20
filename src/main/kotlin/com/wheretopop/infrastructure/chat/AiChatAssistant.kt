@@ -1,5 +1,6 @@
 package com.wheretopop.infrastructure.chat
 
+import com.wheretopop.domain.chat.ChatMessageId
 import com.wheretopop.shared.exception.toException
 import com.wheretopop.shared.response.ErrorCode
 import kotlinx.coroutines.flow.Flow
@@ -9,7 +10,6 @@ import mu.KotlinLogging
 import org.springframework.ai.chat.memory.MessageWindowChatMemory
 import org.springframework.ai.chat.messages.UserMessage
 import org.springframework.ai.chat.model.ChatModel
-import org.springframework.ai.chat.model.ChatResponse
 import org.springframework.ai.chat.prompt.Prompt
 import org.springframework.ai.model.tool.ToolCallingChatOptions
 import org.springframework.ai.model.tool.ToolCallingManager
@@ -23,11 +23,13 @@ private val logger = KotlinLogging.logger {}
 class AiChatAssistant(
     private val chatModel: ChatModel,
     private val toolCallingManager: ToolCallingManager,
-//    private val chatMemory: ChatMemory
 ) : ChatAssistant {
 
-    override fun call(conversationId: String, prompt: Prompt, toolCallingChatOption: ToolCallingChatOptions?): ChatResponse {
+    override fun call(chatMessageId: ChatMessageId, prompt: Prompt, toolCallingChatOption: ToolCallingChatOptions?): ChatAssistant.ResponseWithToolExecutionResult {
         val systemMessage = prompt.systemMessage
+        val conversationId = chatMessageId.toString()
+        val allToolExecutionResults = mutableListOf<String>()
+        
         // 한번의 호출에서 context 를 저장하기 위한 MessageWindowChatMemory 사용
         val chatMemory: MessageWindowChatMemory = MessageWindowChatMemory.builder()
             .maxMessages(20)
@@ -68,12 +70,20 @@ class AiChatAssistant(
                 promptWithMemory,
                 chatResponse
             )
-            
-            // 도구 실행 결과를 메모리에 추가 (결과 크기 제한)
             val conversationHistory = toolExecutionResult.conversationHistory()
+
+            // 도구 실행 결과를 수집
+            val toolResultSummary = buildString {
+                append("Tool Call Iteration $toolCallCount:\n")
+                conversationHistory[conversationHistory.size - 1].let { message ->
+                    logger.info { message }
+                    append("- ${message.messageType}: ${message.text}\n")
+                }
+            }
+            allToolExecutionResults.add(toolResultSummary)
+
             if (conversationHistory.isNotEmpty()) {
                 val lastMessage = conversationHistory[conversationHistory.size - 1]
-
                 chatMemory.add(conversationId, lastMessage)
             }
             
@@ -83,24 +93,34 @@ class AiChatAssistant(
             logger.info("User message length: ${updatedPromptWithMemory.userMessage.text.length}")
             // 새로운 응답 생성
             chatResponse = chatModel.call(updatedPromptWithMemory) ?: throw ErrorCode.CHAT_NULL_RESPONSE.toException()
-            
             // 응답을 메모리에 추가
             chatMemory.add(conversationId, chatResponse.result.output)
-            
-            logger.info("Tool call iteration $toolCallCount completed")
         }
         
         if (toolCallCount >= maxToolCalls) {
             logger.warn("Maximum tool call iterations reached for conversation: $conversationId")
         }
         
-        return chatResponse
+        // 모든 도구 실행 결과를 응집하여 반환
+        val aggregatedToolResults = if (allToolExecutionResults.isNotEmpty()) {
+            allToolExecutionResults.joinToString("\n\n--- Next Tool Call ---\n\n")
+        } else {
+            null
+        }
+        
+        return ChatAssistant.ResponseWithToolExecutionResult(
+            chatResponse = chatResponse,
+            toolExecutionResult = aggregatedToolResults
+        )
     }
 
     /**
      * 스트림 기반으로 프롬프트를 처리하고 실시간 텍스트 생성 결과를 반환합니다.
      */
-    override fun callStream(conversationId: String, prompt: Prompt, toolCallingChatOption: ToolCallingChatOptions?): Flow<ChatResponse> = flow {
+    override fun callStream(chatMessageId: ChatMessageId, prompt: Prompt, toolCallingChatOption: ToolCallingChatOptions?): Flow<ChatAssistant.ResponseWithToolExecutionResult> = flow {
+        val conversationId = chatMessageId.toString()
+        val allToolExecutionResults = mutableListOf<String>()
+
         val systemMessage = prompt.systemMessage
         val chatMemory: MessageWindowChatMemory = MessageWindowChatMemory.builder()
             .maxMessages(10)
@@ -117,7 +137,17 @@ class AiChatAssistant(
             // ChatModel.stream()을 사용해 실제 텍스트 생성 스트림 받기
             val streamFlux = chatModel.stream(promptWithMemory)
             streamFlux.asFlow().collect { chatResponse ->
-                emit(chatResponse)
+                // 도구 결과가 있다면 포함하여 emit
+                val aggregatedToolResults = if (allToolExecutionResults.isNotEmpty()) {
+                    allToolExecutionResults.joinToString("\n\n--- Next Tool Call ---\n\n")
+                } else {
+                    null
+                }
+                
+                emit(ChatAssistant.ResponseWithToolExecutionResult(
+                    chatResponse = chatResponse,
+                    toolExecutionResult = aggregatedToolResults
+                ))
             }
         } catch (e: Exception) {    
             logger.error("[스트림] Error during text streaming", e)
@@ -126,7 +156,10 @@ class AiChatAssistant(
             var chatResponse = chatModel.call(promptWithMemory) ?: throw ErrorCode.CHAT_NULL_RESPONSE.toException()
             logger.info("[스트림] Fallback generation received for conversation: $conversationId")
             
-            emit(chatResponse)
+            emit(ChatAssistant.ResponseWithToolExecutionResult(
+                chatResponse = chatResponse,
+                toolExecutionResult = null
+            ))
             
             // 응답을 메모리에 추가
             chatMemory.add(conversationId, chatResponse.result.output)
@@ -152,6 +185,15 @@ class AiChatAssistant(
                     chatResponse
                 )
                 
+                // 도구 실행 결과를 수집
+                val toolResultSummary = buildString {
+                    append("[STREAM] Tool Call Iteration $toolCallCount:\n")
+                    toolExecutionResult.conversationHistory().forEach { message ->
+                        append("- ${message.messageType}: ${message.text.take(200)}\n")
+                    }
+                }
+                allToolExecutionResults.add(toolResultSummary)
+                
                 // 도구 실행 결과를 메모리에 추가 (결과 크기 제한)
                 val conversationHistory = toolExecutionResult.conversationHistory()
                 if (conversationHistory.isNotEmpty()) {
@@ -171,8 +213,17 @@ class AiChatAssistant(
                 // 새로운 응답 생성
                 chatResponse = chatModel.call(updatedPromptWithMemory) ?: throw ErrorCode.CHAT_NULL_RESPONSE.toException()
                 
-                // 중간 응답 방출
-                emit(chatResponse)
+                // 도구 결과를 포함하여 중간 응답 방출
+                val aggregatedToolResults = if (allToolExecutionResults.isNotEmpty()) {
+                    allToolExecutionResults.joinToString("\n\n--- Next Tool Call ---\n\n")
+                } else {
+                    null
+                }
+                
+                emit(ChatAssistant.ResponseWithToolExecutionResult(
+                    chatResponse = chatResponse,
+                    toolExecutionResult = aggregatedToolResults
+                ))
                 
                 // 응답을 메모리에 추가
                 chatMemory.add(conversationId, chatResponse.result.output)
