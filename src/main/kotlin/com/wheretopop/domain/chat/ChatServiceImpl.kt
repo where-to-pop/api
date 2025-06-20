@@ -10,10 +10,10 @@ import com.wheretopop.shared.exception.toException
 import com.wheretopop.shared.response.ErrorCode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import mu.KotlinLogging
 import org.springframework.stereotype.Service
@@ -65,8 +65,16 @@ class ChatServiceImpl(
         // 즉시 제목과 사용자 메시지가 포함된 채팅 저장
         val savedChat = chatStore.save(chatWithTitle)
         
-        // 백그라운드에서 스트림 방식으로 AI 응답 처리
-        processMessageInBackground(savedChat, command.context)
+        // 즉시 스트림 생성 및 캐시에 저장 (동기적으로)
+        val executionKey = "${savedChat.id.value}_${System.currentTimeMillis()}"
+        val mutableSharedFlow = MutableSharedFlow<String>(
+            replay = 0,
+            extraBufferCapacity = 1000
+        )
+        activeExecutions[executionKey] = mutableSharedFlow.asSharedFlow()
+        
+        // 백그라운드에서 AI 처리 시작  
+        processMessageInBackground(savedChat, command.context, mutableSharedFlow, executionKey)
         
         return ChatInfoMapper.toDetailInfo(savedChat)
     }
@@ -123,8 +131,16 @@ class ChatServiceImpl(
         // 즉시 Simple 정보 생성
         val simpleInfo = ChatInfoMapper.toSimpleInfo(savedChat)
         
-        // 백그라운드에서 스트림 방식으로 AI 응답 처리
-        processMessageInBackground(savedChat, context)
+        // 즉시 스트림 생성 및 캐시에 저장 (동기적으로)
+        val executionKey = "${savedChat.id.value}_${System.currentTimeMillis()}" 
+        val mutableSharedFlow = MutableSharedFlow<String>(
+            replay = 0,
+            extraBufferCapacity = 1000
+        )
+        activeExecutions[executionKey] = mutableSharedFlow.asSharedFlow()
+        
+        // 백그라운드에서 AI 처리 시작
+        processMessageInBackground(savedChat, context, mutableSharedFlow, executionKey)
         
         return simpleInfo
     }
@@ -169,50 +185,47 @@ class ChatServiceImpl(
     /**
      * 백그라운드에서 메시지를 처리하고 결과를 저장합니다.
      */
-    private fun processMessageInBackground(chat: Chat, context: String?) {
-        val executionKey = "${chat.id.value}_${System.currentTimeMillis()}"
-
-        // SharedFlow 생성 (AI 처리는 한 번만 실행)
-        val sharedFlow = chatScenario.processUserMessageStream(chat, context)
-            .map { reActStreamResponse ->
-                objectMapper.writeValueAsString(reActStreamResponse)
-            }
-            .onCompletion {
-                // 실행 완료 시 캐시에서 제거
-                activeExecutions.remove(executionKey)
-            }
-            .shareIn(
-                scope = executionScope,
-                started = kotlinx.coroutines.flow.SharingStarted.Eagerly,
-                replay = 0  // 새로운 구독자는 현재 시점부터만 받기
-            )
-
-        // SharedFlow를 캐시에 저장
-        activeExecutions[executionKey] = sharedFlow
-
-        // 백그라운드에서 SharedFlow 구독하여 결과 저장
+    private fun processMessageInBackground(
+        chat: Chat, 
+        context: String?, 
+        mutableSharedFlow: MutableSharedFlow<String>,
+        executionKey: String
+    ) {
+        // 백그라운드에서 실제 AI 처리 시작
         executionScope.launch {
             try {
+                var finalCompleteResult: String? = null
 
-                sharedFlow.collect { streamData ->
-                    val responseData = objectMapper.readTree(streamData)
-
-                    // COMPLETED 단계에서 누적된 전체 결과 받기
-                    if (responseData.has("isComplete") && responseData.get("isComplete").asBoolean()) {
-                        val finalCompleteResult = responseData.get("finalResult")?.asText() ?: throw ErrorCode.COMMON_SYSTEM_ERROR.toException();
-                        val latestChat = chatReader.findById(chat.id) ?: throw ErrorCode.COMMON_SYSTEM_ERROR.toException()
-                        val updatedChat = latestChat.addMessage(ChatMessage.create(
-                            chatId = chat.id,
-                            role = ChatMessageRole.ASSISTANT,
-                            content = finalCompleteResult,
-                            finishReason = null,
-                            latencyMs = 0L,
-                            createdAt = Instant.now(),
-                            updatedAt = Instant.now(),
-                            deletedAt = null
-                        ))
-                        chatStore.save(updatedChat)
+                chatScenario.processUserMessageStream(chat, context)
+                    .map { reActStreamResponse ->
+                        objectMapper.writeValueAsString(reActStreamResponse)
                     }
+                    .collect { streamData ->
+                        // 실시간으로 클라이언트들에게 데이터 전송
+                        mutableSharedFlow.emit(streamData)
+                        
+                        val responseData = objectMapper.readTree(streamData)
+
+                        // COMPLETED 단계에서 누적된 전체 결과 받기
+                        if (responseData.has("isComplete") && responseData.get("isComplete").asBoolean()) {
+                            finalCompleteResult = responseData.get("finalResult")?.asText()
+                        }
+                    }
+
+                // 완료된 경우 전체 결과를 채팅에 저장
+                finalCompleteResult?.let { result ->
+                    val latestChat = chatReader.findById(chat.id) ?: return@launch
+                    val updatedChat = latestChat.addMessage(ChatMessage.create(
+                        chatId = chat.id,
+                        role = ChatMessageRole.ASSISTANT,
+                        content = result,
+                        finishReason = null,
+                        latencyMs = 0L,
+                        createdAt = Instant.now(),
+                        updatedAt = Instant.now(),
+                        deletedAt = null
+                    ))
+                    chatStore.save(updatedChat)
                 }
             } catch (e: Exception) {
                 // 실행 실패 시 사용자 친화적인 에러 메시지를 채팅에 저장
@@ -229,6 +242,10 @@ class ChatServiceImpl(
                     deletedAt = null
                 ))
                 chatStore.save(updatedChat)
+            } finally {
+                // 스트림 완료 및 캐시에서 제거
+                mutableSharedFlow.tryEmit("") // 완료 신호 (선택사항)
+                activeExecutions.remove(executionKey)
             }
         }
     }
