@@ -37,6 +37,9 @@ class CaseStudyResponseStrategy : BaseChatPromptStrategy() {
             - Make success factors tangible through specific examples
             - Frame lessons as practical "what to do" guidance
             - Connect past successes to future opportunities
+
+            REQUIREMENTS:
+            - If the user specifies a location (e.g., "홍대"), ignore unrelated areas("성수", "여의도") in the evaluation. Only consider data relevant to the user-specified location(s). Do not recommend or evaluate locations outside the user-defined scope
             
             Turn case study analysis into compelling proof points and practical guidance.
         """.trimIndent()
