@@ -68,7 +68,7 @@ class ChatServiceImpl(
         // 즉시 스트림 생성 및 캐시에 저장 (동기적으로)
         val executionKey = "${savedChat.id.value}_${System.currentTimeMillis()}"
         val mutableSharedFlow = MutableSharedFlow<String>(
-            replay = 0,
+            replay = 5,  // 최근 5개 메시지를 새로운 구독자에게 전송
             extraBufferCapacity = 1000
         )
         activeExecutions[executionKey] = mutableSharedFlow.asSharedFlow()
@@ -134,7 +134,7 @@ class ChatServiceImpl(
         // 즉시 스트림 생성 및 캐시에 저장 (동기적으로)
         val executionKey = "${savedChat.id.value}_${System.currentTimeMillis()}" 
         val mutableSharedFlow = MutableSharedFlow<String>(
-            replay = 0,
+            replay = 5,  // 최근 5개 메시지를 새로운 구독자에게 전송
             extraBufferCapacity = 1000
         )
         activeExecutions[executionKey] = mutableSharedFlow.asSharedFlow()
