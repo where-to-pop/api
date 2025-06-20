@@ -251,12 +251,12 @@ class ReActStreamProcessor(
         actions.forEach { step ->
             val strategyType = StrategyType.findById(step.strategy)
             when (strategyType?.executionType) {
-                StrategyExecutionType.DATA_COLLECTION,
-                StrategyExecutionType.DATA_PROCESSING,
-                StrategyExecutionType.DECISION_MAKING -> {
+                StrategyExecutionType.RETRIEVAL,
+                StrategyExecutionType.AUGMENTATION,
+                StrategyExecutionType.PRE_RETRIEVAL -> {
                     retrievalAugmentationSteps.add(step)
                 }
-                StrategyExecutionType.RESPONSE_GENERATION -> {
+                StrategyExecutionType.GENERATION -> {
                     generationStep = step
                 }
                 else -> {

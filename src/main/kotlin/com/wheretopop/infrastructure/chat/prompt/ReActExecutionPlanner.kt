@@ -341,7 +341,7 @@ class ReActExecutionPlanner(
         
         val lastStepStrategy = StrategyType.findById(lastStep.strategy)
         
-        if (lastStepStrategy?.executionType != com.wheretopop.infrastructure.chat.prompt.strategy.StrategyExecutionType.RESPONSE_GENERATION) {
+        if (lastStepStrategy?.executionType != com.wheretopop.infrastructure.chat.prompt.strategy.StrategyExecutionType.GENERATION) {
             throw IllegalStateException(
                 "❌ RAG Pattern validation failed: Last step must be RESPONSE_GENERATION strategy. " +
                 "Found: ${lastStep.strategy} (${lastStepStrategy?.executionType}). " +
