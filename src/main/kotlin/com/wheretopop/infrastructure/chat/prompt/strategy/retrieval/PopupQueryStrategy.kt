@@ -53,12 +53,21 @@ class PopupQueryStrategy(
             - **Building Tools (Requirements)**: Facility specifications for successful popup setups
             
             POPUP TOOL:
-            - findSimilarPopupInfos: Parameters: query: String, k: Int - Use query to describe desired popup characteristics (e.g., 'sticker event', 'cooking class') and k for the number of results.
-            - findPopupInfosByAreaId: Parameters: areaId: Long, query: String, k: Int - Use areaId for a specific area ID, and optionally query for more specific searches and k for the number of results.
-            - findPopupInfosByBuildingId: Parameters: buildingId: Long, query: String, k: Int - Use buildingId for a specific building ID, and optionally query for more specific searches and k for the number of results.
-            - findPopupInfosByAreaName: Parameters: areaName: String, query: String, k: Int - Use areaName to specify the area (e.g., '홍대, 건대, 강남'), and optionally query for more specific searches and k for the number of results.
-            - findPopupInfosByTargetAgeGroup: Parameters: ageGroup: String, query: String, k: Int - Use ageGroup from TEEN_AND_UNDER, TWENTIES, THIRTIES, FORTIES, FIFTY_AND_OVER, and optionally query for more specific searches and k for the number of results.
-            - findPopupInfosByCategory: Parameters: category: String, query: String, k: Int - Use category from FASHION, FOOD_AND_BEVERAGE, BEAUTY, ART, CHARACTER, MEDIA, OTHER, and optionally query for more specific searches and k for the number of results.
+            - findPopupInfosByFilters: Parameters: 
+                - query: String (required) – Describe desired popup characteristics
+                - k: Int = 3 – Number of results to return
+                - areaId: Long? – Optional area ID
+                - buildingId: Long? – Optional building ID
+                - areaName: String? – Optional, must be one of predefined area names
+                - ageGroup: String? – Optional, must be one of: TEEN_AND_UNDER, TWENTIES, THIRTIES, FORTIES, FIFTY_AND_OVER
+                - category: String? – Optional, must be one of: FASHION, FOOD_AND_BEVERAGE, BEAUTY, ART, CHARACTER, MEDIA, OTHER
+                
+            - findSimilarPopupInfos: Parameters: query: String (required), k: Int – Use query to describe desired popup characteristics and k for number of results.
+            - findPopupInfosByAreaId: Parameters: areaId: Long, query: String (required), k: Int – Use areaId for a specific area ID, query for more specific searches and k for number of results.
+            - findPopupInfosByBuildingId: Parameters: buildingId: Long, query: String (required), k: Int – Use buildingId for a specific building ID, query for more specific searches and k for number of results.
+            - findPopupInfosByAreaName: Parameters: areaName: String, query: String (required), k: Int – Use areaName to specify area, query for more specific searches and k for number of results.
+            - findPopupInfosByTargetAgeGroup: Parameters: ageGroup: String, query: String (required), k: Int – Use ageGroup from TEEN_AND_UNDER, TWENTIES, THIRTIES, FORTIES, FIFTY_AND_OVER and query for more specific searches and k for number of results.
+            - findPopupInfosByCategory: Parameters: category: String, query: String (required), k: Int – Use category from FASHION, FOOD_AND_BEVERAGE, BEAUTY, ART, CHARACTER, MEDIA, OTHER and query for more specific searches and k for number of results.
             
             DATA GATHERING APPROACH:
             - Start with popup case identification and performance analysis
