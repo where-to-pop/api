@@ -46,13 +46,14 @@ class PopupToolRegistry(
           FASHION, FOOD_AND_BEVERAGE, BEAUTY, ART, CHARACTER, MEDIA, OTHER
         - ageGroup 파라미터를 사용할 경우, 아래 enum 값 중 하나여야 합니다:
           TEEN_AND_UNDER, TWENTIES, THIRTIES, FORTIES, FIFTY_AND_OVER
-        'query'는 추가적인 검색 특성을 자연어로 입력합니다.
-        'k'는 최대 반환 개수(기본값 3)입니다.
-        예시: "areaName='홍대 관광특구', category='FASHION', ageGroup='TWENTIES', query='전시'"
-    """
+        - 'query'는 필수이며, 팝업의 원하는 특성이나 주제를 자연어로 설명합니다 (예: '전시', '체험 부스').
+        - 'k'는 최대 반환 개수이며, 기본값은 3입니다.
+        
+        예시: areaName='홍대 관광특구', category='FASHION', ageGroup='TWENTIES', query='전시'
+        """
     )
     fun findPopupInfosByFilters(
-        query: String = "",
+        query: String,
         k: Int = DEFAULT_K,
         areaId: Long? = null,
         buildingId: Long? = null,
@@ -72,34 +73,34 @@ class PopupToolRegistry(
         return formatPopupDetails(popups)
     }
 
-    @Tool(description = "Finds popups similar to the given query. The 'query' parameter describes the desired characteristics or information of the popup (e.g., 'sticker event', 'cooking class'). The 'k' parameter specifies the maximum number of results to return (defaults to 3).")
+    @Tool(description = "Finds popups similar to the given query. The 'query' parameter is required and describes the desired characteristics or information of the popup (e.g., 'sticker event', 'cooking class'). The 'k' parameter specifies the maximum number of results to return (defaults to 3).")
     fun findSimilarPopupInfos(query: String, k: Int = DEFAULT_K): String {
         val popups = popupFacade.findSimilarPopupInfos(query, k)
         return formatPopupDetails(popups)
     }
-
-    @Tool(description = "Finds popup events by area ID. The 'query' parameter is optional and can provide additional characteristics for more specific searches. The 'k' parameter specifies the maximum number of results to return (defaults to 3). Use when the user gives a specific area ID and wants to see related popups.")
-    fun findPopupInfosByAreaId(areaId: Long, query: String = "", k: Int = DEFAULT_K): String {
+    
+    @Tool(description = "Finds popup events by area ID. The 'query' parameter is required and describes additional characteristics for more specific searches. The 'k' parameter specifies the maximum number of results to return (defaults to 3). Use when the user gives a specific area ID and wants to see related popups.")
+    fun findPopupInfosByAreaId(areaId: Long, query: String, k: Int = DEFAULT_K): String {
         val popups = popupFacade.findPopupInfosByAreaId(areaId, query, k)
         return formatPopupDetails(popups)
     }
-
-    @Tool(description = "Finds popup events by building ID. The 'query' parameter is optional and can provide additional characteristics for more specific searches. The 'k' parameter specifies the maximum number of results to return (defaults to 3). Use when the user asks for events in a specific building by ID.")
-    fun findPopupInfosByBuildingId(buildingId: Long, query: String = "", k: Int = DEFAULT_K): String {
+    
+    @Tool(description = "Finds popup events by building ID. The 'query' parameter is required and describes additional characteristics for more specific searches. The 'k' parameter specifies the maximum number of results to return (defaults to 3). Use when the user asks for events in a specific building by ID.")
+    fun findPopupInfosByBuildingId(buildingId: Long, query: String, k: Int = DEFAULT_K): String {
         val popups = popupFacade.findPopupInfosByBuildingId(buildingId, query, k)
         return formatPopupDetails(popups)
     }
-
-    @Tool(description = "Finds popup events by area name. The 'query' parameter is optional and can provide additional characteristics for more specific searches. The 'k' parameter specifies the maximum number of results to return (defaults to 3). Use when the user gives a name of an area (e.g., '홍대, 건대, 강남') to find related popups.")
-    fun findPopupInfosByAreaName(areaName: String, query: String = "", k: Int = DEFAULT_K): String {
+    
+    @Tool(description = "Finds popup events by area name. The 'query' parameter is required and describes additional characteristics for more specific searches. The 'k' parameter specifies the maximum number of results to return (defaults to 3). Use when the user gives a name of an area (e.g., '홍대, 건대, 강남') to find related popups.")
+    fun findPopupInfosByAreaName(areaName: String, query: String, k: Int = DEFAULT_K): String {
         val popups = popupFacade.findPopupInfosByAreaName(areaName, query, k)
         return formatPopupDetails(popups)
     }
 
     @Tool(
         description = """
-            Finds popup events by target age group and optional query.
-            The 'query' parameter is optional and can provide additional characteristics for more specific searches.
+            Finds popup events by target age group and query.
+            The 'query' parameter is required and describes additional characteristics for the search.
             The 'k' parameter specifies the maximum number of results to return (defaults to 3).
             Use when the user wants popups for specific age groups.
             The ageGroup parameter **must be one of the following enum values**:
@@ -108,8 +109,6 @@ class PopupToolRegistry(
             - THIRTIES
             - FORTIES
             - FIFTY_AND_OVER
-
-            Example queries: "Find popups for teens", "Show me popups for people in their 20s"
         """
     )
     fun findPopupInfosByTargetAgeGroup(ageGroup: String, query: String, k: Int = DEFAULT_K): String {
@@ -120,7 +119,7 @@ class PopupToolRegistry(
     @Tool(
         description = """
             Finds popup events by category.
-            The 'query' parameter is optional and can provide additional characteristics for more specific searches.
+            The 'query' parameter is required and describes additional characteristics for more specific searches.
             The 'k' parameter specifies the maximum number of results to return (defaults to 3).
             The category parameter **must be one of the following enum values**:
             - FASHION
@@ -130,10 +129,8 @@ class PopupToolRegistry(
             - CHARACTER
             - MEDIA
             - OTHER
-
-            Use this tool when the user mentions a specific category, like 'Show me art-related popups' or 'Find food popups'.
         """
-    )fun findPopupInfosByCategory(category: String, query: String = "", k: Int = DEFAULT_K): String {
+    )fun findPopupInfosByCategory(category: String, query: String, k: Int = DEFAULT_K): String {
         val popups = popupFacade.findPopupInfosByCategory(category, query, k)
         return formatPopupDetails(popups)
     }
