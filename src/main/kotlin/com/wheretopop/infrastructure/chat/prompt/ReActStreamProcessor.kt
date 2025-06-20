@@ -41,17 +41,16 @@ class ReActStreamProcessor(
         // RAG 패턴: R+A (배치 처리) → G (스트리밍)
         val ragSteps = separateRAGSteps(plan.reActResponse.actions)
         
-        val retrievalAugmentationResults: Map<Int, String>
-        
-        // R+A 단계가 있는 경우에만 실행
-        if (ragSteps.retrievalSteps.isNotEmpty()) {
+        var retrievalResult: Map<Int, String> = emptyMap()
+        var augmentationResult: Map<Int, String> = emptyMap()
 
-            retrievalAugmentationResults = executeRABatchSteps(
+
+        if (ragSteps.retrievalSteps.isNotEmpty()) {
+            retrievalResult = executeBatchSteps(
                 chat, plan.requirementAnalysis, ragSteps.retrievalSteps, originalUserMessage, stepResults,
                 chatId, executionId, totalSteps
             ) { response -> emit(response) }
             
-            // R+A 완료 알림
             emit(ReActStreamResponse(
                 status = ReActExecutionStatus(
                     chatId = chatId,
@@ -60,18 +59,34 @@ class ReActStreamProcessor(
                     currentStep = null,
                     totalSteps = totalSteps,
                     progress = 0.75,
-                    message = "정보 수집 및 분석 완료. 답변을 작성할 준비가 되었어요!"
+                    message = "정보 수집을 완료하였어요!"
+                )
+            ))
+        }
+        if (ragSteps.augmentationSteps.isNotEmpty()) {
+            augmentationResult = executeBatchSteps(
+                chat, plan.requirementAnalysis, ragSteps.augmentationSteps, originalUserMessage, stepResults,
+                chatId, executionId, totalSteps
+            ) { response -> emit(response) }
+
+            emit(ReActStreamResponse(
+                status = ReActExecutionStatus(
+                    chatId = chatId,
+                    executionId = executionId,
+                    phase = ExecutionPhase.AGGREGATING,
+                    currentStep = null,
+                    totalSteps = totalSteps,
+                    progress = 0.75,
+                    message = "답변을 작성할 준비가 되었어요!"
                 )
             ))
         } else {
-            // R+A 단계가 없는 경우 (SIMPLE 케이스)
-            logger.info("R+A 단계 없음: 바로 응답 생성 단계로 진행")
-            retrievalAugmentationResults = emptyMap()
+            augmentationResult = retrievalResult;
         }
-        
+
         // G (Generation) 단계를 스트리밍으로 실행
         val generationStep = ragSteps.generationStep
-        val allRAResults = retrievalAugmentationResults.values.joinToString("\n\n") { result ->
+        val allRAResults = augmentationResult.values.joinToString("\n\n") { result ->
             "Context: $result"
         }
         
@@ -227,6 +242,7 @@ class ReActStreamProcessor(
                 
                 // 일반 AI 호출 (결과만 필요)
                 val response = chatAssistant.call(chat.id.toString(), strategy.createPrompt(stepPrompt), strategy.getToolCallingChatOptions())
+                responsetol
                 
                 // 토큰 사용량 추적
                 tokenUsageTracker.trackAndLogTokenUsage(response, "ReActStream 단계 ${step.step} - ${strategy.getType().id}")
@@ -278,9 +294,9 @@ class ReActStreamProcessor(
     }
     
     /**
-     * R+A 단계들을 배치로 실행합니다.
+     * 단계들을 배치로 실행합니다.
      */
-    private suspend fun executeRABatchSteps(
+    private suspend fun executeBatchSteps(
         chat: Chat,
         requirementAnalysis: RequirementAnalysis?,
         raSteps: List<ActionStep>,
@@ -292,14 +308,11 @@ class ReActStreamProcessor(
         emit: suspend (ReActStreamResponse) -> Unit
     ): Map<Int, String> {
         val results = mutableMapOf<Int, String>()
-        
-        // 의존성 순서대로 실행
         val sortedSteps = raSteps.sortedBy { it.step }
-        
         for (step in sortedSteps) {
             try {
-                logger.info("R+A 단계 ${step.step} 실행: ${step.strategy}")
-                
+                logger.info(" 실행: ${step.strategy}")
+
                 // 🔄 단계 실행 시작 알림
                 emit(ReActStreamResponse(
                     status = ReActExecutionStatus(
@@ -325,10 +338,7 @@ class ReActStreamProcessor(
                 val stepResult = executeStepInternal(chat, step, optimizedContext, dependencyResults, originalUserMessage)
                 results[step.step] = stepResult
                 stepResults[step.step] = stepResult
-                
-                logger.info("R+A 단계 ${step.step} 완료")
-                
-                // ✅ 단계 완료 알림
+
                 emit(ReActStreamResponse(
                     status = ReActExecutionStatus(
                         chatId = chatId,
@@ -343,12 +353,10 @@ class ReActStreamProcessor(
                 ))
                 
             } catch (e: Exception) {
-                logger.error("R+A 단계 ${step.step} 실패: ${e.message}", e)
                 val errorResult = "단계 ${step.step} 실패: ${e.message}"
                 results[step.step] = errorResult
                 stepResults[step.step] = errorResult
                 
-                // ❌ 단계 실패 알림
                 emit(ReActStreamResponse(
                     status = ReActExecutionStatus(
                         chatId = chatId,

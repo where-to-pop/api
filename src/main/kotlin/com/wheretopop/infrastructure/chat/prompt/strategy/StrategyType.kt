@@ -172,28 +172,28 @@ enum class StrategyType(
         /**
          * Gets retrieval collection strategies
          */
-        fun getDataCollectionStrategies(): List<StrategyType> {
+        fun getRetrievalStrategies(): List<StrategyType> {
             return getByExecutionType(StrategyExecutionType.RETRIEVAL)
         }
         
         /**
          * Gets retrieval processing strategies
          */
-        fun getDataProcessingStrategies(): List<StrategyType> {
+        fun getAugmentationStrategies(): List<StrategyType> {
             return getByExecutionType(StrategyExecutionType.AUGMENTATION)
         }
         
         /**
          * Gets augmentation making strategies
          */
-        fun getDecisionMakingStrategies(): List<StrategyType> {
+        fun getPreRetrievalStrategies(): List<StrategyType> {
             return getByExecutionType(StrategyExecutionType.PRE_RETRIEVAL)
         }
         
         /**
          * Gets generation generation strategies
          */
-        fun getResponseGenerationStrategies(): List<StrategyType> {
+        fun getGenerationStrategies(): List<StrategyType> {
             return getByExecutionType(StrategyExecutionType.GENERATION)
         }
 

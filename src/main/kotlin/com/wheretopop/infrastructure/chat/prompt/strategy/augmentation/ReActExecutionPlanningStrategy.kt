@@ -35,20 +35,18 @@ class ReActExecutionPlanningStrategy(
 
 
     override fun getSystemPrompt(): String {
-        val dataCollectionStrategies = StrategyType.getDataCollectionStrategies()
+        val retrievalStrategies = StrategyType.getRetrievalStrategies()
             .joinToString("\n") { "- ${it.id}: ${it.description}" }
         
-        val dataProcessingStrategies = StrategyType.getDataProcessingStrategies()
+        val augmentationStrategies = StrategyType.getAugmentationStrategies()
             .joinToString("\n") { "- ${it.id}: ${it.description}" }
         
-        val decisionMakingStrategies = StrategyType.getDecisionMakingStrategies()
+        val generationStrategies = StrategyType.getGenerationStrategies()
             .filter { it != StrategyType.REACT_PLANNER }
             .filter { it != StrategyType.REQUIREMENT_ANALYSIS }
             .joinToString("\n") { "- ${it.id}: ${it.description}" }
         
-        val responseGenerationStrategies = StrategyType.getResponseGenerationStrategies()
-            .joinToString("\n") { "- ${it.id}: ${it.description}" }
-        
+
         return """
             You are an adaptive execution planner for WhereToPop requirements.
             
@@ -56,13 +54,15 @@ class ReActExecutionPlanningStrategy(
             
             ## Available Strategy Categories:
             
-            $dataCollectionStrategies
+            1. **R (Retrieval)**
+            $retrievalStrategies
             
-            $dataProcessingStrategies
+            2. **A (Augmentation)**
+            $augmentationStrategies
             
-            $decisionMakingStrategies
+            3. **G (Generation)**:
+            $generationStrategies
             
-            $responseGenerationStrategies
             
             ## Complexity-Based Planning:
             
