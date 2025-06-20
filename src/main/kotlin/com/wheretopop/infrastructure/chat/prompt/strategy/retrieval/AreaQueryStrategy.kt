@@ -1,4 +1,4 @@
-package com.wheretopop.infrastructure.chat.prompt.strategy.data
+package com.wheretopop.infrastructure.chat.prompt.strategy.retrieval
 
 import com.wheretopop.infrastructure.chat.prompt.strategy.BaseChatPromptStrategy
 import com.wheretopop.infrastructure.chat.prompt.strategy.StrategyType
@@ -39,15 +39,15 @@ class AreaQueryStrategy(
      */
     override fun getAdditionalSystemPrompt(): String {
         return """
-            SPECIALTY: Collect comprehensive area data for location analysis.
+            SPECIALTY: Collect comprehensive area retrieval for location analysis.
             
             DATA COLLECTION PRIORITIES:
             - Primary focus: Area demographics, boundaries, and traffic patterns
             - Secondary context: Related buildings and facilities within the area
-            - Supporting data: Existing popup activities and success cases in the area
+            - Supporting retrieval: Existing popup activities and success cases in the area
             
             TOOL REGISTRY USAGE:
-            - **Area Tools (Primary)**: Demographic data, congestion patterns, geographic boundaries
+            - **Area Tools (Primary)**: Demographic retrieval, congestion patterns, geographic boundaries
             - **Building Tools (Supporting)**: Commercial buildings and facilities within areas
             - **Popup Tools (Context)**: Historical popup activities and performance in areas
             
@@ -55,14 +55,14 @@ class AreaQueryStrategy(
             - Start with area identification and boundary definition
             - Expand to demographic and traffic analysis
             - Cross-reference with building availability and popup history
-            - Maintain focus on quantitative, factual data collection
+            - Maintain focus on quantitative, factual retrieval collection
             
             RESPONSE GUIDANCE:
             - TARGET AUDIENCE: Next ReAct step strategies (Data Aggregation, Analysis, Response Generation)
-            - PURPOSE: Provide structured area intelligence for downstream decision-making analysis
+            - PURPOSE: Provide structured area intelligence for downstream augmentation-making analysis
             - FORMAT: Organize findings into clear sections with quantifiable metrics
-            - TONE: Factual, data-driven, analytical (not conversational)
-            - FOCUS: Raw data and measurable insights, avoid subjective interpretations
+            - TONE: Factual, retrieval-driven, analytical (not conversational)
+            - FOCUS: Raw retrieval and measurable insights, avoid subjective interpretations
             
             Your output will be consumed by analysis algorithms - prioritize structure and precision over readability.
 

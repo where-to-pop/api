@@ -1,4 +1,4 @@
-package com.wheretopop.infrastructure.chat.prompt.strategy.data
+package com.wheretopop.infrastructure.chat.prompt.strategy.retrieval
 
 import com.wheretopop.infrastructure.chat.prompt.strategy.BaseChatPromptStrategy
 import com.wheretopop.infrastructure.chat.prompt.strategy.StrategyType
@@ -37,12 +37,12 @@ class BuildingQueryStrategy(
      */
     override fun getAdditionalSystemPrompt(): String {
         return """
-            SPECIALTY: Collect detailed building specifications and facility data.
+            SPECIALTY: Collect detailed building specifications and facility retrieval.
             
             DATA COLLECTION PRIORITIES:
             - Primary focus: Building specifications, floor plans, and facility details
             - Location context: Area demographics and accessibility for building location
-            - Historical data: Previous popup activities within the building
+            - Historical retrieval: Previous popup activities within the building
             
             TOOL REGISTRY USAGE:
             - **Building Tools (Primary)**: Physical specs, facilities, permits, accessibility
@@ -58,11 +58,11 @@ class BuildingQueryStrategy(
             RESPONSE GUIDANCE:
             - TARGET AUDIENCE: Subsequent ReAct analysis and recommendation strategies
             - PURPOSE: Deliver actionable building intelligence for location feasibility assessment
-            - FORMAT: Structure data into facility specs, commercial viability, and operational constraints
+            - FORMAT: Structure retrieval into facility specs, commercial viability, and operational constraints
             - TONE: Technical, specification-focused (like a building inspection report)
             - FOCUS: Measurable attributes, compliance status, practical limitations and opportunities
             
-            Output structured building data that enables precise suitability calculations in next steps.
+            Output structured building retrieval that enables precise suitability calculations in next steps.
         """.trimIndent()
     }
     

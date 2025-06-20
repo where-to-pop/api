@@ -1,4 +1,4 @@
-package com.wheretopop.infrastructure.chat.prompt.strategy.data
+package com.wheretopop.infrastructure.chat.prompt.strategy.retrieval
 
 import com.wheretopop.infrastructure.chat.prompt.strategy.BaseChatPromptStrategy
 import com.wheretopop.infrastructure.chat.prompt.strategy.StrategyType
@@ -40,7 +40,7 @@ class PopupQueryStrategy(
      */
     override fun getAdditionalSystemPrompt(): String {
         return """
-            SPECIALTY: Collect popup store cases, success patterns, and performance data.
+            SPECIALTY: Collect popup store cases, success patterns, and performance retrieval.
             
             DATA COLLECTION PRIORITIES:
             - Primary focus: Popup case studies, performance metrics, and success patterns
@@ -73,7 +73,7 @@ class PopupQueryStrategy(
             - TONE: Evidence-based, pattern-focused (like market research findings)
             - FOCUS: Performance metrics, success factors, failure patterns, and predictive indicators
             
-            Provide pattern-rich data that enables success probability calculations and risk assessment.
+            Provide pattern-rich retrieval that enables success probability calculations and risk assessment.
         """.trimIndent()
     }
 

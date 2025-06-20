@@ -29,7 +29,7 @@ class AreaPopulationProcessor(
      */
     override fun callAndSave() {
         val areas = areaRepository.findAll()
-        logger.info { "Starting population data collection for ${areas.size} areas" }
+        logger.info { "Starting population retrieval collection for ${areas.size} areas" }
         
         var successCount = 0
         var failCount = 0
@@ -46,17 +46,17 @@ class AreaPopulationProcessor(
                     }
                     
                     successCount++
-                    logger.info { "Population data saved for area: ${area.name}" }
+                    logger.info { "Population retrieval saved for area: ${area.name}" }
                 } else {
                     failCount++
-                    logger.warn { "Failed to fetch population data for area: ${area.name}" }
+                    logger.warn { "Failed to fetch population retrieval for area: ${area.name}" }
                 }
             } catch (e: Exception) {
                 failCount++
-                logger.error(e) { "Error processing population data for ${area.name}: ${e.message}" }
+                logger.error(e) { "Error processing population retrieval for ${area.name}: ${e.message}" }
             }
         }
         
-        logger.info { "Population data collection completed. Success: $successCount, Fail: $failCount" }
+        logger.info { "Population retrieval collection completed. Success: $successCount, Fail: $failCount" }
     }
 }

@@ -1,4 +1,4 @@
-package com.wheretopop.infrastructure.chat.prompt.strategy.response
+package com.wheretopop.infrastructure.chat.prompt.strategy.generation
 
 import com.wheretopop.infrastructure.chat.prompt.strategy.BaseChatPromptStrategy
 import com.wheretopop.infrastructure.chat.prompt.strategy.StrategyType
@@ -7,7 +7,7 @@ import org.springframework.ai.model.tool.ToolCallingChatOptions
 import org.springframework.stereotype.Component
 
 /**
- * General conversation response strategy implementation
+ * General conversation generation strategy implementation
  * Generates general conversation responses for basic queries and interactions - used as fallback
  */
 @Component
@@ -24,7 +24,7 @@ class GeneralResponseStrategy(
     }
 
     /**
-     * Returns general response specific system prompt
+     * Returns general generation specific system prompt
      */
     override fun getAdditionalSystemPrompt(): String {
         return """

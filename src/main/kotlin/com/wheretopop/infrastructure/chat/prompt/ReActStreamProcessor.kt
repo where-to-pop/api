@@ -167,7 +167,7 @@ class ReActStreamProcessor(
                 
                 Context: $optimizedContext
                 
-                Provide a focused response for: ${step.expected_output}
+                Provide a focused generation for: ${step.expected_output}
                 
                 Make sure to directly address the original user question.
             """.trimIndent()
@@ -220,7 +220,7 @@ class ReActStreamProcessor(
                     Context: $optimizedContext
                     ${if (dependencyResults.isNotBlank()) "\nDependencies: $dependencyResults" else ""}
                     
-                    Provide a focused response for: ${step.expected_output}
+                    Provide a focused generation for: ${step.expected_output}
                     
                     Make sure to directly address the original user question.
                 """.trimIndent()

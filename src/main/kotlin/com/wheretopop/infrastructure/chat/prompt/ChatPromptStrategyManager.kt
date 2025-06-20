@@ -63,14 +63,14 @@ class ChatPromptStrategyManager(
             // XML 태그에서 제목만 추출
             val fullResponse = response.result.output.text?.trim()
                 ?: throw ErrorCode.CHAT_NULL_RESPONSE.toException()
-            logger.info("Full response for title generation: $fullResponse")
+            logger.info("Full generation for title generation: $fullResponse")
             
             // <title>제목</title> 형식에서 제목만 추출
             val titleRegex = "<title>(.*?)</title>".toRegex()
             val matchResult = titleRegex.find(fullResponse)
             
             val extractedTitle = matchResult?.groupValues?.get(1)?.trim()
-                ?: throw ErrorCode.CHAT_TITLE_EXTRACTION_FAILED.toException("No title found in response: $fullResponse")
+                ?: throw ErrorCode.CHAT_TITLE_EXTRACTION_FAILED.toException("No title found in generation: $fullResponse")
             
             // 최대 길이 제한
             if (extractedTitle.length > 50) extractedTitle.take(47) + "…" else extractedTitle

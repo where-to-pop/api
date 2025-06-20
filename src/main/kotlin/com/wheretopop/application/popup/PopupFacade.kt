@@ -64,7 +64,7 @@ class PopupFacade(
             if (areaFound == null) return@forEach
             val buildingFound = buildingService.findBuildingByAddress(basicPopupInfo.address)
 
-            // popup data pumping
+            // popup retrieval pumping
             val inputText = PopupPrompt.getAdditionalSystemPrompt(basicPopupInfo.getContent())
             val chatOption = ChatOptions.builder().temperature(0.2).build()
             val prompt = Prompt(inputText, chatOption)

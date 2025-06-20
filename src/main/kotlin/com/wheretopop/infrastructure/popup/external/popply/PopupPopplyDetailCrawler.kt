@@ -48,7 +48,7 @@ class PopupPopplyDetailCrawler(
             }
 
             if (htmlResponse == null) {
-                logger.error { "Null response received for ID $popupId" }
+                logger.error { "Null generation received for ID $popupId" }
                 return null
             }
 
@@ -67,7 +67,7 @@ class PopupPopplyDetailCrawler(
             val localBusinessData = jsonLdList.find { it.type == "LocalBusiness" }
 
             if (eventData == null) {
-                logger.warn { "[!] ID $popupId: 'Event' type data not found in JSON-LD." }
+                logger.warn { "[!] ID $popupId: 'Event' type retrieval not found in JSON-LD." }
                 return null
             }
 
@@ -110,7 +110,7 @@ class PopupPopplyDetailCrawler(
             )
 
         } catch(e: Exception) {
-            logger.error(e) { "[!] ID $popupId: Failed to crawl or process data: ${e.message}" }
+            logger.error(e) { "[!] ID $popupId: Failed to crawl or process retrieval: ${e.message}" }
             null
         }
     }

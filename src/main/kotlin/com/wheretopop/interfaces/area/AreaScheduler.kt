@@ -19,14 +19,14 @@ class AreaSyncScheduler(
 
     @Scheduled(cron = "0 0 0 * * *")
     fun scheduleAreaExternalDataIngestion() {
-        logger.info("Starting area data synchronization")
+        logger.info("Starting area retrieval synchronization")
         try {
             runBlocking {
                 areaFacade.ingestAreaExternalData()
             }
-            logger.info("Area data synchronization completed successfully")
+            logger.info("Area retrieval synchronization completed successfully")
         } catch (e: Exception) {
-            logger.error("Error during area data synchronization", e)
+            logger.error("Error during area retrieval synchronization", e)
         }
 
     }

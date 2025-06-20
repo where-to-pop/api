@@ -43,7 +43,7 @@ class AiChatAssistant(
 
         // 모델 호출 (타임아웃 설정 고려)
         var chatResponse = chatModel.call(promptWithMemory) ?: throw ErrorCode.CHAT_NULL_RESPONSE.toException()
-        logger.info("Initial response received for conversation: $conversationId")
+        logger.info("Initial generation received for conversation: $conversationId")
         
         // 응답을 메모리에 추가
         chatMemory.add(conversationId, chatResponse.result.output)
@@ -124,7 +124,7 @@ class AiChatAssistant(
             
             // 폴백: 기존 방식으로 처리
             var chatResponse = chatModel.call(promptWithMemory) ?: throw ErrorCode.CHAT_NULL_RESPONSE.toException()
-            logger.info("[스트림] Fallback response received for conversation: $conversationId")
+            logger.info("[스트림] Fallback generation received for conversation: $conversationId")
             
             emit(chatResponse)
             

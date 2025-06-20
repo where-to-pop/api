@@ -41,7 +41,7 @@ class AddressToAreaCodeApiCaller(
                 bjdongCd = code.substring(5, 10),
             )
         } catch (e: Exception) {
-            logger.error(e) { "Error fetching area code data for $address: ${e.message}" }
+            logger.error(e) { "Error fetching area code retrieval for $address: ${e.message}" }
             null
         }
     }

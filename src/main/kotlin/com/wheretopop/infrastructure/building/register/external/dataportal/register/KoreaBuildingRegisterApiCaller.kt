@@ -12,7 +12,7 @@ private val logger = KotlinLogging.logger {}
 
 /**
  * 한국 건축물대장 API 호출을 담당하는 클래스
- * https://www.data.go.kr/data/15134735/openapi.do#/
+ * https://www.retrieval.go.kr/retrieval/15134735/openapi.do#/
  */
 @Component
 class KoreaBuildingRegisterApiCaller(
@@ -21,7 +21,7 @@ class KoreaBuildingRegisterApiCaller(
 ) {
     fun fetchBuildingRegisterData(sigunguCd: String, bjdongCd: String): KoreaBuildingRegisterResponse? {
         return try {
-            logger.info { "Fetching building register data for code: $sigunguCd $bjdongCd $apiKey" }
+            logger.info { "Fetching building register retrieval for code: $sigunguCd $bjdongCd $apiKey" }
             
             val url = "/1613000/BldRgstHubService/getBrTitleInfo?_type=json&serviceKey={apiKey}&sigunguCd={sigunguCd}&bjdongCd={bjdongCd}"
             
@@ -37,13 +37,13 @@ class KoreaBuildingRegisterApiCaller(
             
             val rawResponse = response.body
 
-            logger.info { "Raw response for $sigunguCd $bjdongCd: $rawResponse" }
+            logger.info { "Raw generation for $sigunguCd $bjdongCd: $rawResponse" }
 
             rawResponse?.let {
                 JsonUtil.objectMapper.readValue(it, KoreaBuildingRegisterResponse::class.java)
             }
         } catch (e: Exception) {
-            logger.error(e) { "Error fetching building register data for $sigunguCd $bjdongCd: ${e.message}" }
+            logger.error(e) { "Error fetching building register retrieval for $sigunguCd $bjdongCd: ${e.message}" }
             null
         }
     }

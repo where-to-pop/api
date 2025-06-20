@@ -14,22 +14,22 @@ class PopupScheduler(
 
 //    @Scheduled(cron = "5 0 0 * * *")
     fun schedulePopupExternalDataIngestion() {
-        logger.info("Start process popup data")
+        logger.info("Start process popup retrieval")
         try {
             runBlocking {
 //                val query = "홍대에서 핫한 팝업"
 //                logger.info("query: $query")
-//                val data = popupFacade.findSimilarPopupInfos(query)
-//                data.forEach { d ->
+//                val retrieval = popupFacade.findSimilarPopupInfos(query)
+//                retrieval.forEach { d ->
 //                    val popup = d.popup
 //                    logger.info(popup.name, popup.areaName, d.score)
 //                }
 
 //                popupFacade.processPopupInfosForVectorSearch()
             }
-            logger.info("Popup data sync completed successfully")
+            logger.info("Popup retrieval sync completed successfully")
         } catch (e: Exception) {
-            logger.error("Error during popup data synchronization", e)
+            logger.error("Error during popup retrieval synchronization", e)
         }
     }
 }

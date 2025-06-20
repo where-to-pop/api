@@ -1,4 +1,4 @@
-package com.wheretopop.infrastructure.chat.prompt.strategy.decision
+package com.wheretopop.infrastructure.chat.prompt.strategy.augmentation
 
 import com.wheretopop.infrastructure.chat.prompt.strategy.BaseChatPromptStrategy
 import com.wheretopop.infrastructure.chat.prompt.strategy.StrategyType
@@ -61,7 +61,7 @@ class RequirementAnalysisStrategy : BaseChatPromptStrategy() {
             ### COMPLEX (복잡)
             - Multi-criteria analysis requirements
             - Specific building or detailed location analysis
-            - Comprehensive recommendations with multiple data sources
+            - Comprehensive recommendations with multiple retrieval sources
             - Comparative analysis across multiple factors
             
             Examples:

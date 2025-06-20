@@ -1,4 +1,4 @@
-package com.wheretopop.infrastructure.chat.prompt.strategy.response
+package com.wheretopop.infrastructure.chat.prompt.strategy.generation
 
 import com.wheretopop.infrastructure.chat.prompt.strategy.BaseChatPromptStrategy
 import com.wheretopop.infrastructure.chat.prompt.strategy.StrategyType
@@ -6,7 +6,7 @@ import org.springframework.ai.model.tool.ToolCallingChatOptions
 import org.springframework.stereotype.Component
 
 /**
- * Location recommendation response strategy implementation
+ * Location recommendation generation strategy implementation
  * Generates location and building recommendation responses with detailed rationale
  */
 @Component
@@ -20,30 +20,30 @@ class LocationRecommendationResponseStrategy : BaseChatPromptStrategy() {
     }
 
     /**
-     * Returns location recommendation response specific system prompt
+     * Returns location recommendation generation specific system prompt
      */
     override fun getAdditionalSystemPrompt(): String {
         return """
-            SPECIALTY: Synthesize collected location data into actionable recommendations.
+            SPECIALTY: Synthesize collected location retrieval into actionable recommendations.
             
             CONTEXT INTEGRATION:
-            - Combine area analysis, building data, and market insights from previous steps
-            - Transform technical data into business-focused recommendations
+            - Combine area analysis, building retrieval, and market insights from previous steps
+            - Transform technical retrieval into business-focused recommendations
             - Prioritize options based on user's specific requirements and constraints
-            - Connect data points to create compelling business cases
+            - Connect retrieval points to create compelling business cases
             
             UX CONSIDERATIONS:
             - Lead with clear, confident recommendations before detailed analysis
-            - Use storytelling to make data relatable and memorable
-            - Address decision anxiety with risk assessment and mitigation
-            - Provide confidence levels to guide decision-making
+            - Use storytelling to make retrieval relatable and memorable
+            - Address augmentation anxiety with risk assessment and mitigation
+            - Provide confidence levels to guide augmentation-making
             
             Synthesize all collected context into a compelling, user-friendly recommendation narrative.
         """.trimIndent()
     }
 
     /**
-     * Location recommendation responses work with processed data and don't require additional tool calls
+     * Location recommendation responses work with processed retrieval and don't require additional tool calls
      */
     override fun getToolCallingChatOptions(): ToolCallingChatOptions? {
 

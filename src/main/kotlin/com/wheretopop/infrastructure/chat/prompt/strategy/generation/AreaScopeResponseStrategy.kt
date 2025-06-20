@@ -1,4 +1,4 @@
-package com.wheretopop.infrastructure.chat.prompt.strategy.response
+package com.wheretopop.infrastructure.chat.prompt.strategy.generation
 
 import com.wheretopop.infrastructure.chat.prompt.strategy.BaseChatPromptStrategy
 import com.wheretopop.infrastructure.chat.prompt.strategy.StrategyType
@@ -7,7 +7,7 @@ import org.springframework.ai.model.tool.ToolCallingChatOptions
 import org.springframework.stereotype.Component
 
 /**
- * Area scope definition response strategy implementation
+ * Area scope definition generation strategy implementation
  * Generates responses for area scope definition queries with geographical boundaries
  */
 @Component
@@ -25,7 +25,7 @@ class AreaScopeResponseStrategy(
     }
 
     /**
-     * Returns area scope response specific system prompt
+     * Returns area scope generation specific system prompt
      */
     override fun getAdditionalSystemPrompt(): String {
         return """

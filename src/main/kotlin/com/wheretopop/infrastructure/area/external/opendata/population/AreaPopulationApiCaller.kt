@@ -27,7 +27,7 @@ class AreaPopulationApiCaller(
      */
     fun fetchPopulationData(areaName: String): SeoulPopulationResponse? {
         return try {
-            logger.info { "Fetching population data for area: $areaName" }
+            logger.info { "Fetching population retrieval for area: $areaName" }
             
             val url = "/{key}/json/citydata_ppltn/1/5/{areaNm}"
                 .replace("{key}", apiKey)
@@ -42,13 +42,13 @@ class AreaPopulationApiCaller(
             
             val rawResponse = response.body
 
-            logger.info { "Raw response for $areaName: $rawResponse" } // 찍는다
+            logger.info { "Raw generation for $areaName: $rawResponse" } // 찍는다
 
             rawResponse?.let {
                 objectMapper.readValue(it, SeoulPopulationResponse::class.java)
             }
         } catch (e: Exception) {
-            logger.error(e) { "Error fetching population data for $areaName: ${e.message}" }
+            logger.error(e) { "Error fetching population retrieval for $areaName: ${e.message}" }
             null
         }
     }

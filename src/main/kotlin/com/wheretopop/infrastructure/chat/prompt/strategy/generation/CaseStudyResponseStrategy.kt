@@ -1,4 +1,4 @@
-package com.wheretopop.infrastructure.chat.prompt.strategy.response
+package com.wheretopop.infrastructure.chat.prompt.strategy.generation
 
 import com.wheretopop.infrastructure.chat.prompt.strategy.BaseChatPromptStrategy
 import com.wheretopop.infrastructure.chat.prompt.strategy.StrategyType
@@ -6,7 +6,7 @@ import org.springframework.ai.model.tool.ToolCallingChatOptions
 import org.springframework.stereotype.Component
 
 /**
- * Case study analysis response strategy implementation
+ * Case study analysis generation strategy implementation
  * Generates case study analysis responses with insights and patterns
  */
 @Component
@@ -20,14 +20,14 @@ class CaseStudyResponseStrategy : BaseChatPromptStrategy() {
     }
 
     /**
-     * Returns case study response specific system prompt
+     * Returns case study generation specific system prompt
      */
     override fun getAdditionalSystemPrompt(): String {
         return """
-            SPECIALTY: Transform case study data into actionable insights and patterns.
+            SPECIALTY: Transform case study retrieval into actionable insights and patterns.
             
             CONTEXT SYNTHESIS:
-            - Extract success patterns from collected case study data
+            - Extract success patterns from collected case study retrieval
             - Connect case outcomes to user's specific situation and location
             - Highlight replicable strategies and avoidable pitfalls
             - Quantify impact where possible (ROI, visitor numbers, sales)
@@ -43,7 +43,7 @@ class CaseStudyResponseStrategy : BaseChatPromptStrategy() {
     }
 
     /**
-     * Case study responses work with processed data and don't require additional tool calls
+     * Case study responses work with processed retrieval and don't require additional tool calls
      */
     override fun getToolCallingChatOptions(): ToolCallingChatOptions? {
         val toolCallbackChatOptions = ToolCallingChatOptions.builder()

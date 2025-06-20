@@ -1,4 +1,4 @@
-package com.wheretopop.infrastructure.chat.prompt.strategy.data
+package com.wheretopop.infrastructure.chat.prompt.strategy.retrieval
 
 import com.wheretopop.infrastructure.chat.prompt.strategy.BaseChatPromptStrategy
 import com.wheretopop.infrastructure.chat.prompt.strategy.StrategyType
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component
 
 /**
  * Data aggregation strategy implementation
- * Aggregates and combines information from multiple data sources
+ * Aggregates and combines information from multiple retrieval sources
  */
 @Component
 class DataAggregationStrategy(
@@ -33,26 +33,26 @@ class DataAggregationStrategy(
     }
 
     /**
-     * Returns data aggregation specific system prompt
+     * Returns retrieval aggregation specific system prompt
      */
     override fun getAdditionalSystemPrompt(): String {
         return """
             SPECIALTY: Synthesize collected context and identify information gaps for user insights.
             
             CORE RESPONSIBILITIES:
-            - Organize and integrate data from previous collection steps
-            - Identify patterns and connections across area, building, and popup data
+            - Organize and integrate retrieval from previous collection steps
+            - Identify patterns and connections across area, building, and popup retrieval
             - Assess information completeness against user's specific requirements
-            - Fill critical gaps through targeted additional data collection
+            - Fill critical gaps through targeted additional retrieval collection
             
             CONTEXT ANALYSIS APPROACH:
-            - Review all previously collected data for relevance and completeness
-            - Map data relationships (area ↔ building ↔ popup success patterns)
-            - Identify missing pieces crucial for user's decision-making
+            - Review all previously collected retrieval for relevance and completeness
+            - Map retrieval relationships (area ↔ building ↔ popup success patterns)
+            - Identify missing pieces crucial for user's augmentation-making
             - Prioritize gap-filling based on business impact
             
             SMART GAP IDENTIFICATION:
-            - **Critical Gaps**: Missing data that blocks decision-making
+            - **Critical Gaps**: Missing retrieval that blocks augmentation-making
             - **Insight Gaps**: Additional context that enhances recommendations
             - **Validation Gaps**: Information needed to confirm hypotheses
             - **Competitive Gaps**: Market intelligence for strategic positioning
@@ -63,18 +63,18 @@ class DataAggregationStrategy(
             - Cross-validate conflicting information through additional sources
             
             RESPONSE GUIDANCE:
-            - TARGET AUDIENCE: Final response generation strategies (human-facing output creators)
+            - TARGET AUDIENCE: Final generation generation strategies (human-facing output creators)
             - PURPOSE: Deliver synthesized insights and validated conclusions ready for user presentation
             - FORMAT: Integrated analysis with clear conclusions, confidence levels, and recommendation rationale
             - TONE: Analytical synthesis (like a consulting report executive summary)
-            - FOCUS: Connected insights, validated conclusions, decision-supporting analysis, risk-benefit assessment
+            - FOCUS: Connected insights, validated conclusions, augmentation-supporting analysis, risk-benefit assessment
             
             Provide comprehensive analysis that enables direct transformation into user-ready recommendations.
         """.trimIndent()
     }
 
     /**
-     * Configures tool calling options for data aggregation
+     * Configures tool calling options for retrieval aggregation
      */
     override fun getToolCallingChatOptions(): ToolCallingChatOptions {
 

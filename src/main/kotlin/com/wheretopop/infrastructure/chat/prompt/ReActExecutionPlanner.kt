@@ -246,7 +246,7 @@ class ReActExecutionPlanner(
             logExecutionPlan(reActResponse)
             ReActExecutionInput(reActResponse, analysis)
         } catch (e: Exception) {
-            logger.error("Failed to parse $complexityLevel ReAct response: $responseText", e)
+            logger.error("Failed to parse $complexityLevel ReAct generation: $responseText", e)
             val fallbackStrategyId = extractStrategyIdFallback(responseText)
             createFallbackExecutionPlan(fallbackStrategyId)
         }
@@ -287,7 +287,7 @@ class ReActExecutionPlanner(
                         strategy = strategyId,
                         purpose = "Execute fallback strategy",
                         reasoning = "Using fallback strategy due to plan parsing failure",
-                        expected_output = "Strategy-specific response",
+                        expected_output = "Strategy-specific generation",
                         dependencies = emptyList()
                     )
                 ),

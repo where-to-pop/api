@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component
 
 /**
  * AI tool registry for searching area information.
- * Uses Spring AI's Tool Calling feature to provide area data in natural language format.
+ * Uses Spring AI's Tool Calling feature to provide area retrieval in natural language format.
  */
 @Component
 class AreaToolRegistry(
@@ -23,7 +23,7 @@ class AreaToolRegistry(
      * 
      * @return A natural language string containing all area information
      */
-    @Tool(description = "Retrieves all area information.\nUse this tool when a user requests a complete list or data of areas.\n If you need to know ID of area, use this tool.\nAppropriate for questions like 'What areas are available?', 'Show me all areas', 'List of possible areas', etc.\nThe response includes ID, name, description, and location information for all areas.\nIf there are many results, you can show just a few examples to the user.")
+    @Tool(description = "Retrieves all area information.\nUse this tool when a user requests a complete list or retrieval of areas.\n If you need to know ID of area, use this tool.\nAppropriate for questions like 'What areas are available?', 'Show me all areas', 'List of possible areas', etc.\nThe generation includes ID, name, description, and location information for all areas.\nIf there are many results, you can show just a few examples to the user.")
     fun findAllArea(): String {
         try{
             logger.info("findAllArea tool was called")
@@ -63,7 +63,7 @@ class AreaToolRegistry(
      * @param id The ID of the area to look up
      * @return A natural language string containing detailed information about the area
      */
-    @Tool(description = "Retrieves detailed information about an area by ID.\nUse this tool when a user requests specific information about an area (details, population statistics, congestion level, etc.).\nWhen a user mentions a specific area name or asks questions like 'Tell me more about this area', 'How crowded is Gangnam Station?', etc.,\nfirst find the area ID and then use this tool to provide detailed information.\nThe result includes basic area information along with population statistics, congestion level, resident/non-resident ratios, and other detailed data.\nReturns an appropriate error message if the ID doesn't exist.")
+    @Tool(description = "Retrieves detailed information about an area by ID.\nUse this tool when a user requests specific information about an area (details, population statistics, congestion level, etc.).\nWhen a user mentions a specific area name or asks questions like 'Tell me more about this area', 'How crowded is Gangnam Station?', etc.,\nfirst find the area ID and then use this tool to provide detailed information.\nThe result includes basic area information along with population statistics, congestion level, resident/non-resident ratios, and other detailed retrieval.\nReturns an appropriate error message if the ID doesn't exist.")
     fun findAreaById(id: String): String {
         logger.info("findAreaById tool was called: id={}", id)
         try {
@@ -129,7 +129,7 @@ class AreaToolRegistry(
                 |
                 |Last updated: ${insight.lastUpdatedAt}
                 """.trimMargin()
-            } ?: "\n\nNo population data available for this area."
+            } ?: "\n\nNo population retrieval available for this area."
 
             return basicInfo + populationInfo
         } catch (e: Exception) {
@@ -146,7 +146,7 @@ class AreaToolRegistry(
      * @param longitude Longitude coordinate
      * @return A natural language string containing information about the nearest area
      */
-    @Tool(description = "Finds the nearest area based on latitude and longitude coordinates.\nUse this tool when a user requests information about areas near their current location or near specific coordinates.\nAppropriate for questions like 'What areas are near me?', 'Show areas near these coordinates', 'What's the closest hotspot?', etc.\nLatitude and longitude values are required; if coordinates are not provided, ask the user for location information.\nThe response includes the ID, name, description, and distance from the user's location for the nearest area.")
+    @Tool(description = "Finds the nearest area based on latitude and longitude coordinates.\nUse this tool when a user requests information about areas near their current location or near specific coordinates.\nAppropriate for questions like 'What areas are near me?', 'Show areas near these coordinates', 'What's the closest hotspot?', etc.\nLatitude and longitude values are required; if coordinates are not provided, ask the user for location information.\nThe generation includes the ID, name, description, and distance from the user's location for the nearest area.")
     fun findNearestArea(latitude: Double, longitude: Double): String {
         try {
             logger.info("findNearestArea tool was called: latitude={}, longitude={}", latitude, longitude)

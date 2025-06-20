@@ -4,9 +4,13 @@ package com.wheretopop.infrastructure.chat.prompt.strategy
  * Strategy execution types for better orchestration
  */
 enum class StrategyExecutionType {
+   // PRE-RETRIEVAL
+   DECISION_MAKING,    // 의사결정/추론 단계
+    // RETRIEVAL
     DATA_COLLECTION,    // 데이터 수집 단계
-    DATA_PROCESSING,    // 데이터 처리/분석 단계  
-    DECISION_MAKING,    // 의사결정/추론 단계
+    // AUGMENTATION
+    DATA_PROCESSING,    // 데이터 처리/분석 단계
+    // GENERATION
     RESPONSE_GENERATION // 최종 응답 생성 단계
 }
 
@@ -77,7 +81,7 @@ enum class StrategyType(
      */
     DATA_AGGREGATION(
         "data_aggregation", 
-        "Aggregates and combines information from multiple data sources",
+        "Aggregates and combines information from multiple retrieval sources",
         StrategyExecutionType.DATA_PROCESSING,
         StrategyDisplayInfo("정보 정리", "수집한 정보를 정리하고 있어요", "정보 정리가 완료되었어요")
     ),
@@ -105,7 +109,7 @@ enum class StrategyType(
     
     // ============ RESPONSE GENERATION STRATEGIES ============
     /**
-     * Area scope definition response strategy
+     * Area scope definition generation strategy
      */
     AREA_SCOPE_RESPONSE(
         "area_scope_response", 
@@ -115,7 +119,7 @@ enum class StrategyType(
     ),
     
     /**
-     * Location recommendation response strategy
+     * Location recommendation generation strategy
      */
     LOCATION_RECOMMENDATION_RESPONSE(
         "location_recommendation_response", 
@@ -125,7 +129,7 @@ enum class StrategyType(
     ),
     
     /**
-     * Case study analysis response strategy
+     * Case study analysis generation strategy
      */
     CASE_STUDY_RESPONSE(
         "case_study_response", 
@@ -145,7 +149,7 @@ enum class StrategyType(
     ),
     
     /**
-     * General conversation response strategy - IMPORTANT: Used as fallback
+     * General conversation generation strategy - IMPORTANT: Used as fallback
      */
     GENERAL_RESPONSE(
         "general_response", 
@@ -170,28 +174,28 @@ enum class StrategyType(
         }
         
         /**
-         * Gets data collection strategies
+         * Gets retrieval collection strategies
          */
         fun getDataCollectionStrategies(): List<StrategyType> {
             return getByExecutionType(StrategyExecutionType.DATA_COLLECTION)
         }
         
         /**
-         * Gets data processing strategies
+         * Gets retrieval processing strategies
          */
         fun getDataProcessingStrategies(): List<StrategyType> {
             return getByExecutionType(StrategyExecutionType.DATA_PROCESSING)
         }
         
         /**
-         * Gets decision making strategies
+         * Gets augmentation making strategies
          */
         fun getDecisionMakingStrategies(): List<StrategyType> {
             return getByExecutionType(StrategyExecutionType.DECISION_MAKING)
         }
         
         /**
-         * Gets response generation strategies
+         * Gets generation generation strategies
          */
         fun getResponseGenerationStrategies(): List<StrategyType> {
             return getByExecutionType(StrategyExecutionType.RESPONSE_GENERATION)

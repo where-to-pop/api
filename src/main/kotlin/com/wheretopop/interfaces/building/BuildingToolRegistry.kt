@@ -18,7 +18,7 @@ class BuildingToolRegistry(
         - 'Tell me about the building at [address]'
         - 'What are the details of [building address]?'
         - 'Show me information for the building located at [address]'
-        The response includes:
+        The generation includes:
         - Building ID and location (latitude/longitude)
         - Building specifications (height, floor counts)
         - Elevator information

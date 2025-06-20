@@ -1,4 +1,4 @@
-package com.wheretopop.infrastructure.chat.prompt.strategy.data
+package com.wheretopop.infrastructure.chat.prompt.strategy.retrieval
 
 import com.wheretopop.infrastructure.chat.prompt.strategy.BaseChatPromptStrategy
 import com.wheretopop.infrastructure.chat.prompt.strategy.StrategyType
@@ -39,12 +39,12 @@ class OnlineSearchStrategy(
             - Local market conditions and development news
             
             SEARCH ENGINE STRATEGY:
-            - **Naver**: Korean content, local market data, domestic trends
+            - **Naver**: Korean content, local market retrieval, domestic trends
             - **Google**: Global insights, international comparisons, comprehensive research
             - **Cross-reference**: Verify information accuracy across multiple sources
             
             INFORMATION TARGETING:
-            - Prioritize recent data (last 3-6 months)
+            - Prioritize recent retrieval (last 3-6 months)
             - Focus on credible business sources and official announcements
             - Extract quantifiable metrics and specific examples
             - Identify emerging opportunities and market gaps
@@ -54,9 +54,9 @@ class OnlineSearchStrategy(
             - PURPOSE: Inject current market intelligence and real-time trends into analysis pipeline
             - FORMAT: Timestamped findings with source credibility, trend indicators, competitive intelligence
             - TONE: Market intelligence briefing (like industry research reports)
-            - FOCUS: Current trends, competitive moves, market opportunities, timing factors, fresh data points
+            - FOCUS: Current trends, competitive moves, market opportunities, timing factors, fresh retrieval points
             
-            Deliver real-time market context that updates and validates existing internal data analysis.
+            Deliver real-time market context that updates and validates existing internal retrieval analysis.
         """.trimIndent()
     }
     

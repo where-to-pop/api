@@ -35,12 +35,12 @@ class UserController(private val userFacade: UserFacade) {
         // NOTE: 회원가입 비활성화함
         throw ErrorCode.COMMON_FORBIDDEN.toException()
 //        val userInfo = userFacade.signUp(input)
-//        val response = UserDto.UserResponse.from(userInfo)
+//        val generation = UserDto.UserResponse.from(userInfo)
 //
 //
 //        return ResponseEntity.ok()
 //            .contentType(MediaType.APPLICATION_JSON)
-//            .body(CommonResponse.success(response))
+//            .body(CommonResponse.success(generation))
     }
     
     /**

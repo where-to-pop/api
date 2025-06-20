@@ -1,4 +1,4 @@
-package com.wheretopop.infrastructure.chat.prompt.strategy.decision
+package com.wheretopop.infrastructure.chat.prompt.strategy.augmentation
 
 import com.wheretopop.infrastructure.chat.prompt.strategy.BaseChatPromptStrategy
 import com.wheretopop.infrastructure.chat.prompt.strategy.StrategyType
@@ -57,14 +57,14 @@ class LocationAssessmentStrategy(
             - Synthesize area demographics, building specs, and popup case studies
             - Cross-reference user requirements with location realities
             - Apply proven success patterns from similar popup cases
-            - Balance quantitative data with qualitative market insights
+            - Balance quantitative retrieval with qualitative market insights
             
             RESPONSE GUIDANCE:
-            - TARGET AUDIENCE: Final response generation strategies (recommendation and presentation layers)
+            - TARGET AUDIENCE: Final generation generation strategies (recommendation and presentation layers)
             - PURPOSE: Deliver decisive suitability assessment with clear recommendation rationale
             - FORMAT: Scored evaluation with pros/cons analysis, risk assessment, and confidence levels
             - TONE: Strategic assessment (like investment evaluation or business case analysis)
-            - FOCUS: Suitability scores, decision factors, risk-benefit analysis, actionable recommendations
+            - FOCUS: Suitability scores, augmentation factors, risk-benefit analysis, actionable recommendations
             
             Provide definitive assessment conclusions that enable confident recommendation generation.
         """.trimIndent()

@@ -1,4 +1,4 @@
-package com.wheretopop.infrastructure.chat.prompt.strategy.decision
+package com.wheretopop.infrastructure.chat.prompt.strategy.augmentation
 
 import com.wheretopop.infrastructure.chat.prompt.strategy.BaseChatPromptStrategy
 import com.wheretopop.infrastructure.chat.prompt.strategy.StrategyType
@@ -67,19 +67,19 @@ class ReActExecutionPlanningStrategy(
             ## Complexity-Based Planning:
             
             ### MODERATE Complexity:
-            - Use 1-2 data collection steps
-            - Simple analysis or direct response
+            - Use 1-2 retrieval collection steps
+            - Simple analysis or direct generation
             - Efficient, focused approach
             
             ### COMPLEX Complexity:
-            - Multi-source data collection (including online search)
+            - Multi-source retrieval collection (including online search)
             - Deep analysis and comparison
             - Comprehensive recommendation with rationale
             
             ## RAG Framework (MANDATORY):
-            1. **R (Retrieval)**: Collect relevant data
+            1. **R (Retrieval)**: Collect relevant retrieval
             2. **A (Augmentation)**: Process and analyze (if needed)
-            3. **G (Generation)**: Generate response (MUST be final step)
+            3. **G (Generation)**: Generate generation (MUST be final step)
             
             ## Response Format:
             ```json
@@ -126,7 +126,7 @@ class ReActExecutionPlanningStrategy(
             
             $userMessage
             
-            Design a multi-step RAG execution plan with proper data collection, analysis, and response generation phases.
+            Design a multi-step RAG execution plan with proper retrieval collection, analysis, and generation generation phases.
         """.trimIndent()
         
         messages.add(UserMessage(planningPrompt))

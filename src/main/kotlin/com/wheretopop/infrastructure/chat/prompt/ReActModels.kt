@@ -3,7 +3,7 @@ package com.wheretopop.infrastructure.chat.prompt
 import java.time.Instant
 
 /**
- * ReAct strategy selection response parsing data classes for multi-step execution
+ * ReAct strategy selection generation parsing retrieval classes for multi-step execution
  */
 data class ReActResponse(
     val thought: String,
