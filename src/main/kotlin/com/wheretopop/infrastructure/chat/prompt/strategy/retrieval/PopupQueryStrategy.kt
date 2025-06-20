@@ -68,6 +68,9 @@ class PopupQueryStrategy(
             - findPopupInfosByAreaName: Parameters: areaName: String, query: String (required), k: Int – Use areaName to specify area, query for more specific searches and k for number of results.
             - findPopupInfosByTargetAgeGroup: Parameters: ageGroup: String, query: String (required), k: Int – Use ageGroup from TEEN_AND_UNDER, TWENTIES, THIRTIES, FORTIES, FIFTY_AND_OVER and query for more specific searches and k for number of results.
             - findPopupInfosByCategory: Parameters: category: String, query: String (required), k: Int – Use category from FASHION, FOOD_AND_BEVERAGE, BEAUTY, ART, CHARACTER, MEDIA, OTHER and query for more specific searches and k for number of results.
+
+            PREDEFINED AREA NAME:
+            "강남 MICE 관광특구", "동대문 관광특구", "명동 관광특구", "이태원 관광특구", "잠실 관광특구", "홍대 관광특구", "강남역", "건대입구역", "고속터미널역", "사당역", "서울역", "선릉역", "신촌·이대역", "충정로역", "합정역", "혜화역", "가로수길", "북촌한옥마을", "서촌", "성수카페거리", "압구정로데오거리", "여의도", "연남동", "영등포 타임스퀘어", "용리단길", "인사동·익선동", "해방촌·경리단길", "광화문광장"
             
             DATA GATHERING APPROACH:
             - Start with popup case identification and performance analysis
