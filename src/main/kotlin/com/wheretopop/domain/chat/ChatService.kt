@@ -2,6 +2,7 @@ package com.wheretopop.domain.chat
 
 import com.wheretopop.domain.user.UserId
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharedFlow
 
 interface ChatService {
     fun initializeChat(command: ChatCommand.InitializeChat): ChatInfo.Detail
@@ -17,7 +18,7 @@ interface ChatService {
     /**
      * 특정 채팅의 ReAct 실행 상태를 스트림으로 조회합니다.
      */
-    fun getChatExecutionStatusStream(chatId: ChatId, userId: UserId, executionId: String?): Flow<String>
+    fun getChatExecutionStatusStream(chatId: ChatId, userId: UserId, executionId: String?): SharedFlow<String>
 
     fun getSimple(chatId: ChatId): ChatInfo.Simple
     fun getDetail(chatId: ChatId): ChatInfo.Detail

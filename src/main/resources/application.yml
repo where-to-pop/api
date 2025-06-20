@@ -37,18 +37,18 @@ spring:
           enabled: true
         type: sync
         stdio:
-#          connections:
-#            naver-search-mcp:
-#              command: npx
-#              args:
-#                - -y
-#                - "@smithery/cli@latest"
-#                - run
-#                - "@isnow890/naver-search-mcp"
-#                - --key
-#                - ${SMITHERY_API_KEY}
-#                - --profile
-#                - jealous-orca-ZTyY94
+          connections:
+            naver-search-mcp:
+              command: npx
+              args:
+                - -y
+                - "@smithery/cli@latest"
+                - run
+                - "@isnow890/naver-search-mcp"
+                - --key
+                - ${SMITHERY_API_KEY}
+                - --profile
+                - jealous-orca-ZTyY94
     #            exa:
     #              command: npx
     #              args:
