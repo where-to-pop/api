@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.reactive.asFlow
 import mu.KotlinLogging
 import org.springframework.ai.chat.memory.MessageWindowChatMemory
+import org.springframework.ai.chat.messages.ToolResponseMessage
 import org.springframework.ai.chat.messages.UserMessage
 import org.springframework.ai.chat.model.ChatModel
 import org.springframework.ai.chat.prompt.Prompt
@@ -75,9 +76,13 @@ class AiChatAssistant(
             // 도구 실행 결과를 수집
             val toolResultSummary = buildString {
                 append("Tool Call Iteration $toolCallCount:\n")
-                conversationHistory[conversationHistory.size - 1].let { message ->
-                    logger.info { message }
-                    append("- ${message.messageType}: ${message.text}\n")
+                conversationHistory.lastOrNull()?.let { message ->
+                    if (message is ToolResponseMessage) {
+                        logger.info { message }
+                        message.responses.forEach { response ->
+                            append("${response.name}: ${response.responseData} ")
+                        }
+                    }
                 }
             }
             allToolExecutionResults.add(toolResultSummary)
@@ -186,16 +191,22 @@ class AiChatAssistant(
                 )
                 
                 // 도구 실행 결과를 수집
+                val conversationHistory = toolExecutionResult.conversationHistory()
                 val toolResultSummary = buildString {
-                    append("[STREAM] Tool Call Iteration $toolCallCount:\n")
-                    toolExecutionResult.conversationHistory().forEach { message ->
-                        append("- ${message.messageType}: ${message.text.take(200)}\n")
+                    append("Tool Call Iteration $toolCallCount:\n")
+                    conversationHistory.lastOrNull()?.let { message ->
+                        if (message is ToolResponseMessage) {
+                            logger.info { message }
+                            message.responses.forEach { response ->
+                                append("${response.name}: ${response.responseData} ")
+                            }
+                        }
                     }
                 }
+
                 allToolExecutionResults.add(toolResultSummary)
                 
                 // 도구 실행 결과를 메모리에 추가 (결과 크기 제한)
-                val conversationHistory = toolExecutionResult.conversationHistory()
                 if (conversationHistory.isNotEmpty()) {
                     val lastMessage = conversationHistory[conversationHistory.size - 1]
                     // 메시지 크기 제한 (스트림에서는 더 작게)
