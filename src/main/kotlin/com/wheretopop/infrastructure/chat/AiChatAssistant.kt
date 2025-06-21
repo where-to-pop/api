@@ -79,12 +79,21 @@ class AiChatAssistant(
                     if (message is ToolResponseMessage) {
                         logger.info { message }
                         message.responses.forEach { response ->
-                            append("###${response.name}\n");
+                            val params =chatResponse.result.output.toolCalls
+                                .filter { it.id == response.id }
+                                .map {
+                                    it.arguments ?: ""
+                                }
+
                             append(
                                 """
-                                    ```
+                                    ### ${response.name}
+                                    - **Params**
+                                    
+                                     $params
+                                    - **Response**
+                                    
                                     ${response.responseData}
-                                    ```
                                 """.trimIndent()
                             )
                         }

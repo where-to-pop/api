@@ -144,7 +144,13 @@ class Chat private constructor(
      */
     fun getRecentMessagesAsContext(count: Int): String {
         return getRecentMessages(count).joinToString("\n") { message ->
-            "${message.role.name}: ${message.content}"
+            """
+                [${message.role.name}]
+                - content
+                ${message.content}""${'"'}.trimMargin()
+                - reasoning & tool execution result
+                ${message.stepResult}
+            """
         }
     }
 }
