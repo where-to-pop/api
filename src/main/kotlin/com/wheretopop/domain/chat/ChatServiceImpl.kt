@@ -264,7 +264,7 @@ class ChatServiceImpl(
                 chatStore.save(updatedChat)
             } finally {
                 // 스트림 완료 및 캐시에서 제거
-                mutableSharedFlow.tryEmit("") // 완료 신호 (선택사항)
+                mutableSharedFlow.tryEmit("closed")
                 activeExecutions.remove(executionKey)
             }
         }
