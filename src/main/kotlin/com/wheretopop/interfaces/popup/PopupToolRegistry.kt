@@ -37,19 +37,21 @@ class PopupToolRegistry(
     @Tool(
         description = """
         여러 조건(areaName, category, ageGroup 등)으로 팝업을 복합적으로 검색합니다.
-        - areaName 파라미터를 사용할 경우, 아래 값 중 하나여야 합니다:
+        - 'query'는 필수이며, 팝업의 원하는 특성이나 주제를 자연어로 설명합니다 (예: '전시', '체험 부스').
+        - 'k'는 최대 반환 개수이며, 기본값은 3입니다.
+        Optional parameters – return null if unknown: 
+        - areaName 파라미터를 사용할 경우, 아래 값 중 하나:
           "강남 MICE 관광특구", "동대문 관광특구", "명동 관광특구", "이태원 관광특구", "잠실 관광특구", "홍대 관광특구",
           "강남역", "건대입구역", "고속터미널역", "사당역", "서울역", "선릉역", "신촌·이대역", "충정로역", "합정역", "혜화역",
           "가로수길", "북촌한옥마을", "서촌", "성수카페거리", "압구정로데오거리", "여의도", "연남동", "영등포 타임스퀘어",
           "용리단길", "인사동·익선동", "해방촌·경리단길", "광화문광장"
-        - category 파라미터를 사용할 경우, 아래 enum 값 중 하나여야 합니다:
+        - category 파라미터를 사용할 경우, 아래 enum 값 중 하나:
           FASHION, FOOD_AND_BEVERAGE, BEAUTY, ART, CHARACTER, MEDIA, OTHER
-        - ageGroup 파라미터를 사용할 경우, 아래 enum 값 중 하나여야 합니다:
+        - ageGroup 파라미터를 사용할 경우, 아래 enum 값 중 하나:
           TEEN_AND_UNDER, TWENTIES, THIRTIES, FORTIES, FIFTY_AND_OVER
-        - 'query'는 필수이며, 팝업의 원하는 특성이나 주제를 자연어로 설명합니다 (예: '전시', '체험 부스').
-        - 'k'는 최대 반환 개수이며, 기본값은 3입니다.
         
-        예시: areaName='홍대 관광특구', category='FASHION', ageGroup='TWENTIES', query='전시'
+        예시: areaName='홍대 관광특구', category='FASHION', ageGroup='TWENTIES', query='전시' ||
+        areaName="성수카페거리", query="게임"
         """
     )
     fun findPopupInfosByFilters(
