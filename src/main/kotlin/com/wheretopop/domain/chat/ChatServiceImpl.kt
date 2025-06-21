@@ -264,7 +264,13 @@ class ChatServiceImpl(
                 chatStore.save(updatedChat)
             } finally {
                 // 스트림 완료 및 캐시에서 제거
-                mutableSharedFlow.tryEmit("closed")
+                val message = mapOf(
+                    "status" to mapOf(
+                        "phase" to ExecutionPhase.CLOSED.name
+                    )
+                )
+                val jsonString = objectMapper.writeValueAsString(message)
+                mutableSharedFlow.tryEmit(jsonString)
                 activeExecutions.remove(executionKey)
             }
         }

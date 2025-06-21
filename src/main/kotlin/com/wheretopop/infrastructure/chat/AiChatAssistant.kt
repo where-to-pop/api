@@ -75,12 +75,18 @@ class AiChatAssistant(
 
             // 도구 실행 결과를 수집
             val toolResultSummary = buildString {
-                append("Tool Call Iteration $toolCallCount:\n")
                 conversationHistory.lastOrNull()?.let { message ->
                     if (message is ToolResponseMessage) {
                         logger.info { message }
                         message.responses.forEach { response ->
-                            append("${response.name}: ${response.responseData} ")
+                            append("###${response.name}\n");
+                            append(
+                                """
+                                    ```
+                                    ${response.responseData}
+                                    ```
+                                """.trimIndent()
+                            )
                         }
                     }
                 }

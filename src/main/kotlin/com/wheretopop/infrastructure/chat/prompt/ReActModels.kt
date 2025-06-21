@@ -49,7 +49,8 @@ enum class ExecutionPhase {
     STEP_FAILED,        // 개별 단계 실패
     AGGREGATING,        // 결과 통합 중
     COMPLETED,          // 전체 실행 완료
-    FAILED              // 전체 실행 실패
+    FAILED,              // 전체 실행 실패
+    CLOSED              // 실행 종료
 }
 
 data class ReActStreamResponse(

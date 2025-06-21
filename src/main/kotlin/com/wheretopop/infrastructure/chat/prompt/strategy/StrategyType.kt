@@ -251,6 +251,7 @@ enum class StrategyType(
                 com.wheretopop.infrastructure.chat.prompt.ExecutionPhase.AGGREGATING -> "정보를 정리하고 있어요"
                 com.wheretopop.infrastructure.chat.prompt.ExecutionPhase.COMPLETED -> "모든 정보를 찾았어요!"
                 com.wheretopop.infrastructure.chat.prompt.ExecutionPhase.FAILED -> "죄송해요, 문제가 발생했어요"
+                com.wheretopop.infrastructure.chat.prompt.ExecutionPhase.CLOSED -> "연결이 닫혔어요."
             }
         }
         
