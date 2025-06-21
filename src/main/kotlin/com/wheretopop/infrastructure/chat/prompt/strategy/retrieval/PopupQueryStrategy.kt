@@ -56,6 +56,7 @@ class PopupQueryStrategy(
             - findPopupInfosByFilters: Parameters: 
                 - query: String (required) – Describe desired popup characteristics
                 - k: Int = 3 – Number of results to return
+                Optional parameters – return null if unknown:
                 - areaId: Long? – Optional area ID
                 - buildingId: Long? – Optional building ID
                 - areaName: String? – Optional, must be one of predefined area names
