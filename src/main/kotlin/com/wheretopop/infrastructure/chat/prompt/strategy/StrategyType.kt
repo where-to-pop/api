@@ -133,6 +133,26 @@ enum class StrategyType(
         StrategyExecutionType.GENERATION,
         StrategyDisplayInfo( "사례 분석", "사례를 분석하고 있어요", "사례 분석이 완료되었어요")
     ),
+    
+    /**
+     * Price estimation generation strategy
+     */
+    PRICE_ESTIMATION_RESPONSE(
+        "price_estimation_response",
+        "Generates comprehensive price estimation for popup store setup including rent, facilities, and operational costs",
+        StrategyExecutionType.GENERATION,
+        StrategyDisplayInfo("가격 추정", "비용을 계산하고 있어요", "가격 추정이 완료되었어요")
+    ),
+    
+    /**
+     * Popup store planning generation strategy  
+     */
+    PLANNING_RESPONSE(
+        "planning_response",
+        "Generates comprehensive popup store planning proposals including concept, timeline, and execution strategy",
+        StrategyExecutionType.GENERATION,
+        StrategyDisplayInfo("기획 제안", "기획안을 작성하고 있어요", "기획 제안이 완료되었어요")
+    ),
 
     /**
      * ReAct execution planner
@@ -264,6 +284,8 @@ enum class StrategyType(
                 purpose.contains("분석", true) || purpose.contains("analysis", true) -> "정보를 분석"
                 purpose.contains("비교", true) || purpose.contains("comparison", true) -> "옵션들을 비교"
                 purpose.contains("추천", true) || purpose.contains("recommend", true) -> "추천을 준비"
+                purpose.contains("가격", true) || purpose.contains("비용", true) || purpose.contains("price", true) -> "가격을 계산"
+                purpose.contains("기획", true) || purpose.contains("계획", true) || purpose.contains("planning", true) -> "기획안을 작성"
                 purpose.contains("Step objective", true) -> "정보를 처리"
                 else -> purpose.take(20)
             }
