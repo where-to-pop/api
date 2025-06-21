@@ -48,6 +48,8 @@ class BuildingQueryStrategy(
             - **Building Tools (Primary)**: Physical specs, facilities, permits, accessibility
             - **Area Tools (Context)**: Location demographics and surrounding area analysis
             - **Popup Tools (History)**: Past popup events and performance in this building
+            - **Naver Search Tools (Follow Up)**: retrieving recent web data (Highly Recommended if you already obtained some building information) 
+
             
             DATA GATHERING APPROACH:
             - Start with building identification and physical specifications

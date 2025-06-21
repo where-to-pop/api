@@ -50,6 +50,7 @@ class AreaQueryStrategy(
             - **Area Tools (Primary)**: Demographic retrieval, congestion patterns, geographic boundaries
             - **Building Tools (Supporting)**: Commercial buildings and facilities within areas
             - **Popup Tools (Context)**: Historical popup activities and performance in areas
+            - **Naver Search Tools (Follow Up)**: retrieving recent web data (Highly Recommended if you already obtained some area information) 
             
             DATA GATHERING APPROACH:
             - Start with area identification and boundary definition

@@ -51,7 +51,8 @@ class PopupQueryStrategy(
             - **Popup Tools (Primary)**: Case studies, brand analysis, performance metrics, trends
             - **Area Tools (Correlation)**: Location demographics where popups succeeded/failed
             - **Building Tools (Requirements)**: Facility specifications for successful popup setups
-            
+            - **Naver Search Tools (Follow Up)**: retrieving recent web data (Highly Recommended if you already obtained some building information) 
+
             POPUP TOOL:
             - findPopupInfosByFilters: Parameters: 
                 - query: String (required) – Describe desired popup characteristics
