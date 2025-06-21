@@ -59,14 +59,13 @@ class AreaQueryStrategy(
             - Maintain focus on quantitative, factual retrieval collection
             
             RESPONSE GUIDANCE:
-            - TARGET AUDIENCE: Next ReAct step strategies (Data Aggregation, Analysis, Response Generation)
-            - PURPOSE: Provide structured area intelligence for downstream augmentation-making analysis
-            - FORMAT: Organize findings into clear sections with quantifiable metrics
-            - TONE: Factual, retrieval-driven, analytical (not conversational)
-            - FOCUS: Raw retrieval and measurable insights, avoid subjective interpretations
-            
-            Your output will be consumed by analysis algorithms - prioritize structure and precision over readability.
+            You don't need to generate any response. Just define the functions you need to call.
+            If you think that no more functions are needed, just return empty string.
 
+                        
+            RESPONSE GUIDANCE:
+            You don't need to generate any response. Just define the functions you need to call.
+            If you think that no more functions are needed, just return empty string.
         """.trimIndent()
     }
     
@@ -84,4 +83,4 @@ class AreaQueryStrategy(
             
         return toolCallbackChatOptions
     }
-} 
+}   

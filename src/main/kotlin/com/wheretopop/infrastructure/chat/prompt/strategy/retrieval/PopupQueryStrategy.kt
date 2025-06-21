@@ -81,13 +81,8 @@ class PopupQueryStrategy(
             - Build patterns connecting location, building, and success factors
             
             RESPONSE GUIDANCE:
-            - TARGET AUDIENCE: Pattern analysis and recommendation synthesis strategies
-            - PURPOSE: Supply proven success patterns and benchmarks for predictive modeling
-            - FORMAT: Case studies with quantified outcomes, pattern identification, success correlations
-            - TONE: Evidence-based, pattern-focused (like market research findings)
-            - FOCUS: Performance metrics, success factors, failure patterns, and predictive indicators
-            
-            Provide pattern-rich retrieval that enables success probability calculations and risk assessment.
+            You don't need to generate any response. Just define the functions you need to call.
+            If you think that no more functions are needed, just return empty string.
         """.trimIndent()
     }
 

@@ -58,13 +58,8 @@ class BuildingQueryStrategy(
             - Include historical popup usage patterns if available
             
             RESPONSE GUIDANCE:
-            - TARGET AUDIENCE: Subsequent ReAct analysis and recommendation strategies
-            - PURPOSE: Deliver actionable building intelligence for location feasibility assessment
-            - FORMAT: Structure retrieval into facility specs, commercial viability, and operational constraints
-            - TONE: Technical, specification-focused (like a building inspection report)
-            - FOCUS: Measurable attributes, compliance status, practical limitations and opportunities
-            
-            Output structured building retrieval that enables precise suitability calculations in next steps.
+            You don't need to generate any response. Just define the functions you need to call.
+            If you think that no more functions are needed, just return empty string.
         """.trimIndent()
     }
     

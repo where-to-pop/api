@@ -50,13 +50,8 @@ class OnlineSearchStrategy(
             - Identify emerging opportunities and market gaps
             
             RESPONSE GUIDANCE:
-            - TARGET AUDIENCE: Data aggregation and trend analysis strategies
-            - PURPOSE: Inject current market intelligence and real-time trends into analysis pipeline
-            - FORMAT: Timestamped findings with source credibility, trend indicators, competitive intelligence
-            - TONE: Market intelligence briefing (like industry research reports)
-            - FOCUS: Current trends, competitive moves, market opportunities, timing factors, fresh retrieval points
-            
-            Deliver real-time market context that updates and validates existing internal retrieval analysis.
+            You don't need to generate any response. Just define the functions you need to call.
+            If you think that no more functions are needed, just return empty string.
         """.trimIndent()
     }
     

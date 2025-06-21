@@ -71,6 +71,26 @@ enum class StrategyType(
         StrategyDisplayInfo("온라인 검색", "최신 정보를 검색하고 있어요", "최신 정보를 찾았어요")
     ),
     
+    /**
+     * Trend information query strategy
+     */
+    TREND_QUERY(
+        "trend_query",
+        "Collects industry trends, consumer behavior patterns, and market insights using web search",
+        StrategyExecutionType.RETRIEVAL,
+        StrategyDisplayInfo("트렌드 정보", "트렌드 정보를 찾고 있어요", "트렌드 정보를 찾았어요")
+    ),
+    
+    /**
+     * Competitor information query strategy
+     */
+    COMPETITOR_QUERY(
+        "competitor_query", 
+        "Collects competitor information including pricing, operations, and market positioning using web search",
+        StrategyExecutionType.RETRIEVAL,
+        StrategyDisplayInfo("경쟁사 정보", "경쟁사 정보를 찾고 있어요", "경쟁사 정보를 찾았어요")
+    ),
+    
     // ============ DATA PROCESSING STRATEGIES ============
     /**
      * Data aggregation strategy
@@ -286,6 +306,8 @@ enum class StrategyType(
                 purpose.contains("추천", true) || purpose.contains("recommend", true) -> "추천을 준비"
                 purpose.contains("가격", true) || purpose.contains("비용", true) || purpose.contains("price", true) -> "가격을 계산"
                 purpose.contains("기획", true) || purpose.contains("계획", true) || purpose.contains("planning", true) -> "기획안을 작성"
+                purpose.contains("트렌드", true) || purpose.contains("trend", true) -> "트렌드를 조사"
+                purpose.contains("경쟁", true) || purpose.contains("competitor", true) -> "경쟁사를 조사"
                 purpose.contains("Step objective", true) -> "정보를 처리"
                 else -> purpose.take(20)
             }

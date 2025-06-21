@@ -73,13 +73,12 @@ class ReActExecutionPlanningStrategy(
             
             ### COMPLEX Complexity:
             - Multi-source retrieval collection (including online search)
-            - Deep analysis and comparison
-            - Comprehensive recommendation with rationale
+            - Deep analysis and augmentation
             
             ## RAG Framework (MANDATORY):
             1. **R (Retrieval)**: Collect relevant retrieval
             2. **A (Augmentation)**: Process and analyze (if needed)
-            3. **G (Generation)**: Generate generation (MUST be final step)
+            3. **G (Generation)**: Generate generation (MUST be final step and only one)
             
             ## Response Format:
             ```json
