@@ -63,11 +63,14 @@ class PopupToolRegistry(
         ageGroup: String? = null,
         category: String? = null
     ): String {
+        val effectiveAreaId = if (areaId == 0L) null else areaId
+        val effectiveBuildingId = if (buildingId == 0L) null else buildingId
+
         val popups = popupFacade.findPopupInfosByFilters(
             query = query,
             k = k,
-            areaId = areaId,
-            buildingId = buildingId,
+            areaId = effectiveAreaId,
+            buildingId = effectiveBuildingId,
             areaName = areaName,
             ageGroup = ageGroup,
             category = category
