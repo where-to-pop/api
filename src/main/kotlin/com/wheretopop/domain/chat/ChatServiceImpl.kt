@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.wheretopop.domain.user.UserId
+import com.wheretopop.infrastructure.chat.prompt.ExecutionPhase
 import com.wheretopop.shared.enums.ChatMessageFinishReason
 import com.wheretopop.shared.enums.ChatMessageRole
 import com.wheretopop.shared.exception.toException
@@ -52,6 +53,7 @@ class ChatServiceImpl(
             role = ChatMessageRole.USER,
             content = command.initialMessage,
             finishReason = null,
+            stepResult = null,
             latencyMs = 0L,
             createdAt = Instant.now(),
             updatedAt = Instant.now(),
@@ -119,6 +121,7 @@ class ChatServiceImpl(
             role = ChatMessageRole.USER,
             content = message,
             finishReason = null,
+            stepResult = null,
             latencyMs = 0L,
             createdAt = Instant.now(),
             updatedAt = Instant.now(),
@@ -196,6 +199,7 @@ class ChatServiceImpl(
             val chatMessageId = ChatMessageId.create()
             try {
                 var finalCompleteResult: String? = null
+                var stepResultAggregation: String? = null
 
                 chatScenario.processUserMessageStream(chat, chatMessageId, context)
                     .map { reActStreamResponse ->
@@ -204,9 +208,20 @@ class ChatServiceImpl(
                     .collect { streamData ->
                         // 실시간으로 클라이언트들에게 데이터 전송
                         mutableSharedFlow.emit(streamData)
-                        
                         val responseData = objectMapper.readTree(streamData)
-
+                        if (responseData.has("status")) {
+                            val status = responseData.get("status");
+                            if (status.has("phase")) {
+                                val phaseString = status.get("phase").asText()
+                                if (ExecutionPhase.valueOf(phaseString) == ExecutionPhase.STEP_COMPLETED && status.has("stepResult")) {
+                                    val stepResult = status.get("stepResult").asText()
+                                    logger.info { "stepResult: $stepResult" };
+                                    // stepResultAggregation 이 null 이면 최초 값 할당, 그렇지 않으면 누적
+                                    stepResultAggregation =
+                                        stepResultAggregation?.plus(stepResult + "\n") ?: (stepResult + "\n")
+                                }
+                            }
+                        }
                         // COMPLETED 단계에서 누적된 전체 결과 받기
                         if (responseData.has("isComplete") && responseData.get("isComplete").asBoolean()) {
                             finalCompleteResult = responseData.get("finalResult")?.asText()
@@ -222,6 +237,7 @@ class ChatServiceImpl(
                         role = ChatMessageRole.ASSISTANT,
                         content = result,
                         finishReason = null,
+                        stepResult = stepResultAggregation,
                         latencyMs = 0L,
                         createdAt = Instant.now(),
                         updatedAt = Instant.now(),
@@ -240,6 +256,7 @@ class ChatServiceImpl(
                     content = errorMessage,
                     finishReason = ChatMessageFinishReason.ERROR,
                     latencyMs = 0L,
+                    stepResult = null,
                     createdAt = Instant.now(),
                     updatedAt = Instant.now(),
                     deletedAt = null

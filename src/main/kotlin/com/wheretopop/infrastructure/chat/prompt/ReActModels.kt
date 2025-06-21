@@ -35,7 +35,7 @@ data class ReActExecutionStatus(
     val phase: ExecutionPhase,
     val currentStep: Int?,
     val totalSteps: Int,
-    val progress: Double, // 0.0 ~ 1.0
+    val progress: Double,
     val message: String,
     val stepResult: String? = null,
     val error: String? = null,

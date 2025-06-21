@@ -43,14 +43,17 @@ class ReActStreamProcessor(
         
         var retrievalResult: Map<Int, ChatAssistant.ResponseWithToolExecutionResult> = emptyMap()
         var augmentationResult: Map<Int, ChatAssistant.ResponseWithToolExecutionResult> = emptyMap()
-
+        val toolExecutionResult: MutableList<String> = mutableListOf();
 
         if (ragSteps.retrievalSteps.isNotEmpty()) {
             retrievalResult = executeBatchSteps(
                 chat, chatMessageId, plan.requirementAnalysis, ragSteps.retrievalSteps,
                 originalUserMessage, stepResults, totalSteps
             ) { response -> emit(response) }
-            
+            retrievalResult.values
+                .mapNotNull { it.toolExecutionResult }
+                .forEach { toolExecutionResult.add(it) }
+
             emit(ReActStreamResponse(
                 status = ReActExecutionStatus(
                     chatId = chat.id.toString(),
@@ -68,6 +71,9 @@ class ReActStreamProcessor(
                 chat, chatMessageId, plan.requirementAnalysis, ragSteps.augmentationSteps,
                 originalUserMessage, stepResults, totalSteps
             ) { response -> emit(response) }
+            augmentationResult.values
+                .mapNotNull { it.toolExecutionResult }
+                .forEach { toolExecutionResult.add(it) }
 
             emit(ReActStreamResponse(
                 status = ReActExecutionStatus(
@@ -87,7 +93,6 @@ class ReActStreamProcessor(
         // G (Generation) 단계를 스트리밍으로 실행
         val generationStep = ragSteps.generationStep
 
-        // 진행률 계산: R+A 단계가 있으면 0.78부터, 없으면 0.1부터 시작
         val startProgress = if (ragSteps.augmentationSteps.isNotEmpty()) 0.78 else 0.1
         
         // G 단계 시작 알림
@@ -117,7 +122,6 @@ class ReActStreamProcessor(
         ).collect { chunk ->
             accumulatedResponse.append(chunk)
             
-            // 진행률 계산: R+A가 있으면 78%~99%, 없으면 10%~99%
             val progressRange = if (ragSteps.augmentationSteps.isNotEmpty()) 0.21 else 0.89
             val currentProgress = startProgress + (accumulatedResponse.length.toDouble() / 1000) * progressRange
             
@@ -338,7 +342,7 @@ class ReActStreamProcessor(
                         totalSteps = totalSteps,
                         progress = ((results.size.toDouble() + 1) / raSteps.size) * 0.7,
                         message = StrategyType.buildCompletedMessage(step.strategy, step.purpose),
-                        stepResult = stepResults[step.step]?.take(100) // 미리보기용 100자
+                        stepResult = stepResults[step.step]
                     )
                 ))
                 

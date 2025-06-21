@@ -57,6 +57,7 @@ class ChatInfo {
         val id: ChatMessageId,
         val role: String,
         val content: String,
+        val stepResult: String?,
         val createdAt: Instant
     )
 } 

@@ -93,6 +93,7 @@ class ChatDto {
         val id: String,
         val role: String,
         val content: String,
+        val stepResult: String?,
         val createdAt: Instant
     ) {
         companion object {
@@ -101,6 +102,7 @@ class ChatDto {
                     id = info.id.toString(),
                     role = info.role,
                     content = info.content,
+                    stepResult = info.stepResult,
                     createdAt = info.createdAt
                 )
             }

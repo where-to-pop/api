@@ -1,16 +1,14 @@
 package com.wheretopop.shared.infrastructure.entity
 
-import com.wheretopop.domain.chat.ChatMessage
 import com.wheretopop.domain.chat.ChatId
+import com.wheretopop.domain.chat.ChatMessage
 import com.wheretopop.domain.chat.ChatMessageId
 import com.wheretopop.shared.enums.ChatMessageFinishReason
 import com.wheretopop.shared.enums.ChatMessageRole
 import jakarta.persistence.*
-import org.hibernate.annotations.JdbcTypeCode
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
-import java.sql.Types
 import java.time.Instant
 
 /**
@@ -37,7 +35,10 @@ class ChatMessageEntity(
     @Column(name = "finish_reason")
     @Enumerated(EnumType.STRING)
     val finishReason: ChatMessageFinishReason?,
-    
+
+    @Column(name = "step_result")
+    val stepResult: String?,
+
     @Column(name = "latency_ms", nullable = false)
     val latencyMs: Long,
     
@@ -60,6 +61,7 @@ class ChatMessageEntity(
                 role = chatMessage.role,
                 content = chatMessage.content,
                 finishReason = chatMessage.finishReason,
+                stepResult = chatMessage.stepResult,
                 latencyMs = chatMessage.latencyMs,
                 createdAt = chatMessage.createdAt,
                 updatedAt = chatMessage.updatedAt,
@@ -75,6 +77,7 @@ class ChatMessageEntity(
             role = role,
             content = content,
             finishReason = finishReason,
+            stepResult = stepResult,
             latencyMs = latencyMs,
             createdAt = createdAt,
             updatedAt = updatedAt,
@@ -89,6 +92,7 @@ class ChatMessageEntity(
             role = chatMessage.role,
             content = chatMessage.content,
             finishReason = chatMessage.finishReason,
+            stepResult = stepResult,
             latencyMs = chatMessage.latencyMs,
             createdAt = createdAt,
             updatedAt = Instant.now(),

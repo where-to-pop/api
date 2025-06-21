@@ -62,6 +62,7 @@ class ChatInfoMapper {
                 id = message.id,
                 role = message.role.name,
                 content = message.content,
+                stepResult = message.stepResult,
                 createdAt = message.createdAt
             )
         }
