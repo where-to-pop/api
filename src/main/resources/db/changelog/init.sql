@@ -301,9 +301,10 @@ CREATE TABLE IF NOT EXISTS chat_messages (
     id BIGINT PRIMARY KEY,
     chat_id BIGINT NOT NULL,
     role VARCHAR(50) NOT NULL,
-    content TEXT NOT NULL,
+    content MEDIUMTEXT NOT NULL,
+
     finish_reason VARCHAR(50) NULL,
-    step_result TEXT NULL,
+    step_result MEDIUMTEXT NULL,
     latency_ms BIGINT NOT NULL,
     created_at TIMESTAMP(6) NOT NULL,
     updated_at TIMESTAMP(6) NOT NULL,
