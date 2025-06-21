@@ -109,8 +109,8 @@ class AiChatAssistant(
             
             // 업데이트된 대화 이력으로 새 프롬프트 생성
             val updatedPromptWithMemory = Prompt(chatMemory.get(conversationId) + systemMessage, toolCallingChatOption)
-            logger.info("system prompt length: ${updatedPromptWithMemory.systemMessage.text.length}")
-            logger.info("User message length: ${updatedPromptWithMemory.userMessage.text.length}")
+            logger.info("ToolCall with Memory: ${chatMemory.get(conversationId)}")
+
             // 새로운 응답 생성
             chatResponse = chatModel.call(updatedPromptWithMemory) ?: throw ErrorCode.CHAT_NULL_RESPONSE.toException()
             // 응답을 메모리에 추가
@@ -236,10 +236,10 @@ class AiChatAssistant(
                 }
                 
                 // 업데이트된 대화 이력으로 새 프롬프트 생성
-                val updatedPromptWithMemory = Prompt(chatMemory.get(conversationId) + systemMessage, toolCallingChatOption)
-                logger.info("[스트림] Updated system prompt length: ${updatedPromptWithMemory.systemMessage.text.length}")
+                val updatedPromptWithMemory = Prompt(chatMemory.get(conversationId), toolCallingChatOption);
+                logger.info("[스트림] Updated system prompt length: ${updatedPromptWithMemory.systemMessage.text.length}");
                 logger.info("[스트림] Updated user message length: ${updatedPromptWithMemory.userMessage.text.length}")
-                
+
                 // 새로운 응답 생성
                 chatResponse = chatModel.call(updatedPromptWithMemory) ?: throw ErrorCode.CHAT_NULL_RESPONSE.toException()
                 

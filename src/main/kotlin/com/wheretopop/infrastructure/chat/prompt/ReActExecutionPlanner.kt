@@ -112,22 +112,6 @@ class ReActExecutionPlanner(
                 createComplexPlan(chat, chatMessageId, requirementAnalysis)
             }
         }
-        
-        // 최종 계획 완료 알림
-        emit(ExecutionPlanningResult.Progress(
-            ReActStreamResponse(
-                status = ReActExecutionStatus(
-                    chatId = chatId,
-                    executionId = chatMessageId.toString(),
-                    phase = ExecutionPhase.PLANNING,
-                    currentStep = null,
-                    totalSteps = executionInput.reActResponse.actions.size,
-                    progress = 0.3,
-                    message = "실행 계획을 완료했어요! 총 ${executionInput.reActResponse.actions.size}단계로 진행합니다."
-                )
-            )
-        ))
-        
         // 최종 결과 emit
         emit(ExecutionPlanningResult.Complete(executionInput))
     }

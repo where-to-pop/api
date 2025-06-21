@@ -58,8 +58,7 @@ class BuildingQueryStrategy(
             - Include historical popup usage patterns if available
             
             RESPONSE GUIDANCE:
-            You don't need to generate any response. Just define the functions you need to call.
-            If you think that no more functions are needed, just return empty string.
+            You don't need to generate any response. Just return "정보 조회를 완료했습니다".
         """.trimIndent()
     }
     
