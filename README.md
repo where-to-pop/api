@@ -1,63 +1,84 @@
-# Where To Pop API
 
-팝업 스토어 위치 추천 및 정보 제공 API
+## 프로젝트 배경 및 동기
 
-## 기술 스택
+**Where to Pop**은 고려대학교 정보대학 산학캡스톤디자인에서 진행된 프로젝트로, **팝업스토어 입지 선정과 인사이트 제공에 특화된 대화형 마케팅 어시스턴트**입니다. 최근 팝업스토어는 브랜드 마케팅의 핵심 채널로 부상했지만, **마케팅 대행사들은 여전히 데이터 기반이 아닌, 기획자의 ‘감’에 의존**하는 경항이 있습니다.
+Where to Pop은 **축적된 팝업스토어 운영 데이터, 지역 상권 정보, SNS 반응 등을 통합 분석**하여 브랜드 타겟과 목적에 맞는 최적의 입지를 추천하고,이를 통해 마케터가 보다 **정량적이고 전략적인 의사결정**을 내릴 수 있도록 지원하며, 팝업스토어 도메인에 특화된 인사이트를 제공하고자 합니다.
 
-- Kotlin + Spring Boot 3.3
-- MariaDB
-- Elasticsearch
-- Docker & Docker Compose
 
-## 환경 설정
+## 시스템 설계 및 아키텍처
 
-### 필수 사항
+![](https://d2r0pavv0lsiqc.cloudfront.net/projects/images/45e60100-03bb-4d86-943f-61f4712b3bb0.webp)
 
-- JDK 21
-- Docker & Docker Compose
+- **Kotlin + Spring** 기반, **구조화와 모듈화, 추상화**를 고려한 아키텍처 설계
+- Spring WAS에서 데이터 수집, 가공, API 서빙, 인증/인가, AI 파이프라인 모두 처리
+- `Agentic RAG` 시스템으로 **팝업스토어 전략 및 개설에 대한 인사이트**를 데이터 분석과 추론 기반으로 제공
+- SNS, 팝업 관련 웹사이트, 공공 데이터 등 신뢰할 만한 데이터를 주기적으로 수집, 가공, 저장
 
-### 시작하기
+## 서비스 구성
 
-1. 저장소 클론:
+![](https://d2r0pavv0lsiqc.cloudfront.net/projects/images/b78a04a5-7c35-49b4-be7d-ec1054e58476.gif)
 
-```bash
-git clone https://github.com/your-username/where-to-pop.git
-cd where-to-pop-api
-```
+간단한 대시보드 형태의 UI로 소비자인 마케팅 대행사는 개별 마케팅 프로젝트에 대한 정보를 정의해 생성할 수 있습니다. 각 프로젝트별로 여러 채팅방이 존재하며, 팝업스토어 특화 에이전트와 대화형으로 프로젝트를 진행할 수 있게 설계하였습니다.
 
-2. 환경 변수 설정:
-   (필요에 따라 `.env` 파일 수정)
+상세한 유스케이스입니다. "마케팅 대행사가 팝업스토어를 열고 싶어하는 상황에서, 가장 적합한 건물 위치를 찾고자하는 상황"을 가정한 시나리오입니다.
 
-3. Docker Compose로 인프라 시작:
+**step 1) 타겟층을 고려한 지역 선정**
 
-```bash
-docker-compose up -d
-```
+![](https://d2r0pavv0lsiqc.cloudfront.net/projects/images/36fef51f-d154-49bf-93ef-841e29959bdc.webp)![](https://d2r0pavv0lsiqc.cloudfront.net/projects/images/32f1bfbb-c372-469d-92ea-91ced271a597.webp)**step 2) SNS 반응을 기반으로 한 지역 내 팝업스토어 사례 분석**
 
-4. 애플리케이션 실행:
+![](https://d2r0pavv0lsiqc.cloudfront.net/projects/images/fc0ac2b6-c948-40a5-b9d8-579dbb1d8242.webp)
 
-```bash
-./gradlew bootRun
-```
+**step 3) 팝업스토어가 열린 건물에 대한 상세 정보 취득**
 
-## API 문서
+![](https://d2r0pavv0lsiqc.cloudfront.net/projects/images/72aa5490-4450-4fe1-8129-cdeeac485027.webp)
 
-API 문서는 애플리케이션 실행 후 다음 URL에서 확인할 수 있습니다:
+## 기술적 차별점
 
-- Swagger UI: http://localhost:8080/docs
+### Agentic RAG를 이용한 추론 엔진
 
-## 개발 도구
+![](https://d2r0pavv0lsiqc.cloudfront.net/projects/images/7850cd6e-16aa-4333-8ad2-1382f6decfa3.webp)
 
-- DBGate (DB 관리): http://localhost:3000
-- Kibana (Elasticsearch 관리): http://localhost:5601
+Multi-Agent Router Pattern을 직접 설계하고 도입하였습니다.
 
-## 인프라 구성
+사용자 질의에 대해 **에이전트**가 **목적에 맞는 전략(검색·증강·생성)**&#xC744; 선택하고, 필요 시 함수 호출을 통해 내·외부 정보를 능동적으로 수집·처리하여 응답을 생성합니다.
 
-- MariaDB: `localhost:3306` (또는 환경변수에 설정된 포트)
-- Elasticsearch: `localhost:9200`
-- Kibana: `localhost:5601`
-- DBGate: `localhost:3000`
+- **Function Calling 명세**와 **개별 Prompt**로 구성된 검색, 증강, 생성에 특화된 전략을 정의
+- **ReAct** 기법을 적용한 라우터로 적합한 추론 계획을 설계
+- 에이전트는 추론 계획에 따라 개별 액션을 병렬 실행, 이 때 필요에 따라 적합한 Function Calling 실행
 
-## CI
+### 데이터 수집 및 처리 파이프라인 설계
 
-이 저장소는 GitHub Actions로 테스트를 자동 실행하도록 설정되어 있습니다. 변경 사항이 `main` 브랜치에 push되거나 Pull Request가 생성되면 워크플로가 실행되어 Gradle 빌드와 테스트를 수행합니다.
+![](https://d2r0pavv0lsiqc.cloudfront.net/projects/images/2f19b120-9226-4d81-bf73-7a19ee2ec5f1.webp)
+
+질의에서 사용할 데이터 수집 파이프라인의 상위 설계를 진행하고, 스프링 경험이 없던 팀원들이 여러 데이터 소스로부터 원천 데이터를 확보할 수 있도록 코틀린-스프링 기반 샘플 코드를 작성했습니다.
+
+팝업 스토어 데이터를 예시로 아래와 같은 파이프라인을 거쳐 데이터를 수집합니다.
+
+- 팝업스토어 정보 정기적 수집, 위치 기반 건축물 데이터 연계 후 DB에 저장
+- 팝업스토어 관련 메타데이터 생성 후, 벡터 임베딩하여 Vector DB에 저장
+- 의미 기반 검색 및 필터링 질의에 활용 가능하도록 구조화
+
+이외에도 서울 열린데이터광장에서 실시간 지역 데이터(유동인구 등) 확보하였습니다.
+
+### SSE 스트리밍 (Server-Sent Events)을 통한 실시간 추론 과정 표시
+
+![](https://d2r0pavv0lsiqc.cloudfront.net/projects/images/daec9fb7-a967-4caa-ab53-edd18d164200.gif)
+
+멀티 에이전트 + RAG 특성 상 **개별 질의 응답에 대해 처리시간이 오래걸려 사용성이 저해**되는 문제가 있었습니다.
+
+이에 따라 SSE를 활용해 응답 생성 과정을 단계별 메시지로 실시간 표시하도록 구현하였습니다.
+실제 답변은 스트리밍 형태로 전달되며, 각 글자를 state로 관리하여 응답 시간이 긴 상황에서도 사용자에게 즉각적인 피드백을 제공함으로써 UX를 크게 향상시켰습니다.
+
+서버 단에서는 자바의 **Reactive Streams** 기반으로, **에이전트 파이프라인을 백그라운드**에서 실행하고 실시간 응답을 SSE 기술로 스트리밍 형태로 제공합니다. 동시 실행 가능한 전략은 병렬로 실행되며, 그 결과는 구독 시점에 맞춰 순차적으로 전송됩니다.
+
+- **Cold Flow**: 질의 시점마다 AI 파이프라인이 새로 시작
+- **Mutable Flow**: 전략 단위의 병렬 비동기 작업 수행 및 결과 emit
+- **Shared Flow**: 구독 시점부터의 최신 응답을 실시간 전송
+
+## 기대효과 및 성과
+
+- 대화형 인터페이스를 통해 의사결정 시간을 단축하여 업무 효율 향상
+- 정량적 데이터 기반 추천으로 실패율을 낮추고, 타겟에 맞는 전략 수립
+- 기존에 주목받지 못한 지역도 데이터 기반 탐색을 통해 신규 유망 지역 발굴
+
+**2025년 상반기 고려대학교 정보대학 캡스톤디자인 대회에서 우수상**을 수상하였습니다.
